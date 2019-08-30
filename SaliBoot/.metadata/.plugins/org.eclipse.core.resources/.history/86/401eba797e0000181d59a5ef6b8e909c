@@ -1,0 +1,3541 @@
+//*****************************************************************************
+// main.c
+//
+// Main file for the Inovytec Ventway
+//
+// Inovytec TM 2017
+//*****************************************************************************
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include "inc/hw_types.h"
+#include "inc/hw_memmap.h"
+#include "inc/hw_gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/gpio.h"
+#include "driverlib/uart.h"
+#include "driverlib/pin_map.h"
+#include "grlib/grlib.h"
+#include "driverlib/rom.h"
+#include "TM4C123GH6PM.h"
+#include "driverlib/adc.h"
+#include "driverlib/timer.h"
+#include "ustdlib.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/pwm.h"
+#include "driverlib/watchdog.h"
+#include "inc/hw_hibernate.h"
+#include "driverlib/hibernate.h"
+#include <string.h>
+#include <stdbool.h>
+
+#include "pressure_sensor.h"
+#include "graphics.h"
+#include "ventilate.h"
+#include "audio.h"
+#include "screens.h"
+#include "alerts.h"
+#include "log.h"
+#include "defines.h"
+#include "piggy_back.h"
+
+//SD card definitions
+#include "fatfs/src/ff.h"
+#include "fatfs/src/diskio.h"
+#include "fatfs/src/integer.h"
+
+
+char version_num[10] = "1.0.2";
+int build_num = 52;
+
+//#define TEST_HIBERNATION
+
+int test_altimeter_high = false;
+int test_altimeter_low = false;
+int test_temperture = false;
+int test_5v = false;
+int test_watchdog = false;
+
+extern char warning_line1[15];
+extern char warning_line2[15];
+extern char warning_line3[15];
+
+extern int screen_after_warning_ok;
+extern int screen_after_warning_cancel;
+
+extern FRESULT fresult;
+
+extern int recalibrate_sensors;
+
+uint32_t total_file_size_check = 0;
+
+uint32_t temperature;
+
+extern double measured_peep;
+
+int password[3] = {2,2,2};
+
+extern int menu_stack[15];
+
+int count_5V_fault = 0;
+
+int total_work_hours = 0;
+
+int first_breaths = 3;
+int is_breath_ended = false;
+
+int is_hibernating = false;
+
+extern int ventilation_state;
+extern int prev_ventilation_state;
+
+extern int start_counter;
+extern int self_test_warning;
+
+int print_flow = 0;
+int print_flow_ready = 0;
+int print_flow_sum = 0;
+int print_flow_count = 0;
+
+int ignore_trigger = 0;
+
+char log_filename[20] = "log.txt";
+
+extern int inverse_ie;
+
+int breath_counter = 0;
+int prev_breath_count = 0;
+
+int g_date_year = 2000;
+int g_date_month = 1;
+int g_date_day = 1;
+int g_time_hour = 0;
+int g_time_minute = 0;
+int g_time_sec = 0;
+
+int altimeter_timer = 0;
+
+int working_hours_seconds_counter = 0;
+int working_hours_minute_counter = 0;
+char working_minutes_left[7];
+
+int filter_alert_given = 0;
+int service_alert_given = 0;
+int altitude_alert_given = 0;
+
+int on_off_switch_counter = -1;
+
+extern int next_screen_after_popup;
+int is_play_sound = -1;
+
+int redraw_batt = 1;
+
+int play_alert02_flag = false;
+
+bool is_add_alert_exp_valve_blocked = false;
+bool is_add_alert_apnea = false;
+bool is_remove_alert_apnea = false;
+bool is_add_alert_vol_limit_reached = false;
+
+bool is_remove_alert_screen = false;
+
+long	prev_input1;
+long 	prev_input2;
+
+float o2_correction_factor[9] =	{1,	0.9913,	0.9813,	0.9713,	0.9613,	0.9513,	0.9413,	0.9313,	0.9213};
+float curr_correction_factor; // this is the current o2 correction factor for the flow, according to the default which is air.
+
+								   //-1000, 0, 1000, 2000, 3000, 4000, 5000
+float height_correction_factor[7] = {0.95, 1, 1.04, 1.10, 1.16, 1.21, 1.29};
+float curr_height_correction_factor; // this is the current height correction factor for the flow, according to the default which is 1.
+
+int height_values[26] = {-1067, - 914, -762, -610, -457, -305, -152, 0, 152, 305, 457, 610, 762, 914,
+						  1067, 1219, 1372, 1524, 1829, 2134, 2438, 2743, 3048, 4572, 5000, 6096};
+
+float alt_pressure_values[26] = {115, 113, 111, 109, 107, 105, 103, 101, 99.5, 97.7, 96, 94.2, 92.5, 90.8,
+								 89.1, 87.5, 85.9, 84.3, 81.2, 78.2, 75.3, 72.4, 69.7, 57.2, 54, 46.6};
+
+int curr_altitude = 0;
+int average_altitude = 0;
+int altitude_sum = 0;
+
+enum battery_type { no_type, non_chargeable, chargeable };
+
+uint32_t  adc_data[8];
+
+int seconds_counter = 0;
+int flow_test_on = 0;
+int average_adc_data_for_flow;
+double voltageToPressureCoefficient = 23.5f;
+
+int systemUp = 0;
+
+//*****************************************************************************
+//
+// Flag to tell the watchdog interrupt handler whether or not to clear the
+// interrupt (feed the watchdog).
+//
+//*****************************************************************************
+volatile bool g_bFeedWatchdog = true;
+
+//extern int drawing;
+
+int count_t = -1;
+
+//SD card definitions
+#include "fatfs/src/ff.h"
+#include "fatfs/src/diskio.h"
+#include "fatfs/src/integer.h"
+
+// data structure for SD card
+FATFS g_sFatFs;
+FIL g_sFileObject;
+FRESULT fresult1;
+
+#include "ST7735.h"
+
+void check_selector_state();
+void check_button_state();
+void check_alerts();
+void check_battery();
+
+#define TIMER0_TICKS_PER_SECOND 500
+#define TIMER1_TICKS_PER_SECOND 500
+
+void GPIO_PORTD_IntHandler(void);
+void set_pwm();
+char wait_for_ok = true;
+
+int graph_line_color = ST7735_CYAN;
+int graph_line_draw = false;
+int graph_line_value = 0;
+
+extern float blower_intensity;
+
+extern int run_menu_active_timer;
+
+int inhale_trigger = false;
+
+int selected_age = 0;
+int prev_selected_age = -1;
+int vent_mode = VENT_MODE_NONE;
+int invasive_mode = INVASIVE_MODE;
+int prev_mode_index = -1;
+int blower_duty_cycle = 0;
+
+int isCurrentlyPainting = 0;
+
+extern int buffer_1_empty;
+extern int buffer_2_empty;
+extern int EOF_buffer1;
+extern int EOF_buffer2;
+extern char audio[1024];
+extern UINT usBytesRead;
+
+
+extern int alert_on_screen;
+
+uint32_t rotate_ccw = 0;
+uint32_t rotate_cw = 0;
+int g_blower_cycles_per_second = 0;
+int g_blower_cycles_per_minute = 0;
+int g_new_blower_cycles_per_minute = 0;
+
+//*****************************************************************************
+// Main table for SIMV VC PS
+//*****************************************************************************
+int   table_weight[9];
+int   table_bpm[9];
+int   table_ps[9];
+float table_insp_time[9];
+int   table_tidal_volume[9];
+int   table_volume_limit[9];
+
+
+//*****************************************************************************
+// Main table for CPAP
+//*****************************************************************************
+int   table_cpap_weight[9];
+int   table_cpap_pressure_support[9];
+int   table_cpap_tidal_volume_limit_invasive[9];
+int   table_cpap_tidal_volume_limit_noninvasive[9];
+int   table_cpap_max_pressure_invasive[9];
+int   table_cpap_pressure_limit_invasive[9];
+int   table_cpap_max_pressure_noninvasive[9];
+int   table_cpap_pressure_limit_all[9];
+int   table_cpap_apnea[9];
+int   table_cpap_trigger_sens[9];
+
+int   starting_blower_speed_simv[9]	=	{80,    80,   80,   85,   85,  85,   90,   90,   90  };
+int   starting_blower_speed_cpap[9]	=	{80,    80,   80,   85,   85,  85,   90,   90,   90  };
+
+
+//*****************************************************************************
+// Modifiable parameters
+//*****************************************************************************
+int param_pressure_support = 10;
+int param_tidal_volume_limit = 500;
+
+int param_o2_percent = 21; // default o2 enrichment, in actuality this is air....
+float param_selected_peep = 5.0f;
+
+extern int alert_param_resp_rate_high;          // 4-60  times per minute
+extern int alert_param_resp_rate_low;           // 1-55  times per minute
+extern int alert_param_minute_volume_high;      // 105-150%
+extern int alert_param_minute_volume_low;       // 20-95%
+extern int alert_param_insp_pressure_high;      // 4-60  cmH2o
+extern int alert_param_insp_pressure_low;       // 1-50  cmH2o
+extern int alert_param_apnea;                   // 5-120 seconds
+extern int alert_param_leak;                    // 0%-100%
+extern int alert_param_low_tidal_volume;        // off or 15%-85%
+extern int alert_param_volume_limit_reached;    // 100-2000 mL
+extern int alert_param_inv_i_e;                 // true = on, false = off
+extern int alert_param_patient_disconnect;      // true = on, false = off
+extern int alert_param_pressure_limit;		    // 10 - 60 cmH2o
+extern int alert_param_pressure_alert;          // 10 - 55 cmH2o
+
+extern int param_alert_volume;
+
+char is_ventilating = false;
+
+int i_e_ratio = 2;
+
+float curr_set_insp_time;
+int curr_set_br;
+int curr_set_pip;
+int curr_set_vt;
+bool weight_chosen = false;
+
+#define TABLE_MIN 0
+#define TABLE_MAX 8
+
+int weight_table_index = -1;
+int prev_weight_table_index = -1;
+
+
+// Battery and charger status
+int battery_value = 0;
+int battery_state = -1;
+int is_external_connected = 0;
+int prev_is_external_connected = 0;
+int is_v14_bat_charging = 0;
+int is_v12_bat_connected = 0;
+int is_v14_bat_connected = 0;
+
+int g_altimeter_input =  -1;
+int g_new_altimeter_input = false;
+float altimeter_voltage = 0.0f;
+float altimeter_pressure = 0.0f;
+
+// Selector State
+int selector_analog;
+
+
+// Breath
+char sensors_calibrated = false;
+int avg_count = 0;
+unsigned long Volume = 0;
+unsigned long Pressure = 0;
+double Pressure_cmH2O = 0;
+
+int Flow = 0;
+float Flow_LPM = 0.0f;
+float Max_Flow_LPM = 0.0f;
+float suction_flow = 0.0f;
+double PIP = 0.0f;
+double latest_PIP = 0.0f;
+int PIP_to_print = 0;
+int new_PIP = 0;
+int update_pressure_bar = 0;
+
+int disconnect_counter = 0;
+int tube_disconnect_counter = 0;
+
+double last_positive_volume = 0;
+double positive_volume = 0;
+double last_negative_volume = 0;
+double negative_volume = 0;
+
+double TIDAL_VOLUME = 0;
+double CURRENT_TIDAL_VOLUME = 0;
+double TOTAL_BREATH_VOLUME = 0;
+int new_TIDAL_VOLUME = 0;
+
+//double CURRENT_VOLUME = 0;
+int new_MV = 0;
+int bpm = 0;
+int new_BR = 0;
+int BR_to_print = 0;
+int selector_status = 0;
+
+double Pressure_baseline = 0;
+double Pressure_baselineV = 0;
+double Pressure_baseline_cmH2O = 0;
+double Flow_baseline = 0;
+
+int Breath_length_array[5] = {0,0,0,0,0};
+int Curr_breath_length = 0;
+
+double Pressure_data[100];
+int Pressure_index = 0;
+int Pressure_data_array_filled = false;
+
+int screen = SCREEN_LOGO;
+int prev_screen = SCREEN_NONE;
+//int return_screen = SCREEN_NONE;
+
+char str[20];
+
+void set_blower_duty(float val);
+
+//*****************************************************************************
+//
+// The interrupt handler for the watchdog.  This feeds the dog (so that the
+// processor does not get reset).
+//
+//*****************************************************************************
+void
+WatchdogIntHandler(void)
+{
+    //
+    // If we have been told to stop feeding the watchdog, return immediately
+    // without clearing the interrupt.  This will cause the system to reset
+    // next time the watchdog interrupt fires.
+    //
+    if(!g_bFeedWatchdog)
+    {
+        return;
+    }
+
+    //
+    // Clear the watchdog interrupt.
+    //
+    ROM_WatchdogIntClear(WATCHDOG0_BASE);
+}
+
+//****************************************************************************************************************
+// Routine: void itoa(int value, char* result, int base)
+// Input: value - integer to convert, result - the converted value in string format, base - the base of the integer value
+// Function: Converts an integer to a string
+//****************************************************************************************************************
+void itoa(int value, char* result, int base)
+{
+	// check that the base is valid
+    if (base < 2 || base > 36)
+    {
+    	*result = '\0';
+    }
+
+    char* ptr = result, *ptr1 = result, tmp_char;
+    int tmp_value;
+
+    do
+    {
+    	tmp_value = value;
+        value /= base;
+        *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz" [35 + (tmp_value - value * base)];
+    }while (value);
+
+    // Apply negative sign
+    if (tmp_value < 0)
+    {
+    	*ptr++ = '-';
+    }
+
+    *ptr-- = '\0';
+
+    while(ptr1 < ptr)
+    {
+    	tmp_char = *ptr;
+        *ptr--= *ptr1;
+        *ptr1++ = tmp_char;
+    }
+}
+
+//*****************************************************************************
+// Routine: int write_to_file(char* content, char * filename)
+// Input: content - a string to write to the given file name
+// Output: true/false, was the file written correctly
+// Function: Writes to a file on the SD card.
+//*****************************************************************************
+int write_to_file(char* content, char * filename, BYTE open_mode)
+{
+	FRESULT fresult;
+	UINT usBytesRead;
+	int size = 0;
+	int num = 0;
+
+	while(content[num] != '\0')
+	{
+		num++;
+	}
+	if(num == 0) return false;
+
+	fresult = f_open(&g_sFileObject, filename , open_mode);
+	if(fresult != FR_OK) return false;
+	size=(&g_sFileObject)->fsize;
+	f_lseek(&g_sFileObject, size);
+	fresult = f_write(&g_sFileObject, content, num, &usBytesRead);
+	if(fresult != FR_OK) return false;
+	f_close(&g_sFileObject);
+	if(fresult != FR_OK) return false;
+
+	return true;
+}
+
+// *******************************************************************************
+// This function prints the wanted lines in show log screen
+// *******************************************************************************
+void print_log_file_lines(int current_line, int total_lines, int *line_start)
+{
+	FRESULT fresult;
+	char line[30];
+	char c[2];
+	int i,j,k;
+	char prev_char = '\0';
+
+	fresult = f_open(&g_sFileObject, log_filename , FA_READ);
+
+	for(j = 0; j < 7; j++)
+	{
+		if(j < total_lines)
+		{
+			i = 0;
+			f_lseek(&g_sFileObject, line_start[current_line]);
+			do
+			{
+				fresult = f_read(&g_sFileObject, c, 1, &usBytesRead);
+
+				if(usBytesRead == 1 && c[0] != '\r' && c[0] != '[' && c[0] != ']')
+				{
+					if(!(prev_char == ':' && c[0] == ' '))
+					{
+						line[i] = c[0];
+						prev_char = c[0];
+						i++;
+					}
+				}
+			}while(usBytesRead != 0 && fresult == FR_OK && c[0] != '\r' && i <= 25);
+
+			for(k = 0; k <= 20; k++)
+			{
+				line[i] = ' ';
+				i++;
+			}
+			line[i] = '\0';
+			current_line--;
+
+			drawString(line, 2, 20 + j * 12, ST7735_WHITE, ST7735_BLACK, 1);
+		}
+	}
+
+	f_close(&g_sFileObject);
+}
+
+// *******************************************************************************
+// This function opens the log file for print in show log screen
+// *******************************************************************************
+int read_log_file_for_print(int *line_start)
+{
+
+	FRESULT fresult;
+	unsigned int usBytesRead;
+	int file_location = 0;
+	int current_line = 0;
+	int total_lines = 0;
+	char c[2];
+
+	line_start[0] = 0;
+
+	fresult = f_open(&g_sFileObject, log_filename , FA_READ);
+	if(fresult != FR_OK) return false;
+	do
+	{
+		fresult = f_read(&g_sFileObject, c, 1, &usBytesRead);
+
+		if(c[0] == '\r')
+		{
+			current_line++;
+			line_start[current_line] = file_location + 1;
+		}
+		file_location++;
+	}while(usBytesRead != 0 && fresult == FR_OK);
+
+	total_lines = current_line - 1;
+
+	f_close(&g_sFileObject);
+	return total_lines;
+}
+
+//*****************************************************************************
+// Routine: void log_message(char* content)
+// Input: content - a string to write to the log file
+// Output: true/false, was the file written correctly
+// Function: Adds a time stamp and writes to a log file on the SD card.
+//*****************************************************************************
+int log_message(char* content)
+{
+	if(log_filename[0] == '\0') return 0;
+
+	char time_stamp[80];
+	usprintf(time_stamp,"[%02d:%02d:%02d]: ",g_time_hour, g_time_minute, g_time_sec);
+	strcat(time_stamp, content);
+	strcat(time_stamp, "\r");
+	return write_to_file(time_stamp, log_filename, FA_WRITE | FA_OPEN_ALWAYS);
+}
+
+//*****************************************************************************
+// Routine: int read_file(char *name, char* content)
+// Input: name - file name to open
+//        content - a string for returning the file content
+// Output: true/false, was the file opened correctly
+// Function: Opens a file on the SD card.
+//*****************************************************************************
+int read_file(char *name, char* content)
+{
+	FRESULT fresult;
+	unsigned int usBytesRead;
+	int index = 0;
+	char c[2];
+
+	fresult = f_open(&g_sFileObject, name , FA_READ);
+	if(fresult != FR_OK) return false;
+	do
+	{
+		fresult = f_read(&g_sFileObject, c, 1, &usBytesRead);
+		if(fresult != FR_OK) return false;
+
+		//we've reached the end of the file
+		if(usBytesRead < 1)
+		{
+			break;
+		}
+
+		if(c[0] == '\r')
+			content[index]  = '\0';
+		else
+			content[index] = c[0];
+
+		index++;
+	}while(c[0] != '\r');
+
+	f_close(&g_sFileObject);
+	return true;
+}
+
+//******************************************************************************************************************************
+// Routine: void save_working_params(char* content)
+// Input: none
+// Output: true/false, was the file written correctly
+// Function: Writes to a params.txt file on the SD card. in case of a crash we can load latest working parameters
+//******************************************************************************************************************************
+int save_working_params()
+{
+	char content[50];
+
+	// write if in middle of ventilation
+	if(is_ventilating)
+	{
+		usprintf(content,"vent\n");
+	}
+	else
+	{
+		usprintf(content,"nonve\n");
+	}
+
+	// write ventilation mode parameter
+	if(vent_mode == VENT_MODE_VC_SIMV_PS)
+	{
+		strcat(content,"mode simv\n");
+	}
+	else if(vent_mode == VENT_MODE_CPAP || VENT_MODE_CPAP_BACKUP)
+	{
+		strcat(content,"mode cpap\n");
+	}
+	else
+	{
+		strcat(content,"mode none\n");
+	}
+
+	// write weight parameter
+	char weight_param[20];
+	usprintf(weight_param,"weight %d\n", weight_table_index);
+	strcat(content, weight_param);
+
+	// write invasive mode
+	if(invasive_mode == NON_INVASIVE_MODE)
+	{
+		strcat(content,"nonin\n");
+	}
+	else
+	{
+		strcat(content,"inv\n");
+	}
+
+	return write_to_file(content, "params.txt", FA_WRITE | FA_CREATE_ALWAYS);
+}
+
+//***********************************************************************************
+// Routine: int get_working_params(char* content)
+// Input: content - a string representing minutes to read into from the wh.txt file
+// Output: true/false, was the file opened correctly
+// Function: Reads params.txt file on the SD card. in case of a crash we load latest working parameters
+//***********************************************************************************
+int get_working_params()
+{
+	char content[50];
+	int success = false;
+	int index = 0;
+
+	success = read_file("params.txt", content);
+
+	while(content[index] != NULL && index <= 46)
+	{
+		// get the vent mode parameter
+		if(content[index] == 's' &&
+		   content[index + 1] == 'i' &&
+		   content[index + 2] == 'm' &&
+		   content[index + 3] == 'v')
+		{
+			vent_mode = VENT_MODE_VC_SIMV_PS;
+		}
+		if(content[index] == 'c' &&
+		   content[index + 1] == 'p' &&
+		   content[index + 2] == 'a' &&
+		   content[index + 3] == 'p')
+		{
+			vent_mode = VENT_MODE_CPAP;
+		}
+
+		// get the weight index parameter
+		if(content[index] >= '0' && content[index] <= '9')
+		{
+			weight_table_index = content[index] - '0';
+		}
+
+		// get the invasive mode
+		if(content[index] == 'i' && content[index + 1] == 'n' && content[index + 2] == 'v')
+		{
+			invasive_mode = INVASIVE_MODE;
+		}
+		if(content[index] == 'n' && content[index + 1] == 'o' && content[index + 2] == 'n' && content[index + 3] == 'i')
+		{
+			invasive_mode = NON_INVASIVE_MODE;
+		}
+
+		// get if in middle of vent
+		if(content[index] == 'v' && content[index + 1] == 'e' && content[index + 2] == 'n' && content[index + 3] == 't')
+		{
+			is_ventilating = true;
+		}
+		if(content[index] == 'n' && content[index + 1] == 'o' && content[index + 2] == 'n' && content[index + 3] == 'v')
+		{
+			is_ventilating = false;
+		}
+
+		index++;
+	}
+
+	return success;
+}
+
+//******************************************************************************************************************************
+// Routine: void save_working_hours_amount(char* content)
+// Input: content - a string representing minutes to write to the wh.txt file
+// Output: true/false, was the file written correctly
+// Function: Writes to a wh.txt file on the SD card. (we want to clean the file before every time we write to it)
+//******************************************************************************************************************************
+int save_working_hours_amount(char* content)
+{
+	return write_to_file(content, "wh.txt", FA_WRITE | FA_CREATE_ALWAYS);
+}
+
+//***********************************************************************************
+// Routine: int get_working_hours_amount(char* content)
+// Input: content - a string representing minutes to read into from the wh.txt file
+// Output: true/false, was the file opened correctly
+// Function: reads a wh.txt file on the SD card.
+//***********************************************************************************
+int get_working_hours_amount(char* content)
+{
+	return read_file("wh.txt", content);
+}
+
+//***********************************************************************************
+// Routine: int get_filter_alert_ind(char* content)
+// Input: content - a boolean indication of whether or not a filter alert was given
+// Output: true/false, was the file opened correctly
+// Function: reads a fil_ind.txt file on the SD card.
+//***********************************************************************************
+int get_filter_alert_ind(char* content)
+{
+	return read_file("fil_ind.txt", content);
+}
+
+//***********************************************************************************
+// Routine: int update_filter_alert_ind(char* content)
+// Input: content - a boolean indication we want to update in the file
+// Output: true/false, was the file written correctly
+// Function: Writes to a fil_ind.txt file on the SD card. (we want to clean the file before every time we write to it)
+//***********************************************************************************
+int update_filter_alert_ind(char* content)
+{
+	return write_to_file(content, "fil_ind.txt", FA_WRITE | FA_CREATE_ALWAYS);
+}
+
+//**********************************************************************************************************
+// Routine: void init_working_hours()
+// Function: tries to read the former wh amount saved ob the SD card and update the working_minutes_left value
+//**********************************************************************************************************
+void init_working_hours()
+{
+	int wh_read = -1;
+
+	wh_read = get_working_hours_amount(working_minutes_left);
+
+	switch(wh_read)
+	{
+	case 0: //nothing read
+		working_hours_minute_counter = 0;
+		break;
+
+	case 1: // value read
+		working_hours_minute_counter = (900000 - atoi(working_minutes_left));
+		total_work_hours = working_hours_minute_counter / 60;
+		break;
+
+	default:
+		break;
+	}
+}
+
+//***********************************************************************************
+// Routine: int get_test_params(char* content)
+// Input: content - a string representing minutes to read into from the wh.txt file
+// Output: true/false, was the file opened correctly
+// Function: Reads test.txt file on the SD card.
+//***********************************************************************************
+int get_test_params()
+{
+	char content[50];
+	int success = false;
+
+	success = read_file("test.txt", content);
+
+	if(content[0] == 'A' && content[1] == 'L' && content[2] == 'T' && content[3] == 'H')
+	{
+		test_altimeter_high = true;
+	}
+	else if(content[0] == 'A' && content[1] == 'L' && content[2] == 'T' && content[3] == 'L')
+	{
+		test_altimeter_low = true;
+	}
+	else if(content[0] == 'T' && content[1] == 'E' &&content[2] == 'M' && content[3] == 'P')
+	{
+		test_temperture = true;
+	}
+	else if(content[0] == '5' && content[1] == 'V')
+	{
+		test_5v = true;
+	}
+	else if(content[0] == 'W' && content[1] == 'D')
+	{
+		test_watchdog = true;
+	}
+	return success;
+}
+
+//*****************************************************************************
+// Delays a certain amount of milliseconds.
+//*****************************************************************************
+void delay_ms(int ms)
+{
+	SysCtlDelay((80000000/3000) * ms / 2.5);
+}
+
+//*****************************************************************************
+// Send a string to the UART.
+//*****************************************************************************
+void UARTSend(const unsigned char *pucBuffer, unsigned long ulCount)
+{
+    //
+    // Loop while there are more characters to send.
+    //
+    while(ulCount--)
+    {
+        //
+        // Write the next character to the UART.
+        //
+        UARTCharPutNonBlocking(UART0_BASE, *pucBuffer++);
+    }
+}
+
+//*****************************************************************************
+// Routine:  init_hibernation()
+// Input: none
+// Output: none
+// Function: Initializes the hibernation module
+//*****************************************************************************
+void init_hibernation()
+{
+    //
+    // Enable the Hibernation module.
+    //
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_HIBERNATE);
+
+    //
+    // Wait for the Hibernate module to be ready.
+    //
+    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_HIBERNATE))
+    {
+    }
+
+    HibernateEnableExpClk(SysCtlClockGet());
+    HibernateGPIORetentionEnable();
+    SysCtlDelay(64000000);
+    HibernateWakeSet(HIBERNATE_WAKE_PIN);
+
+    /*
+    while(1)
+    {
+
+    }
+    */
+
+    // Check to see if Hibernation module is already active, which could mean
+    // that the processor is waking from a hibernation.
+    //
+    if(HibernateIsActive())
+    {
+
+
+    }
+}
+
+//*****************************************************************************
+// Initialize the ventway
+//*****************************************************************************
+void initialize()
+{
+    // Enable lazy stacking for interrupt handlers.  This allows floating-point
+    // instructions to be used within interrupt handlers, but at the expense of
+    // extra stack usage.
+    ROM_FPULazyStackingEnable();
+
+    // Set the clocking to run directly from the crystal.
+    SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_OSC_MAIN|SYSCTL_XTAL_16MHZ); // 80MHZ
+
+    // Enable the peripherals used by this program.
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
+
+    // Init LCD screen
+    LcdInit();
+
+#ifdef EVAL_BOARD
+    // Set GPIO A0 and A1 as UART pins.
+    ROM_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+
+    // Configure the UART for 115,200, 8-N-1 operation.
+    ROM_UARTConfigSetExpClk(UART0_BASE, ROM_SysCtlClockGet(), 115200,
+                            (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
+                             UART_CONFIG_PAR_NONE));
+
+    // Enable the UART interrupt.
+    ROM_IntEnable(INT_UART0);
+    ROM_UARTIntEnable(UART0_BASE, UART_INT_RX | UART_INT_RT);
+#else
+    // Set GPIO A0 and A1 as input pins for 12_v_bat_stat and 14_v_bat_stat.
+    GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_0);
+    GPIOPadConfigSet(GPIO_PORTA_BASE,GPIO_PIN_0,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD);
+
+    GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_1);
+    GPIOPadConfigSet(GPIO_PORTA_BASE,GPIO_PIN_1,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD);
+#endif
+
+    // Configure STAT1 and STAT2
+    GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_6);
+    GPIOPadConfigSet(GPIO_PORTC_BASE,GPIO_PIN_6,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU);
+
+    GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_7);
+    GPIOPadConfigSet(GPIO_PORTC_BASE,GPIO_PIN_7,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU);
+
+
+    // Enable and configure GPIO port F pin 4 for the on/off switch operation.
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+    GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, GPIO_PIN_4);
+    GPIOPadConfigSet(GPIO_PORTF_BASE,GPIO_PIN_4,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU);
+    GPIOIntTypeSet(GPIO_PORTF_BASE, GPIO_PIN_4, GPIO_BOTH_EDGES);
+    GPIOIntEnable(GPIO_PORTF_BASE, GPIO_PIN_4);
+    IntEnable(INT_GPIOF);
+
+    // Enable and configure the GPIO port for the selector operation.
+#ifndef NEW_BOARD_24V
+    GPIOPinTypeGPIOInput(GPIO_PORTD_BASE, GPIO_PIN_1);
+    GPIOPadConfigSet(GPIO_PORTD_BASE,GPIO_PIN_1,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPD);
+    GPIOIntTypeSet(GPIO_PORTD_BASE, GPIO_PIN_1, GPIO_BOTH_EDGES);
+    GPIOIntEnable(GPIO_PORTD_BASE, GPIO_PIN_1);
+#endif // NEW_BOARD_24V
+
+    GPIOPinTypeGPIOInput(GPIO_PORTD_BASE, GPIO_PIN_2);
+    GPIOPadConfigSet(GPIO_PORTD_BASE,GPIO_PIN_2,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU);
+    GPIOIntTypeSet(GPIO_PORTD_BASE, GPIO_PIN_2, GPIO_BOTH_EDGES);
+    GPIOIntEnable(GPIO_PORTD_BASE, GPIO_PIN_2);
+
+	GPIOPinTypeGPIOInput(GPIO_PORTD_BASE, GPIO_PIN_3);
+	GPIOPadConfigSet(GPIO_PORTD_BASE,GPIO_PIN_3,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU);
+    GPIOIntTypeSet(GPIO_PORTD_BASE, GPIO_PIN_3, GPIO_BOTH_EDGES);
+    GPIOIntEnable(GPIO_PORTD_BASE, GPIO_PIN_3);
+
+	IntEnable(INT_GPIOD);
+
+    // Enable and configure the GPIO port for the solenoid operation.
+    GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_5);
+    GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_5);
+
+    // Enable and configure the GPIO port for the blower operation.
+    GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_4);
+
+    // Tacho input (Blower speed)
+    GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_0);
+    GPIOIntClear(GPIO_PORTE_BASE, GPIO_PIN_0);
+    GPIOIntTypeSet(GPIO_PORTE_BASE, GPIO_PIN_0, GPIO_RISING_EDGE);
+    GPIOIntEnable(GPIO_PORTE_BASE, GPIO_PIN_0);
+    IntEnable(INT_GPIOE);
+
+    set_pwm();
+
+    // Set up timer
+	//TIMER0 for ADC
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
+	TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
+	TimerConfigure(TIMER0_BASE, (TIMER_CFG_A_PERIODIC |TIMER_CFG_B_PERIODIC));
+	TimerLoadSet(TIMER0_BASE, TIMER_A, (SysCtlClockGet()/TIMER0_TICKS_PER_SECOND)); //100 times per second ( 10 milisecond)
+	TimerControlTrigger(TIMER0_BASE, TIMER_A, true);
+	TimerEnable(TIMER0_BASE, TIMER_A);
+	TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+
+	//TIMER1 for interrupts
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
+	TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
+	TimerLoadSet(TIMER1_BASE, TIMER_A, ROM_SysCtlClockGet()/TIMER1_TICKS_PER_SECOND);
+	IntEnable(INT_TIMER1A);
+	TimerEnable(TIMER1_BASE, TIMER_A);
+	TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+
+	// Configure the ADC sample sequence.
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+    while(!(SysCtlPeripheralReady(SYSCTL_PERIPH_ADC0)));
+
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+	GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_1| GPIO_PIN_2| GPIO_PIN_3| GPIO_PIN_4);
+
+#ifdef NEW_BOARD_24V
+    GPIOPinTypeADC(GPIO_PORTD_BASE, GPIO_PIN_1);
+    GPIOPadConfigSet(GPIO_PORTD_BASE,GPIO_PIN_1,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_ANALOG);
+#endif
+
+	GPIOPadConfigSet(GPIO_PORTE_BASE,GPIO_PIN_1,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_ANALOG);
+	GPIOPadConfigSet(GPIO_PORTE_BASE,GPIO_PIN_2,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_ANALOG);
+	GPIOPadConfigSet(GPIO_PORTE_BASE,GPIO_PIN_3,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_ANALOG);
+	GPIOPadConfigSet(GPIO_PORTE_BASE,GPIO_PIN_4,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_ANALOG);
+
+	ADCSequenceConfigure(ADC0_BASE, 0, ADC_TRIGGER_TIMER, 0);
+	ADCSequenceStepConfigure(ADC0_BASE, 0, 0, ADC_CTL_CH0);
+	ADCSequenceStepConfigure(ADC0_BASE, 0, 1, ADC_CTL_CH1);
+	ADCSequenceStepConfigure(ADC0_BASE, 0, 2, ADC_CTL_CH2);
+#ifdef NEW_BOARD_24V
+	ADCSequenceStepConfigure(ADC0_BASE, 0, 3, ADC_CTL_CH6);
+    ADCSequenceStepConfigure(ADC0_BASE, 0, 4, ADC_CTL_CH9);
+    ADCSequenceStepConfigure(ADC0_BASE, 0, 5, ADC_CTL_TS |  ADC_CTL_END | ADC_CTL_IE);
+#else
+	ADCSequenceStepConfigure(ADC0_BASE, 0, 3, ADC_CTL_CH9 |  ADC_CTL_END | ADC_CTL_IE);
+#endif
+	ADCSequenceEnable(ADC0_BASE, 0);
+
+	// Enable 8x hardware averaging
+	ADCHardwareOversampleConfigure(ADC0_BASE, 8);
+
+	IntEnable(INT_ADC0SS0);
+	ADCIntEnable(ADC0_BASE, 0);
+
+    // Enable processor interrupts.
+    IntMasterEnable();
+
+    // Fill black screen
+	fillScreen(ST7735_BLACK);
+	setRotation(1);
+
+	// screen back light
+    GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE, GPIO_PIN_0);
+    GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, 0xff);
+
+
+#ifdef EVAL_BOARD
+	// Init SD-card connection
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI2);
+
+	GPIOPinConfigure(GPIO_PB4_SSI2CLK);
+	GPIOPinConfigure(GPIO_PB5_SSI2FSS);
+	GPIOPinConfigure(GPIO_PB6_SSI2RX);
+	GPIOPinConfigure(GPIO_PB7_SSI2TX);
+#else
+	// Init SD-card connection
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI1);
+
+	GPIOPinConfigure(GPIO_PF2_SSI1CLK);
+	GPIOPinConfigure(GPIO_PF3_SSI1FSS);
+	GPIOPinConfigure(GPIO_PF0_SSI1RX);
+	GPIOPinConfigure(GPIO_PF1_SSI1TX);
+#endif
+
+	ROM_SysTickEnable();
+	ROM_SysTickIntEnable();
+	ROM_SysTickPeriodSet(ROM_SysCtlClockGet() / 100);
+	fresult1=f_mount(0, &g_sFatFs);
+	if(fresult1 != FR_OK)
+	{
+		drawString("Failed init fat fs ",   0, 120,  ST7735_YELLOW, ST7735_BLUE, 1);
+	}
+
+#ifdef ENABLE_WATCHDOG
+	// Enable the watchdog.
+	ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_WDOG0);
+    ROM_IntEnable(INT_WATCHDOG);
+    ROM_WatchdogReloadSet(WATCHDOG0_BASE, ROM_SysCtlClockGet());
+    ROM_WatchdogResetEnable(WATCHDOG0_BASE);
+    ROM_WatchdogEnable(WATCHDOG0_BASE);
+#endif
+
+#ifndef EVAL_BOARD
+    // Init audio
+    init_audio();
+#endif
+
+    init_working_hours();
+    //init_hibernation();
+}
+
+// *******************************************************
+// An empty interrupt handler for the rotator,
+// it is handled through the timer interrupt
+// *******************************************************
+void GPIO_PORTD_IntHandler(void)
+{
+	check_selector_state();
+	return;
+}
+
+// *******************************************************
+// An interrupt handler for the blower tacho,
+// *******************************************************
+void GPIO_PORTE_IntHandler(void)
+{
+	static int 	prev_time_sec = 0;
+
+	//static int prev_status = -1;
+	GPIOIntClear(GPIO_PORTE_BASE, GPIO_PIN_0);
+	int status = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_0) & GPIO_PIN_0;
+
+	if(status)
+	{
+		g_blower_cycles_per_second++;
+	}
+
+	if(g_time_sec != prev_time_sec)
+	{
+		// Update blower avarage cycles per minute
+		g_blower_cycles_per_minute = g_blower_cycles_per_second * 20; // 60 seconds , counts 3 times every cycle
+		g_blower_cycles_per_second = 0;
+		prev_time_sec = g_time_sec;
+	}
+}
+
+
+void end_hibernate();
+
+// *******************************************************
+// An interrupt handler for the on off  switch
+// *******************************************************
+void GPIO_PORTF_IntHandler(void)
+{
+	int status = GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_4) & GPIO_PIN_4;
+
+	// the button is not pressed
+	if(status)
+	{
+		on_off_switch_counter = -1;
+		//fillScreen(ST7735_GREEN);
+	}
+	// the button is pressed for 3 seconds.
+	else
+	{
+		if(is_hibernating)
+		{
+		    while(1);;
+			end_hibernate();
+
+		}
+		else
+		{
+			on_off_switch_counter = TIMER1_TICKS_PER_SECOND * 3;
+		}
+		//fillScreen(ST7735_BLUE);
+	}
+
+	GPIOIntClear(GPIO_PORTF_BASE, GPIO_PIN_4);
+}
+
+
+
+#define ROTATE_TIME 30
+
+void check_button_state()
+{
+	int input3 = 0;
+	static int prev_input3 = 0;
+
+	GPIOIntClear(GPIO_PORTD_BASE, GPIO_PIN_1);
+
+#ifdef NEW_BOARD_24V
+    input3 = selector_analog;
+    if(input3 > 2048)input3 = 1;
+    else input3 = 0;
+    //drawNumber_f12(selector_analog, ST7735_YELLOW, ST7735_BLUE, 0, 15, 4);
+#else
+	input3 = GPIOPinRead(GPIO_PORTD_BASE, GPIO_PIN_1) & GPIO_PIN_1;
+#endif
+
+	// Check if the roatator was pressed
+	//--------------------------------------------------------------------
+	static int button3_timer = 0;
+	if(button3_timer > 0) button3_timer --;
+	if(input3 != prev_input3)
+	{
+		// Button released
+		if(input3 == 0)
+		{
+			if(button3_timer == 0)
+			{
+				wait_for_ok = false;
+				button3_timer = 100;
+			}
+		}
+	}
+	prev_input3 = input3;
+}
+
+// *******************************************************
+// Handles rotater state, called from timer interrupt
+// *******************************************************
+void check_selector_state()
+{
+	long input1 = 0,input2 = 0;
+
+	//static int rotate_timer = ROTATE_TIME;
+	//if(rotate_timer < ROTATE_TIME) rotate_timer++;
+
+	// Read the 3 inputs from the rotator
+	//--------------------------------------------------------------------
+	GPIOIntClear(GPIO_PORTD_BASE, GPIO_PIN_2);
+	GPIOIntClear(GPIO_PORTD_BASE, GPIO_PIN_3);
+
+	input1 = GPIOPinRead(GPIO_PORTD_BASE, GPIO_PIN_2) & GPIO_PIN_2;
+	input2 = GPIOPinRead(GPIO_PORTD_BASE, GPIO_PIN_3) & GPIO_PIN_3;
+
+	if(isCurrentlyPainting) return;
+
+	// Check if the roatator was rotated
+	//--------------------------------------------------------------------
+	if(prev_input1 != input1 || prev_input2 != input2)
+	{
+		//if(rotate_timer == ROTATE_TIME)
+		//{
+			if(prev_input1 == 0 && prev_input2 == 0)
+			{
+				if(input1 == 4)	rotate_ccw = 1;
+				if(input2 == 8)	rotate_cw = 1;
+			}
+			if(prev_input1 == 4 && prev_input2 == 0)
+			{
+				if(input1 == 0)	rotate_cw = 1;
+				if(input2 == 8)	rotate_ccw = 1;
+			}
+			if(prev_input1 == 4 && prev_input2 == 8)
+			{
+				if(input1 == 0)	rotate_ccw = 1;
+				if(input2 == 0)	rotate_cw = 1;
+			}
+			if(prev_input1 == 0 && prev_input2 == 8)
+			{
+				if(input1 == 4)	rotate_cw = 1;
+				if(input2 == 0)	rotate_ccw = 1;
+			}
+			//rotate_timer = 0;
+		//}
+	}
+#ifndef EVAL_BOARD
+	// rotator is reversed on real board.
+	char temp = rotate_cw;
+	rotate_cw = rotate_ccw;
+	rotate_ccw = temp;
+#endif // EVALBOARD
+
+#ifdef TEST_FLOW
+	static int intensity = 0;
+	if(screen == SCREEN_RUN || screen == SCREEN_GRAPH)
+	{
+		//GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_5, 0x00);
+		//GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_5, 0x00);
+		turn_insp_sol_on();
+		if(rotate_ccw)
+		{
+			if(intensity > 0) intensity = intensity - 5;
+			rotate_ccw = 0;
+		}
+		if(rotate_cw)
+		{
+			if(intensity < 100) intensity = intensity + 5;
+			rotate_cw = 0;
+		}
+		set_blower_duty(intensity);
+	}
+#endif //TEST_FLOW
+
+	prev_input1 = input1;
+	prev_input2 = input2;
+}
+
+// *******************************************************
+// Checks for life threatening alerts
+// called from check_alerts() which is called from timer interrupt handler
+// *******************************************************
+void check_life_threatening_alerts()
+{
+	if(is_ventilating == true)
+	{
+		if(first_breaths == 0 && breath_counter != prev_breath_count)
+		{
+			// *********************************************************************
+			// Alert for patient disconnect / tube disconnect
+			// *********************************************************************
+			float leak = 0.0f;
+
+			if(last_positive_volume > 10.0f && last_negative_volume < 1000.0f)
+			{
+				leak = 1.0f - (last_negative_volume / last_positive_volume);
+
+				if(leak > 0.8f || latest_PIP < param_selected_peep - 2)
+				{
+					if(Flow_LPM >10)
+					{
+						if(!is_alert_active(ALERT_PATIENT_DISCONNECT))
+						{
+							disconnect_counter++;
+						}
+					}
+					else
+					{
+						if(!is_alert_active(ALERT_TUBE_DISCONNECT))
+						{
+							tube_disconnect_counter++;
+						}
+					}
+					Max_Flow_LPM = 0.0f;
+				}
+				else
+				{
+					if(is_alert_active(ALERT_PATIENT_DISCONNECT))
+					{
+						remove_active_alert(ALERT_PATIENT_DISCONNECT);
+					}
+					else if(is_alert_active(ALERT_TUBE_DISCONNECT))
+					{
+						remove_active_alert(ALERT_TUBE_DISCONNECT);
+					}
+
+					disconnect_counter = 0;
+					tube_disconnect_counter = 0;
+				}
+
+				if(disconnect_counter == 2 && !is_alert_active(ALERT_PATIENT_DISCONNECT))
+				{
+					add_active_alert(ALERT_PATIENT_DISCONNECT);
+					disconnect_counter = 0;
+				}
+				else if(tube_disconnect_counter == 2 && !is_alert_active(ALERT_TUBE_DISCONNECT))
+				{
+					add_active_alert(ALERT_TUBE_DISCONNECT);
+					tube_disconnect_counter = 0;
+				}
+			}
+		}
+
+
+
+		// *********************************************************************
+		// Alert for apnea
+		// *********************************************************************
+		if(is_add_alert_apnea == true)
+		{
+			add_active_alert(ALERT_APNEA);
+			is_add_alert_apnea = false;
+		}
+		else if(is_remove_alert_apnea == true)
+		{
+			is_remove_alert_apnea = false;
+			remove_active_alert(ALERT_APNEA);
+		}
+
+
+		// *********************************************************************
+		// Alert for blower malfunction
+		// Enter this part once every second
+		// *********************************************************************
+		static int blower_stuck = 0;
+		static int 	prev_time_sec = 0;
+
+		if(g_time_sec != prev_time_sec)
+		{
+			// Update blower avarage cycles per minute
+			//g_blower_cycles_per_minute = g_blower_cycles_per_second * 20; // 60 seconds , counts 3 times every cycle
+			//g_blower_cycles_per_second = 0;
+			//g_new_blower_cycles_per_minute = true;
+
+			// check if the blower is not working when trying to ventilate
+			if(g_blower_cycles_per_minute < 50 )
+			{
+				blower_stuck++;
+			}
+			else
+			{
+				blower_stuck = 0;
+			}
+			if(blower_stuck == 3)
+			{
+				add_active_alert(ALERT_BLOWER_MALFUNCTION);
+			}
+			if(blower_stuck == 0)
+			{
+				remove_active_alert(ALERT_BLOWER_MALFUNCTION);
+			}
+			prev_time_sec = g_time_sec;
+		}
+	}
+}
+
+// *******************************************************
+// Checks for high level alerts
+// called from check_alerts() which is called from timer interrupt handler
+// *******************************************************
+void check_high_level_alerts()
+{
+	// These alerts can only go up while ventilating
+	if(is_ventilating == true)
+	{
+		// check these conditions once every breath
+		if(!first_breaths && breath_counter != prev_breath_count)
+		{
+			// *********************************************************************
+			// Alert for sensor disconnect
+			// *********************************************************************
+			static int sens_discon_counter = 0;
+			static int no_sens_discon_counter = 0;
+
+			if(latest_PIP < 1.0f && last_negative_volume > 1000.0f)
+			{
+				sens_discon_counter++;
+				no_sens_discon_counter = 0;
+			}
+			else
+			{
+				sens_discon_counter = 0;
+				no_sens_discon_counter++;
+			}
+
+			if(sens_discon_counter == 2)
+			{
+				if(!is_alert_active(ALERT_SENSOR_DISCONNECT))
+				{
+					add_active_alert(ALERT_SENSOR_DISCONNECT);
+				}
+			}
+			else if(no_sens_discon_counter == 2)
+			{
+				if(is_alert_active(ALERT_SENSOR_DISCONNECT))
+				{
+					remove_active_alert(ALERT_SENSOR_DISCONNECT);
+				}
+			}
+
+			// *********************************************************************
+			// Alert for low breath rate
+			// *********************************************************************
+			static int low_br_counter = 0;
+			static int no_low_br_counter = 0;
+			if(BR_to_print < alert_param_resp_rate_low)
+			{
+				low_br_counter++;
+				no_low_br_counter = 0;
+			}
+			else
+			{
+				no_low_br_counter++;
+				low_br_counter = 0;
+			}
+			if(low_br_counter == 3)
+			{
+				add_active_alert(ALERT_RESP_RATE_LOW);
+			}
+			if(no_low_br_counter == 2)
+			{
+				remove_active_alert(ALERT_RESP_RATE_LOW);
+			}
+
+			// *********************************************************************
+			// Alert for leak
+			// *********************************************************************
+			if(!is_alert_active(ALERT_PATIENT_DISCONNECT))
+			{
+				float leak = 0.0f;
+				static int leak_counter = -1;
+
+				if(last_positive_volume > 0.0f)
+				{
+					leak = 1.0f - (last_negative_volume / last_positive_volume);
+
+					// add leak only if we are in invasive mode
+					if(invasive_mode == INVASIVE_MODE)
+					{
+						if(leak > (float)((float)alert_param_leak / 100.0f))
+						{
+							add_active_alert(ALERT_LEAK);
+							leak_counter = 2;
+						}
+						else
+						{
+							if(leak_counter > 0)
+							{
+								leak_counter--;
+							}
+							if(leak_counter == 0)
+							{
+								remove_active_alert(ALERT_LEAK);
+							}
+						}
+					}
+				}
+			}
+
+			// *********************************************************************
+			// Alert for high minute volume
+			// *********************************************************************
+			static int high_mv_counter = 0;
+			static int no_high_mv_counter = 0;
+
+			if((double)(TIDAL_VOLUME * BR_to_print) >
+					((double)table_bpm[weight_table_index] * (double)table_tidal_volume[weight_table_index] * ((double)alert_param_minute_volume_high / 100.0f)))
+			{
+				high_mv_counter++;
+				no_high_mv_counter = 0;
+			}
+			else
+			{
+				no_high_mv_counter++;
+				high_mv_counter = 0;
+			}
+
+			if(high_mv_counter == 5)
+			{
+				if(!is_alert_active(ALERT_MINUTE_VOLUME_HIGH))
+				{
+					add_active_alert(ALERT_MINUTE_VOLUME_HIGH);
+				}
+			}
+			if(no_high_mv_counter >= 3)
+			{
+				if(is_alert_active(ALERT_MINUTE_VOLUME_HIGH))
+				{
+					remove_active_alert(ALERT_MINUTE_VOLUME_HIGH);
+				}
+			}
+
+			// *********************************************************************
+			// Alert for high pressure
+			// *********************************************************************
+			static int high_pr_counter = 0;
+			static int no_high_pr_counter = 0;
+			if(Pressure_cmH2O > alert_param_pressure_alert)
+			{
+				high_pr_counter++;
+				no_high_pr_counter = 0;
+			}
+			else
+			{
+				no_high_pr_counter++;
+				high_pr_counter = 0;
+			}
+			if(high_pr_counter == 2)
+			{
+				if(!is_alert_active(ALERT_INSP_PRESSURE_HIGH))
+				{
+					add_active_alert(ALERT_INSP_PRESSURE_HIGH);
+				}
+			}
+			if(no_high_pr_counter >= 3)
+			{
+				if(is_alert_active(ALERT_INSP_PRESSURE_HIGH))
+				{
+					remove_active_alert(ALERT_INSP_PRESSURE_HIGH);
+				}
+			}
+
+			// *********************************************************************
+			// Alert inverse I:E ratio
+			// *********************************************************************
+			static int inv_ie_counter = 0;
+			static int no_inv_ie_counter = 0;
+			if(inverse_ie == true)
+			{
+				inv_ie_counter++;
+				no_inv_ie_counter = 0;
+			}
+			else
+			{
+				no_inv_ie_counter++;
+				inv_ie_counter = 0;
+			}
+			if(inv_ie_counter == 2)
+			{
+				if(!is_alert_active(ALERT_INV_I_E))
+				{
+					add_active_alert(ALERT_INV_I_E);
+				}
+			}
+			if(no_inv_ie_counter >= 2)
+			{
+				if(is_alert_active(ALERT_INV_I_E))
+				{
+					remove_active_alert(ALERT_INV_I_E);
+				}
+			}
+
+			// *********************************************************************
+			// Alert for low minute volume
+			// *********************************************************************
+			static int low_mv_counter = 0;
+			static int no_low_mv_counter = 0;
+
+			if((double)(TIDAL_VOLUME * BR_to_print) <
+					(double)(table_bpm[weight_table_index] * (double)table_tidal_volume[weight_table_index] * ((double)alert_param_minute_volume_low / 100.0f)))
+			{
+				low_mv_counter++;
+				no_low_mv_counter = 0;
+			}
+			else
+			{
+				no_low_mv_counter++;
+				low_mv_counter = 0;
+			}
+
+			if(low_mv_counter == 4)
+			{
+				if(!is_alert_active(ALERT_MINUTE_VOLUME_LOW))
+				{
+					add_active_alert(ALERT_MINUTE_VOLUME_LOW);
+				}
+			}
+			if(no_low_mv_counter >= 2)
+			{
+				if(is_alert_active(ALERT_MINUTE_VOLUME_LOW))
+				{
+					remove_active_alert(ALERT_MINUTE_VOLUME_LOW);
+				}
+			}
+
+			// *********************************************************************
+			// Alert for exp valve blocked
+			// *********************************************************************
+			if(measured_peep > 12.5f)
+			{
+				if(!is_alert_active(ALERT_EXP_VALVE_BLOCKED))
+				{
+					add_active_alert(ALERT_EXP_VALVE_BLOCKED);
+				}
+			}
+			else if(measured_peep <= param_selected_peep + 0.5f)
+			{
+				if(is_alert_active(ALERT_EXP_VALVE_BLOCKED))
+				{
+					remove_active_alert(ALERT_EXP_VALVE_BLOCKED);
+				}
+			}
+
+			// *********************************************************************
+			// Alert for high measured peep
+			// *********************************************************************
+			if(measured_peep > param_selected_peep + 2.5f)
+			{
+				if(!is_alert_active(ALERT_HIGH_PEEP) && !is_alert_active(ALERT_EXP_VALVE_BLOCKED))
+				{
+					add_active_alert(ALERT_HIGH_PEEP);
+				}
+			}
+			else if(measured_peep <= param_selected_peep + 0.5f)
+			{
+				if(is_alert_active(ALERT_HIGH_PEEP))
+				{
+					remove_active_alert(ALERT_HIGH_PEEP);
+				}
+			}
+		}
+	}
+
+	// These alerts can also go up while not ventilating
+
+	// *********************************************************************
+	// Alert for high measured temperature
+	// *********************************************************************
+	if(temperature > 80 && screen != SCREEN_LOGO)
+	{
+		if(!is_alert_active(ALERT_OVER_TEMP))
+		{
+			add_active_alert(ALERT_OVER_TEMP);
+		}
+	}
+	else if(temperature < 75)
+	{
+		if(is_alert_active(ALERT_OVER_TEMP))
+		{
+			remove_active_alert(ALERT_OVER_TEMP);
+		}
+	}
+}
+
+// *******************************************************
+// Checks for medium level alerts
+// called from check_alerts() which is called from timer interrupt handler
+// *******************************************************
+void check_medium_level_alerts()
+{
+	if(is_ventilating == true)
+	{
+		if(!first_breaths && breath_counter != prev_breath_count)
+		{
+			// *********************************************************************
+			// MEDIUM LEVEL ALERTS
+			// *********************************************************************
+
+			// *********************************************************************
+			// Alert for high breath rate
+			// *********************************************************************
+			static int high_br_counter = 0;
+			static int no_high_br_counter = 0;
+			if(BR_to_print > alert_param_resp_rate_high)
+			{
+				high_br_counter++;
+				no_high_br_counter = 0;
+			}
+			else
+			{
+				no_high_br_counter++;
+				high_br_counter = 0;
+			}
+			if(high_br_counter == 6)
+			{
+				add_active_alert(ALERT_RESP_RATE_HIGH);
+			}
+			if(no_high_br_counter >= 2)
+			{
+				remove_active_alert(ALERT_RESP_RATE_HIGH);
+			}
+
+			// *********************************************************************
+			// Alert for volume limit reached
+			// *********************************************************************
+			static int count_volume_limit_reached = 0;
+			static int count_volume_limit_not_reached = 0;
+
+			if(CURRENT_TIDAL_VOLUME >= (double)param_tidal_volume_limit)
+			{
+				count_volume_limit_reached++;
+				count_volume_limit_not_reached = 0;
+			}
+			else
+			{
+				count_volume_limit_not_reached++;
+				count_volume_limit_reached = 0;
+			}
+			if(count_volume_limit_reached == 4)
+			{
+				if(!is_alert_active(ALERT_VOLUME_LIMIT_REACHED))
+				{
+					add_active_alert(ALERT_VOLUME_LIMIT_REACHED);
+				}
+			}
+			if(count_volume_limit_not_reached >= 2)
+			{
+				if(is_alert_active(ALERT_VOLUME_LIMIT_REACHED))
+				{
+					remove_active_alert(ALERT_VOLUME_LIMIT_REACHED);
+				}
+			}
+
+
+			// *********************************************************************
+			// Alert for low tidal volume
+			// *********************************************************************
+			static int count_low_tidal_volume = 0;
+			static int no_count_low_tidal_volume = 0;
+			int low_tidal_volume_alert_delay = 0;
+
+			// if the desiered tidal volume has been modified, wait 10 breaths for giving the alert.
+			if(curr_set_vt != table_tidal_volume[weight_table_index])
+			{
+				low_tidal_volume_alert_delay = 10;
+			}
+			else
+			{
+				low_tidal_volume_alert_delay = 4;
+			}
+
+			if(alert_param_low_tidal_volume != -1) //low tidal volume alert is set as on
+			{
+				if(CURRENT_TIDAL_VOLUME < (double)curr_set_vt * ((double)alert_param_low_tidal_volume / 100))//0.7f)
+				{
+					count_low_tidal_volume++;
+					no_count_low_tidal_volume = 0;
+				}
+				else if(CURRENT_TIDAL_VOLUME > (double)curr_set_vt * (((double)alert_param_low_tidal_volume + 10.0) / 100))// 0.85f)
+				{
+					no_count_low_tidal_volume++;
+					count_low_tidal_volume = 0;
+				}
+				if(count_low_tidal_volume == low_tidal_volume_alert_delay)
+				{
+					if(!is_alert_active(ALERT_LOW_TIDAL_VOLUME))
+					{
+						add_active_alert(ALERT_LOW_TIDAL_VOLUME);
+					}
+				}
+				if(no_count_low_tidal_volume >= 2)
+				{
+					if(is_alert_active(ALERT_LOW_TIDAL_VOLUME))
+					{
+						remove_active_alert(ALERT_LOW_TIDAL_VOLUME);
+					}
+				}
+			}
+			else //low tidal volume alert is set as off
+			{
+				if(is_alert_active(ALERT_LOW_TIDAL_VOLUME))
+				{
+					remove_active_alert(ALERT_LOW_TIDAL_VOLUME);
+				}
+			}
+
+			// *********************************************************************
+			// Alert for low pressure
+			// *********************************************************************
+			static int count_low_pressure = 0;
+			static int no_count_low_pressure = 0;
+
+			if(latest_PIP < (double)alert_param_insp_pressure_low)
+			{
+				count_low_pressure++;
+				no_count_low_pressure = 0;
+			}
+			else
+			{
+				no_count_low_pressure++;
+				count_low_pressure = 0;
+			}
+
+			if(count_low_pressure >= 3)
+			{
+				if(!is_alert_active(ALERT_LOW_PRESSURE))
+				{
+					add_active_alert(ALERT_LOW_PRESSURE);
+				}
+			}
+			if(no_count_low_pressure >= 3)
+			{
+				if(is_alert_active(ALERT_LOW_PRESSURE))
+				{
+					remove_active_alert(ALERT_LOW_PRESSURE);
+				}
+			}
+		}
+	}
+}
+
+// *******************************************************
+// Checks for low level alerts
+// called from check_alerts() which is called from timer interrupt handler
+// *******************************************************
+void check_low_level_alerts()
+{
+	static char alert_ind[1] = {'n'};
+	int success = -1;
+	int update_needed = 0;
+
+	// *********************************************************************
+	// Alert for filter/service needed
+	// *********************************************************************
+	int wh_alert_needed = ((total_work_hours % 300) == 0) && (total_work_hours > 0);
+
+	if(wh_alert_needed) //we are in a multiplier of 300 hours of work
+	{
+		if(alert_ind[0] == 'n' || alert_ind[0] == '0')
+		{
+			success = get_filter_alert_ind(alert_ind);
+		}
+
+		if(success == 0) //we failed to read the file, probably doesn't exist yet, so update the file with value 1.
+		{
+			 alert_ind[0] = '1';
+			update_needed = 1;
+		}
+		else if( alert_ind[0] == '1') // we've succeeded in reading the file and recieved a value 1, so we don't want to alert again.
+		{
+			wh_alert_needed = 0;
+		}
+		else // we've succeeded in reading the file and recieved a value 0, we want to update the value to 1, so that next time we don't bring up the alert again
+		{
+			 alert_ind[0] = '1';
+			update_needed = 1;
+		}
+	}
+	else if( alert_ind[0] == '1') // we don't need to alert anymore, so update the indicator to 0 (no alert given) for the next time where we do need alert.
+	{
+		 alert_ind[0] = '0';
+		update_needed = 1;
+	}
+
+	if(update_needed)
+	{
+		success = update_filter_alert_ind(alert_ind);
+	}
+
+	if(wh_alert_needed == 1 && screen != SCREEN_LOGO)
+	{
+		//Add filter alert only if we've reached a cycle of 300 hours and haven't yet reached 15,000 hours.
+		if(total_work_hours < 15000)
+		{
+			if(!is_alert_active(ALERT_FILTER) && !filter_alert_given)
+			{
+				add_active_alert(ALERT_FILTER);
+				filter_alert_given = 1;
+			}
+		}
+		else
+		{
+			if(!is_alert_active(ALERT_SERVICE) && !service_alert_given)
+			{
+				add_active_alert(ALERT_SERVICE);
+				service_alert_given = 1;
+			}
+		}
+	}
+
+	// *********************************************************************
+	// Alert for altitude out of range
+	// *********************************************************************
+	if((curr_altitude >  5000 || curr_altitude < -1000) && altitude_alert_given == 0)
+	{
+		if(!is_alert_active(ALERT_ALTITUDE))
+		{
+			add_active_alert(ALERT_ALTITUDE);
+			altitude_alert_given = 1;
+		}
+	}
+	if(curr_altitude <  4900 && curr_altitude > -900)
+	{
+		altitude_alert_given = 0;
+	}
+}
+
+// *******************************************************
+// Checks for raising alerts
+// called from timer interrupt handler
+// *******************************************************
+void check_alerts()
+{
+	if(!systemUp)
+	{
+		return;
+	}
+
+	// *********************************************************************
+	// HIGH - LIFE THREATENING ALERTS
+	// *********************************************************************
+	check_life_threatening_alerts();
+
+	// *********************************************************************
+	// HIGH LEVEL ALERTS
+	// *********************************************************************
+	check_high_level_alerts();
+
+	// *********************************************************************
+	// MEDIUM LEVEL ALERTS
+	// *********************************************************************
+	check_medium_level_alerts();
+
+	// *********************************************************************
+	// LOW LEVEL ALERTS
+	// *********************************************************************
+	check_low_level_alerts();
+
+	if(is_ventilating == true)
+	{
+		if(!first_breaths && breath_counter != prev_breath_count)
+		{
+			prev_breath_count = breath_counter;
+		}
+	}
+}
+
+// *******************************************************
+// Checks battery and charger status
+// called from timer interrupt handler
+// *******************************************************
+
+//int battery_value = 0;
+//int is_charger_connected = 0;
+//int is_v12_bat_connected = 0;
+//int is_v14_bat_connected = 0;
+
+int stat1 = 0;
+int stat2 = 0;
+
+int print_bat_status = 0;
+
+void check_battery()
+{
+	static int 	prev_time_sec = 0;
+	if(g_time_sec != prev_time_sec)
+	{
+		int bat_12v_stat = 0;
+		//int bat_14v_stat = 0;
+		static enum battery_type prev_bat_type = no_type;
+
+		//char battery_value_log_message[30];
+
+		stat1 = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_6) & GPIO_PIN_6;
+		stat2 = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_7) & GPIO_PIN_7;
+
+		bat_12v_stat = GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_0) & GPIO_PIN_0;
+		//bat_14v_stat = GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_1) & GPIO_PIN_1;
+
+		//usprintf(battery_value_log_message,"battery value is: %04d",battery_value);
+		//log_message(battery_value_log_message);
+
+		if(battery_value == 4095)//(bat_12v_stat == 0 && bat_14v_stat == 0)
+		{
+			is_external_connected = 1;
+
+			if(prev_is_external_connected == 0)
+			{
+				log_message("Connected to external charger.");
+
+				if(screen != SCREEN_LOGO)
+				{
+					play_audio("alert01.wav");
+				}
+				prev_is_external_connected = 1;
+			}
+
+			if(prev_bat_type == non_chargeable)
+			{
+				is_v12_bat_connected = true;
+				is_v14_bat_connected = false;
+			}
+			else if(prev_bat_type == chargeable)
+			{
+				is_v12_bat_connected = false;
+				is_v14_bat_connected = true;
+			}
+		}
+		else
+		{
+			is_external_connected = 0;
+			if(prev_is_external_connected == 1)
+			{
+				log_message("Disconnected from external charger.");
+				play_audio("alert02.wav");
+				prev_is_external_connected = 0;
+			}
+
+			if(bat_12v_stat)
+			{
+				prev_bat_type = non_chargeable;
+				is_v12_bat_connected = true;
+				is_v14_bat_connected = false;
+			}
+			else
+			{
+				prev_bat_type = chargeable;
+				is_v12_bat_connected = false;
+				is_v14_bat_connected = true;
+			}
+		}
+
+		if(stat1 == 0)
+		{
+			is_v14_bat_charging = true;
+		}
+		else
+		{
+			is_v14_bat_charging = false;
+		}
+
+		static int high_level_counter = 0;
+		static int med_level_counter = 0;
+		static int low_level_counter = 0;
+		static int critical_level_counter = 0;
+
+		int battery_thresh_level_high;
+		int battery_thresh_level_medium;
+		int battery_thresh_level_low;
+
+		// Set threshhold levels by battery type
+		if(is_v12_bat_connected)
+		{
+			battery_thresh_level_high = NON_RECHARGE_BATTERY_THRESH_LEVEL_HIGH;
+			battery_thresh_level_medium = NON_RECHARGE_BATTERY_THRESH_LEVEL_MEDIUM;
+			battery_thresh_level_low = NON_RECHARGE_BATTERY_THRESH_LEVEL_LOW;
+		}
+		else
+		{
+			battery_thresh_level_high = BATTERY_THRESH_LEVEL_HIGH;
+			battery_thresh_level_medium = BATTERY_THRESH_LEVEL_MEDIUM;
+			battery_thresh_level_low = BATTERY_THRESH_LEVEL_LOW;
+		}
+
+		// check battery level
+		if(battery_value >= battery_thresh_level_high)
+		{
+			if(high_level_counter < 3)
+			{
+				high_level_counter++;
+			}
+			med_level_counter = 0;
+			low_level_counter = 0;
+			critical_level_counter = 0;
+		}
+		else if(battery_value < battery_thresh_level_high && battery_value >= battery_thresh_level_medium)
+		{
+			high_level_counter = 0;
+			if(med_level_counter < 3)
+			{
+				med_level_counter++;
+			}
+			low_level_counter = 0;
+			critical_level_counter = 0;
+		}
+		if(battery_value < battery_thresh_level_medium && battery_value >= battery_thresh_level_low)
+		{
+			high_level_counter = 0;
+			med_level_counter = 0;
+			if(low_level_counter < 3)
+			{
+				low_level_counter++;
+			}
+			critical_level_counter = 0;
+		}
+		else if(battery_value < battery_thresh_level_low)
+		{
+			high_level_counter = 0;
+			med_level_counter = 0;
+			low_level_counter = 0;
+			if(critical_level_counter < 3)
+			{
+				critical_level_counter++;
+			}
+		}
+
+		if(high_level_counter == 3 && battery_state != BATTERY_LEVEL_HIGH)
+		{
+			battery_state = BATTERY_LEVEL_HIGH;
+			log_message("Battery level is high.");
+
+			remove_active_alert(ALERT_BATTERY_LOW);
+			remove_active_alert(ALERT_BATTERY_EMPTY);
+		}
+		else if(med_level_counter == 3 && battery_state != BATTERY_LEVEL_MEDIUM)
+		{
+			battery_state = BATTERY_LEVEL_MEDIUM;
+			log_message("Battery level is medium.");
+
+			remove_active_alert(ALERT_BATTERY_LOW);
+			remove_active_alert(ALERT_BATTERY_EMPTY);
+		}
+		else if(low_level_counter == 3 && battery_state != BATTERY_LEVEL_LOW)
+		{
+			battery_state = BATTERY_LEVEL_LOW;
+			log_message("Battery level is low.");
+
+			add_active_alert(ALERT_BATTERY_LOW);
+			remove_active_alert(ALERT_BATTERY_EMPTY);
+		}
+		else if(critical_level_counter == 3 && battery_state != BATTERY_LEVEL_CRITICAL)
+		{
+			battery_state = BATTERY_LEVEL_CRITICAL;
+			log_message("Battery level is critical.");
+
+			remove_active_alert(ALERT_BATTERY_LOW);
+			add_active_alert(ALERT_BATTERY_EMPTY);
+		}
+
+		print_bat_status = true;
+		//print_string("stat1", 10 , 15, TEXT_HIGHLITE_SELECTED);  drawNumber_f12(stat1, ST7735_YELLOW, ST7735_BLUE, 100, 15, 1);
+		//print_string("stat2", 10 , 30, TEXT_HIGHLITE_SELECTED);  drawNumber_f12(stat2, ST7735_YELLOW, ST7735_BLUE, 100, 30, 1);
+		//print_string("12v_stat", 10 , 45, TEXT_HIGHLITE_SELECTED); drawNumber_f12(bat_12v_stat, ST7735_BLUE, ST7735_CYAN, 100, 45, 1);
+		//print_string("14v_stat", 10 , 60, TEXT_HIGHLITE_SELECTED); drawNumber_f12(bat_14v_stat, ST7735_BLUE, ST7735_CYAN, 100, 60, 1);
+		//print_string("voltage", 10 , 45, TEXT_HIGHLITE_SELECTED); drawNumber_f12(battery_value, ST7735_YELLOW, ST7735_BLUE, 100, 15, 4);
+
+		prev_time_sec = g_time_sec;
+		redraw_batt = true;
+	}
+}
+
+#define BASELINE_SAMPLE_SIZE 1000
+
+// *******************************************************
+// Interrupt handler for the 3 pressure sensor
+// Analog to Digital converters
+// *******************************************************
+void ADCPressureIntHandler(void)
+{
+	static float average_g_alt_input = 0.0f;
+
+	// Get flow and pressure data from sensors
+	// adc_data[0] = flow
+	// adc_data[1] = pressure
+	ADCIntClear(ADC0_BASE, 0);
+	ADCSequenceDataGet(ADC0_BASE, 0, adc_data);
+
+#ifdef NEW_BOARD_24V
+	g_altimeter_input = adc_data[4];
+	selector_analog = adc_data[3];
+	temperature = (uint32_t)(147.5 - ((75.0*3.3 *(float)adc_data[5])) / 4096.0);
+#else
+	g_altimeter_input = adc_data[3];
+#endif
+
+	if(test_5v)	selector_analog = 1000;
+	else if(test_altimeter_high) g_altimeter_input = 900;
+	else if(test_altimeter_low) g_altimeter_input = 4000;
+	else if(test_temperture) temperature = 90;
+
+	if(selector_analog > 620 && selector_analog < 2480)
+	{
+		if(count_5V_fault < 1000)
+		{
+			count_5V_fault++;
+		}
+	}
+	else
+	{
+		count_5V_fault = 0;
+	}
+
+	if(altimeter_timer < TIMER1_TICKS_PER_SECOND)
+	{
+		average_g_alt_input += g_altimeter_input;
+		altitude_sum += curr_altitude;
+	}
+	else
+	{
+		average_g_alt_input = (float) average_g_alt_input / TIMER1_TICKS_PER_SECOND;
+		average_altitude = altitude_sum / TIMER1_TICKS_PER_SECOND;
+
+		//determine the altimeter voltage from the sensor.
+		altimeter_voltage = ((float) average_g_alt_input / 4096) * 3.3 * 2;
+
+		//determine the pressure according to the following function: VOUT = Vs* (.009*P-.095) ± Error. where VOUT is the voltage we determined before, Vs is 5 and error is 0.06.
+		altimeter_pressure = ((((altimeter_voltage - 0.06) / 5) + 0.095) / 0.009);
+
+		update_height_correction_factor(altimeter_pressure);
+
+		altimeter_timer = 0;
+		average_g_alt_input = 0;
+		altitude_sum = 0;
+	}
+
+	g_new_altimeter_input = true;
+	battery_value = adc_data[2];
+
+	// At init, calculate baseline flow and pressure
+	if(avg_count < BASELINE_SAMPLE_SIZE)
+	{
+		if(screen != SCREEN_LOGO)
+		{
+			acquire_baseline_values(adc_data, avg_count, BASELINE_SAMPLE_SIZE);
+			avg_count++;
+		}
+	}
+
+	if(!sensors_calibrated)
+	{
+		Pressure_data_array_filled = false;
+		return;
+	}
+
+	Pressure = adc_data[1];
+	Pressure_cmH2O = (double)(Pressure - Pressure_baseline) / voltageToPressureCoefficient;
+	Pressure_data[Pressure_index] = Pressure_cmH2O;
+	if(Pressure_index == 99)
+	{
+		Pressure_data_array_filled = true;
+	}
+	Pressure_index = (Pressure_index + 1) % 100;
+
+	PIP = MAX(PIP, Pressure_cmH2O);
+
+	Flow = adc_data[0] - Flow_baseline + ZERO_PRESSURE;
+	Flow_LPM = ((float)get_flow(Flow) / 100);// * 0.95;
+
+	Max_Flow_LPM = MAX(Max_Flow_LPM, Flow_LPM);
+
+	// In case of suction, adjust real flow.
+	if(suction_flow > 0.0f)
+	{
+		Flow_LPM = Flow_LPM - suction_flow;
+	}
+
+	print_flow_sum += get_flow(Flow) / 100;//adc_data[0];
+	print_flow_count++;
+
+	if(print_flow_count == 100)
+	{
+		print_flow = print_flow_sum / 100;
+		print_flow_sum = 0;
+		print_flow_count = 0;
+		print_flow_ready = 1;
+	}
+
+	if(!is_breath_ended == true)
+	{
+		if(Flow_LPM > 2.5f)
+		{
+			positive_volume += (((Flow_LPM * 1000) / TIMER0_TICKS_PER_SECOND) / 60) * 1.1f;
+			CURRENT_TIDAL_VOLUME = positive_volume;
+		}
+		else if(Flow_LPM < -2.5f)
+		{
+			negative_volume -= (((Flow_LPM * 1000) / TIMER0_TICKS_PER_SECOND) / 60) * 1.1f;
+			//CURRENT_TIDAL_VOLUME = negative_volume;
+		}
+	}
+
+	if(is_breath_ended == true)
+	{
+		latest_PIP = PIP;
+		PIP = 0;
+
+		if(positive_volume > 0.0)
+		{
+			last_positive_volume = positive_volume;
+			positive_volume = 0.0;
+		}
+		if(negative_volume > 0.0)
+		{
+			last_negative_volume = negative_volume;
+			negative_volume = 0.0;
+		}
+		is_breath_ended = false;
+	}
+
+	if(new_TIDAL_VOLUME == false && screen == SCREEN_CALIBRATION2 && negative_volume > 1000.0f)
+	{
+		if(Flow_LPM > -5.0f && Flow_LPM < 5.0f)
+		{
+			TIDAL_VOLUME = negative_volume;
+			negative_volume = 0.0f;
+			new_TIDAL_VOLUME = true;
+		}
+	}
+
+#ifdef TEST_FLOW
+	static int tidal_volume_avg = 0;
+	static int tidal_volume_avg_count = 0;
+
+	tidal_volume_avg += Flow;
+	tidal_volume_avg_count++;
+
+	if(tidal_volume_avg_count == 100)
+	{
+		TIDAL_VOLUME = tidal_volume_avg / 100;
+		new_TIDAL_VOLUME = true;
+		tidal_volume_avg = 0;
+		tidal_volume_avg_count = 0;
+	}
+#endif // TEST_FLOW
+
+	Curr_breath_length++;
+}
+
+//*****************************************************************************
+// Sets blower intensity by changing PWM duty cycle
+//*****************************************************************************
+void set_blower_duty(float val)
+{
+	PWMOutputState(PWM0_BASE, PWM_OUT_6_BIT, true);
+
+	blower_intensity = val;
+
+	val = val * 5;
+
+	if(val < 1.0f) val = 1.0f;
+	if(val > 499.0f) val = 499.0f;
+
+	val = 500.0f - val;
+
+	PWMPulseWidthSet(PWM0_BASE, PWM_OUT_6, (uint32_t)val);
+}
+
+//*****************************************************************************
+// The UART interrupt handler.
+//*****************************************************************************
+void
+UARTIntHandler(void)
+{
+#ifdef CONNECT_PC
+#ifdef DEBUG
+    unsigned long ulStatus;
+
+    // Get the interrrupt status.
+    ulStatus = ROM_UARTIntStatus(UART0_BASE, true);
+
+    // Clear the asserted interrupts.
+    ROM_UARTIntClear(UART0_BASE, ulStatus);
+
+    // Loop while there are characters in the receive FIFO.
+    while(ROM_UARTCharsAvail(UART0_BASE))
+    {
+    	// Read the next character from the UART
+    	char code = ROM_UARTCharGetNonBlocking(UART0_BASE);
+
+        if(code == 'c')start_exp();
+        if(code == 'v')turn_exp_sol_off();
+        if(code == 'a')start_insp();
+        if(code == 's')turn_insp_sol_off();
+        if(code == 'd')
+        {
+        	int num = 0;
+        	char get_num = 1;
+        	while(get_num == 1)
+        	{
+        		// Read the next character from the UART
+        		code = ROM_UARTCharGetNonBlocking(UART0_BASE);
+        		if(code == 'd') get_num = 0;
+        		else if(code <= '9' && code >= '0')
+        			num = num * 10 + code - '0';
+        	}
+        	set_blower_duty(num);
+        }
+        if(code == 'f')
+        {
+        	if(is_autonomous == 0)
+        	{
+        		is_autonomous = 1;
+        		set_blower_duty(50);
+        	}
+        	else
+        	{
+        		is_autonomous = 0;
+        		set_blower_duty(0);
+        	}
+        }
+    }
+#endif
+#endif
+}
+
+extern int stack_index;
+extern int alert_status[MAX_ALERT_NUM];
+
+void update_time()
+{
+	static int counter = 0;
+	int i = 0;
+	counter++;
+
+	if(altimeter_timer < TIMER1_TICKS_PER_SECOND)
+	{
+		altimeter_timer++;
+	}
+
+	// count seconds
+	if(counter == TIMER1_TICKS_PER_SECOND)
+	{
+		g_time_sec++;
+
+		if(is_ventilating)
+		{
+			working_hours_seconds_counter++;
+
+			if(start_counter > -1)
+			{
+				start_counter ++;
+			}
+		}
+/*
+		// reset screen every 5 seconds.
+		if((g_time_sec % 10) == 9)
+		{
+			LcdReset();
+			setRotation(1);
+			prev_screen = SCREEN_NONE;
+		}
+*/
+		if(screen == SCREEN_ALERT)
+		{
+			int highest_alert_on_screen = get_highest_alert_on_screen();
+
+			if(highest_alert_on_screen != ALERT_NONE)
+			{
+				// There is a life threatening alert on screen, play continuous sound
+				if(highest_alert_on_screen <= ALERT_LAST_LT_LEVEL)
+				{
+					//play_tone(0, 0, param_alert_volume);
+					play_audio("alert00.wav");
+				}
+				// There is a high level alert on screen, play sound every 5 seconds
+				else if(get_highest_alert_on_screen() <= ALERT_LAST_HIGH_LEVEL)
+				{
+					if(g_time_sec % 5 == 0)
+					{
+						//play_tone(0, 0, param_alert_volume);
+						play_audio("alert03.wav");
+					}
+				}
+			}
+		}
+
+		static int prev_alert_on_screen = ALERT_NONE;
+		int highest_alert_on_screen = get_highest_alert_on_screen();
+
+		for(i = 0; i < MAX_ALERT_NUM; i++)
+		{
+			if(alert_status[i] > 0)
+			{
+				alert_status[i] = alert_status[i] - 1;
+			}
+		}
+
+		if(highest_alert_on_screen != prev_alert_on_screen)
+		{
+			if(highest_alert_on_screen == ALERT_NONE)
+			{
+				// remove alert screen
+				prev_screen = SCREEN_NONE;
+
+				if(warning_line1[0] != '\n')
+				{
+					screen = SCREEN_WARNING;
+				}
+				else
+				{
+					screen = menu_stack[stack_index];
+				}
+			}
+			else
+			{
+				// reprint alert screen
+				screen = SCREEN_ALERT;
+				prev_screen = SCREEN_NONE;
+			}
+			prev_alert_on_screen = highest_alert_on_screen;
+		}
+
+		// count minutes of ventilating working
+		if(working_hours_seconds_counter == 60)
+		{
+			//we only count working hours for when the blower is ventilating.
+			working_hours_minute_counter++;
+			working_hours_seconds_counter = 0;
+
+			//we want to update the working hours text file every five minutes.
+			if((working_hours_minute_counter % 5) == 0)
+			{
+				itoa(900000 - working_hours_minute_counter, working_minutes_left, 10);
+				save_working_hours_amount(working_minutes_left);
+
+				// update the total working hours parameter
+				total_work_hours = working_hours_minute_counter / 60;
+
+				//if we have already had an alert ands another hour has gone by,
+				//passed the 300th hour we would like to allow a one time pop up of the filter alert at the right moment
+				if(total_work_hours % 300 == 1 && filter_alert_given)
+				{
+					filter_alert_given = 0;
+				}
+			}
+		}
+
+		// count minutes
+		if(g_time_sec == 60)
+		{
+			g_time_minute++;
+
+			// count hours
+			if(g_time_minute == 60)
+			{
+				g_time_hour++;
+
+				// count days
+				if(g_time_hour == 24)
+				{
+					g_date_day++;
+
+					// count months
+					if(g_date_day > days_in_month(g_date_month, g_date_year))
+					{
+						g_date_month++;
+
+						// count years
+						if(g_date_month == 12)
+						{
+							g_date_year++;
+							g_date_month = 1;
+						}
+						g_date_day = 1;
+					}
+					g_time_hour = 0;
+				}
+				g_time_minute = 0;
+			}
+			g_time_sec = 0;
+		}
+		counter = 0;
+	}
+}
+
+void Timer1IntHandler(void)
+{
+	TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+	static int counter = 0;
+	static int counter2 = 0;
+
+	if(recalibrate_sensors > 0)
+	{
+		recalibrate_sensors--;
+
+		if(recalibrate_sensors == 0)
+		{
+			sensors_calibrated = false;
+			avg_count = 0;
+		}
+	}
+
+	if(ignore_trigger > 0)
+	{
+		ignore_trigger--;
+	}
+
+	if(is_play_sound > 0)
+	{
+		is_play_sound--;
+	}
+
+	if(run_menu_active_timer > 0)
+	{
+		run_menu_active_timer--;
+	}
+
+	// Check if on/off button was pressed for 3 seconds, if so switch to shutdown screen.
+	if(on_off_switch_counter >= 0)
+	{
+		on_off_switch_counter--;
+
+		if(on_off_switch_counter == 0)
+		{
+			next_screen_after_popup = screen;
+			screen = SCREEN_SHUTDOWN;
+		}
+	}
+
+	if(count_t >= 0) count_t++;
+
+	if(flow_test_on == 1)
+	{
+		seconds_counter++;
+
+		static int  adc_data_sum = 0;
+
+		if((seconds_counter % 500) == 0) //calculate the average.
+		{
+			average_adc_data_for_flow = adc_data_sum / 500;
+			adc_data_sum = 0;
+		}
+		else //accumulate the adc_data[0] values for one second.
+		{
+			adc_data_sum += adc_data[0];
+		}
+	}
+
+	update_time();
+
+	check_button_state();
+
+	// if in ventilate mode, activate ventilation function.
+	if(is_ventilating)
+	{
+		ventilate(vent_mode);
+	}
+#ifdef WIP_BACKUP_MODE
+	// If not ventilating, check for triggers in order to go to backup mode
+	else if(menu_stack[stack_index] != SCREEN_CALIBRATION2 && menu_stack[stack_index] != SCREEN_SELF_TEST && menu_stack[stack_index] != SCREEN_FLOW_TEST && menu_stack[stack_index] != SCREEN_CVT && menu_stack[stack_index] !=SCREEN_VVT)
+	{
+		static int trigger_counter = 0;
+
+		if(sensors_calibrated && ignore_trigger == 0 && is_Inhalation_Trigger_Detected(false))
+		{
+			trigger_counter++;
+			ignore_trigger = TIMER1_TICKS_PER_SECOND;  // ignore triggers for one second.
+
+			if(trigger_counter == 2)
+			{
+				trigger_counter = 0;
+
+				// Backup mode 3, parameters are defined, start ventilating and issue a warning.
+				if(weight_table_index != -1)
+				{
+					if(vent_mode == VENT_MODE_NONE)
+					{
+						strcpy (warning_line1, "backup");
+						strcpy (warning_line2, "vent mode");
+
+						vent_mode = VENT_MODE_BACKUP;
+						ventilation_state = VENT_STATE_INHALE_MANDATORY;
+						set_default_alert_values();
+						set_default_vent_params();
+					}
+					else
+					{
+						strcpy (warning_line1, "ventilation");
+						strcpy (warning_line2, "resumed");
+					}
+					screen_after_warning_ok = SCREEN_RUN;
+					screen_after_warning_cancel = SCREEN_NONE;
+					screen = SCREEN_WARNING;
+
+					is_ventilating = true;
+
+					if(vent_mode == VENT_MODE_VC_SIMV_PS)
+					{
+						set_blower_duty((float)starting_blower_speed_simv[weight_table_index]);
+					}
+					else
+					{
+						set_blower_duty((float)starting_blower_speed_cpap[weight_table_index]);
+					}
+				}
+				// Backup mode 2
+				else
+				{
+					strcpy (warning_line1, "backup");
+					strcpy (warning_line2, "vent mode");
+					screen_after_warning_ok = SCREEN_RUN;
+					screen_after_warning_cancel = SCREEN_NONE;
+					screen = SCREEN_WARNING;
+
+					is_ventilating = true;
+
+					set_blower_duty((float)starting_blower_speed_simv[8]);
+					curr_set_br = table_bpm[8];
+					curr_set_vt = table_tidal_volume[8];
+					curr_set_insp_time = table_insp_time[8];
+					param_tidal_volume_limit = table_volume_limit[8];
+
+					ventilation_state = VENT_STATE_ESIMATE_WEIGHT;
+					prev_ventilation_state = VENT_STATE_NONE;
+					vent_mode = VENT_MODE_GUESS_WEIGHT;
+				}
+			}
+		}
+	}
+#endif // WIP_BACKUP_MODE
+	check_alerts();
+	check_battery();
+
+	//This section for the audio
+	int i;
+	if(buffer_1_empty)
+	{
+		buffer_1_empty=0;
+		f_read(&g_sFileObject, audio , 512, &usBytesRead);
+		if (usBytesRead < 512)
+		{
+			EOF_buffer1 = 1;
+			for(i = 0; i < (512-usBytesRead); i++)
+				audio[usBytesRead + i] = 0;
+		}
+
+	}
+	else if (buffer_2_empty)
+	{
+		buffer_2_empty = 0;
+		f_read(&g_sFileObject, audio + 512, 512, &usBytesRead);
+		if (usBytesRead < 512)
+		{
+			EOF_buffer2 = 1;
+			for(i = 0; i < (512-usBytesRead); i++)
+				audio[usBytesRead + i + 512] = 0;
+		}
+
+	}
+
+	//if(is_Inhalation_Trigger_Detected()) inhale_trigger = true;
+
+	counter++;
+	counter2++;
+	if(counter2 == (TIMER1_TICKS_PER_SECOND / 10))
+	{
+		if(screen == SCREEN_RUN ||
+		   screen == SCREEN_ACTIVE_ALERTS ||
+		   (screen == SCREEN_ALERT && menu_stack[stack_index] == SCREEN_RUN))
+		{
+			update_pressure_bar = true;
+		}
+		if(screen == SCREEN_GRAPH)
+		{
+			graph_line_draw = true;
+			graph_line_value = (int)(Flow_LPM);
+		}
+		counter2 = 0;
+	}
+/*
+	if(counter == TIMER1_TICKS_PER_SECOND / 2)
+	{
+		int i;
+		double avg_breath_length = 0;
+		int div_count = 0;
+
+		for(i = 0;i < 5;i++)
+		{
+			if(Breath_length_array[i] != 0)
+			{
+				div_count++;
+				avg_breath_length += Breath_length_array[i];
+			}
+		}
+		avg_breath_length = avg_breath_length / div_count;
+
+		if(Curr_breath_length > avg_breath_length * 1.5)
+		{
+			avg_breath_length = (avg_breath_length + Curr_breath_length) / 2;
+		}
+
+		if(Curr_breath_length > 2000 || Breath_length_array[0] == 0)
+			bpm = 0;
+		else
+			bpm = ((double)(60 * TIMER1_TICKS_PER_SECOND) / avg_breath_length) + 0.5;
+
+		new_BR = 1;
+		BR_to_print = table_bpm[weight_table_index];
+
+#ifdef CONNECT_PC
+#ifdef DEBUG
+		usprintf(str,"[%03d]",bpm);
+		UARTSend((const unsigned char*)str,5);
+#endif
+#endif
+		counter = 0;
+	}
+*/
+#ifdef CONNECT_PC
+#ifdef DEBUG
+	usprintf(str,"[%04d%04d]",Pressure,Flow);
+	if(Pressure < 2000)
+		usprintf(str,"[%04d%04d]",2000,Flow);
+
+	//usprintf(str,"[%04d%04d]",Volume,adc_data[1]);
+	UARTSend((const unsigned char*)str,10);
+#endif
+#endif
+}
+
+
+void set_pwm()
+{
+   //Configure PWM Clock to match system
+   SysCtlPWMClockSet(SYSCTL_PWMDIV_64);
+
+    // Enable the peripherals used by this program.
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
+
+    // Unlock the Pin PF0 and Set the Commit Bit
+    // See datasheet table 10-1 for explanation of
+    // why this pin needs unlocking
+    HWREG(GPIO_PORTF_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
+    HWREG(GPIO_PORTF_BASE + GPIO_O_CR)   |= 0x01;
+
+    //Configure PC4 as PWM
+    GPIOPinConfigure(GPIO_PC4_M0PWM6);
+    GPIOPinTypePWM(GPIO_PORTC_BASE, GPIO_PIN_4);
+
+#ifndef NEW_BOARD_24V
+    //Configure PC5 as PWM
+    GPIOPinConfigure(GPIO_PC5_M0PWM7);
+    GPIOPinTypePWM(GPIO_PORTC_BASE, GPIO_PIN_5);
+
+    //Configure PE5 as PWM
+    GPIOPinConfigure(GPIO_PE5_M0PWM5);
+    GPIOPinTypePWM(GPIO_PORTE_BASE, GPIO_PIN_5);
+#else // NEW_BOARD_24V
+    GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_5);
+    GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_5);
+#endif // NEW_BOARD_24V
+
+    //Configure PWM Options
+    // See table 20-1 for these assignments
+    PWMGenConfigure(PWM0_BASE, PWM_GEN_3, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC);
+#ifndef NEW_BOARD_24V
+    PWMGenConfigure(PWM0_BASE, PWM_GEN_2, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC);
+#endif // NEW_BOARD_24V
+
+    //These settings are specifically designed to run servo motors
+    //which expect 20mS period with between 1ms and 2ms high time
+    //
+    //System clock is 16MHz with PWM divider of 64
+    // 16000000/64 = 250000/5000 = 50
+    //Set the Period (expressed in clock ticks) to 50 / 0.2ms
+    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_3, 500);
+#ifndef NEW_BOARD_24V
+    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 50);
+#endif // NEW_BOARD_24V
+
+    //Set PWM duty to 2% - lowest possible
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_6, 490);
+#ifndef NEW_BOARD_24V
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_5, 10);
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_7, 10);
+#endif // NEW_BOARD_24V
+
+    // Enable the PWM generator
+    PWMGenEnable(PWM0_BASE, PWM_GEN_3);
+#ifndef NEW_BOARD_24V
+    PWMGenEnable(PWM0_BASE, PWM_GEN_2);
+#endif // NEW_BOARD_24V
+
+    // Turn on the Output pins
+#ifndef NEW_BOARD_24V
+    PWMOutputState(PWM0_BASE, PWM_OUT_5_BIT, true);
+    PWMOutputState(PWM0_BASE, PWM_OUT_7_BIT, true);
+#endif // NEW_BOARD_24V
+    PWMOutputState(PWM0_BASE, PWM_OUT_6_BIT, true);
+}
+
+//*****************************************************************************
+//
+//  Tick Handler
+//
+//*****************************************************************************
+void SysTickHandler(void)
+{
+	//
+	// Call the FatFs tick timer.
+	//
+	disk_timerproc();
+}
+
+void get_StartingRotatorStatus()
+{
+	prev_input1 = GPIOPinRead(GPIO_PORTD_BASE, GPIO_PIN_2) & GPIO_PIN_2;
+	prev_input2 = GPIOPinRead(GPIO_PORTD_BASE, GPIO_PIN_3) & GPIO_PIN_3;
+}
+
+//*****************************************************************************
+// Routine: void load_table_simv()
+// Input: none
+// Output: success / fail
+// Function: Loads the main table for SIMV
+//*****************************************************************************
+int load_table_simv()
+{
+	UINT usBytesRead;
+	int* curr_row;
+	char c;
+	char line[60];
+	int index = 0;
+	char end_of_file = false;
+
+	fresult = f_open(&g_sFileObject, "tab_simv.txt" , FA_READ);
+	if(fresult == FR_OK)
+	{
+		while(!end_of_file)
+		{
+			fresult = f_read(&g_sFileObject, &c, 1, &usBytesRead);
+
+			total_file_size_check += usBytesRead;
+
+			if(fresult != FR_OK || usBytesRead == 0)
+			{
+				end_of_file = 1;
+			}
+			else
+			{
+				// a whole line was read
+				if(c == '\n')
+				{
+					// Weight [Kg]
+					if(line[0] == 'w' && line[1] == 'e')
+						curr_row =  table_weight;
+					// Breaths per minute
+					else if(line[0] == 'b' && line[1] == 'p')
+						curr_row =  table_bpm;
+					// Pressure support [cmH2O]
+					else if(line[0] == 'p' && line[1] == 's')
+						curr_row =  table_ps;
+					// Inspiratory time [s]
+					else if(line[0] == 'i' && line[1] == 'n')
+						curr_row =  (int*)table_insp_time;
+					// Tidal volume [cc]
+					else if(line[0] == 't' && line[1] == 'i')
+						curr_row =  table_tidal_volume;
+					// Tidal volume limit [cc]
+					else if(line[0] == 't' && line[1] == 'v')
+						curr_row =  table_volume_limit;
+
+					index = 0;
+
+					int row_index;
+					for(row_index = 0; row_index < 9; row_index++)
+					{
+						int num = 0;
+
+						// jump to next number
+						while(line[index] < '0' ||  line[index] > '9')
+						{
+							index++;
+						}
+
+						// read number
+						while(line[index] >= '0' &&  line[index] <= '9')
+						{
+							num = num * 10 + line[index] - '0';
+							index++;
+						}
+
+						// add number to table
+						if((void*)curr_row ==  (void*)table_insp_time)
+						{
+							((float*)curr_row)[row_index] = (float)num / 100.0f;
+						}
+						else
+						{
+							curr_row[row_index] = num;
+						}
+					}
+
+					index = 0;
+				}
+				// read a line
+				else
+				{
+					line[index] = c;
+					index++;
+				}
+			}
+		}
+		f_close(&g_sFileObject);
+	}
+
+	if(fresult != FR_OK)
+	{
+		fillScreen(ST7735_BLUE);
+		drawString("Failed to open table for",  5, 12,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("SIMV VC PS vent. mode.",  5, 24,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("TURN OFF VENTILATOR!",  5, 36,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("Call your customer",  5, 60,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("service contact and",  5, 72,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("report the failure.",  5, 84,  ST7735_YELLOW, ST7735_BLUE, 1);
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+//*****************************************************************************
+// Routine: void load_table_cpap()
+// Input: none
+// Output: success / fail
+// Function: Loads the main table for CPAP
+//*****************************************************************************
+int load_table_cpap()
+{
+	UINT usBytesRead;
+	int* curr_row;
+	char c;
+	char line[60];
+	int index = 0;
+	char end_of_file = false;
+
+	fresult = f_open(&g_sFileObject, "tab_cpap.txt" , FA_READ);
+	if(fresult == FR_OK)
+	{
+		while(!end_of_file)
+		{
+			fresult = f_read(&g_sFileObject, &c, 1, &usBytesRead);
+
+			total_file_size_check += usBytesRead;
+
+			if(fresult != FR_OK || usBytesRead == 0)
+			{
+				end_of_file = 1;
+			}
+			else
+			{
+				// a whole line was read
+				if(c == '\n')
+				{
+					// Weight [Kg]
+					if(line[0] == 'w' && line[1] == 'e')
+						curr_row =  table_cpap_weight;
+					// Pressure support [cmH2O]
+					else if(line[0] == 'p' && line[1] == 's')
+						curr_row =  table_cpap_pressure_support;
+					// Tidal volume limit [cc] - Invasive
+					else if(line[0] == 't' && line[1] == 'v' && line[9] == 'i' && line[10] == 'n')
+						curr_row =  table_cpap_tidal_volume_limit_invasive;
+					// Tidal volume limit [cc] - Noninvasive
+					else if(line[0] == 't' && line[1] == 'v' && line[9] == 'n' && line[10] == 'i')
+						curr_row =  table_cpap_tidal_volume_limit_noninvasive;
+					// Max. Pressure (P(alarm)) [cmH2O] - Invasive
+					else if(line[0] == 'm' && line[1] == 'a' && line[6] == 'i' && line[7] == 'n')
+						curr_row =  table_cpap_max_pressure_invasive;
+					// Limit Pressure (P(limit)) [cmH2O] Invasive
+					else if(line[0] == 'l' && line[1] == 'i' && line[8] == 'i' && line[9] == 'n')
+						curr_row =  table_cpap_pressure_limit_invasive;
+					// Max. Pressure (P(alarm)) [cmH2O] - Noninvasive
+					else if(line[0] == 'm' && line[1] == 'a' && line[6] == 'n' && line[7] == 'i')
+						curr_row =  table_cpap_max_pressure_noninvasive;
+					// Limit Pressure (P(limit)) [cmH2O] all
+					else if(line[0] == 'l' && line[1] == 'i' && line[8] == 'a' && line[9] == 'l')
+						curr_row =  table_cpap_pressure_limit_all;
+					// Apnea time [sec]
+					else if(line[0] == 'a' && line[1] == 'p')
+						curr_row =  table_cpap_apnea;
+					// Trigger sensitivity [cmH2O]
+					else if(line[0] == 't' && line[1] == 'r')
+						curr_row =  table_cpap_trigger_sens;
+
+					index = 0;
+
+					int row_index;
+					for(row_index = 0; row_index < 9; row_index++)
+					{
+						int num = 0;
+
+						// jump to next number
+						while(line[index] < '0' ||  line[index] > '9')
+						{
+							index++;
+						}
+
+						// read number
+						while(line[index] >= '0' &&  line[index] <= '9')
+						{
+							num = num * 10 + line[index] - '0';
+							index++;
+						}
+
+						// add number to table
+						curr_row[row_index] = num;
+					}
+
+					index = 0;
+				}
+				// read a line
+				else
+				{
+					line[index] = c;
+					index++;
+				}
+			}
+		}
+		f_close(&g_sFileObject);
+	}
+
+	if(fresult != FR_OK)
+	{
+		fillScreen(ST7735_BLUE);
+		drawString("Failed to open table for",  5, 12,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("CPAP ventilation mode.",  5, 24,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("TURN OFF VENTILATOR!",  5, 36,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("Call your customer",  5, 60,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("service contact and",  5, 72,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("report the failure.",  5, 84,  ST7735_YELLOW, ST7735_BLUE, 1);
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+#include "flash_test.h"
+
+int main(void)
+{
+
+    uint32_t ui32Status;
+	int success = true;
+	int was_reset_by_wdog = false;
+	char error_message[30];
+	error_message[0] = '\0';
+
+	systemUp = 0;
+	Piggyback_init();
+	Piggyback_reset();
+	init_log();
+	//
+	// Need to enable the hibernation peripheral after wake/reset, before using
+	// it.
+	//
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_HIBERNATE);
+	//
+	// Wait for the Hibernate module to be ready.
+	//
+	while(!SysCtlPeripheralReady(SYSCTL_PERIPH_HIBERNATE))
+	{
+	}
+	//
+	// Determine if the Hibernation module is active.
+	//
+	curr_correction_factor = 1;
+	curr_height_correction_factor = 1;
+
+	// Get reset cause to see if it was by the watchdog
+    int reset_cause = SysCtlResetCauseGet();
+	SysCtlResetCauseClear(reset_cause);
+	if((reset_cause & SYSCTL_CAUSE_WDOG0) == SYSCTL_CAUSE_WDOG0)
+	{
+		was_reset_by_wdog = true;
+	}
+	else if((reset_cause & SYSCTL_CAUSE_POR) == SYSCTL_CAUSE_POR)
+	{
+		SysCtlReset();
+	}
+
+
+	// Power is up
+	initialize();
+    if(HibernateIsActive())
+    {
+    //
+    // Read the status to determine cause of wake.
+    //
+    ui32Status = HibernateIntStatus(false);
+    //
+    // Test the status bits to see the cause.
+    //
+    if(ui32Status & HIBERNATE_INT_PIN_WAKE)
+    {
+    //
+    // Wake up was due to WAKE pin assertion.
+    //
+     //   while(1);;
+    }
+    }
+
+#ifdef CHECK_FLASH
+	success &= check_flash();
+	if(!success)
+	{
+		strcat(error_message, "error in flash checksum\0");
+	}
+#endif /* CHECK_FLASH */
+	success &= load_table_simv();
+	success &= load_table_cpap();
+
+	success &= load_font_arial_13();
+	success &= load_numbers_arial_12();
+
+	weight_chosen = false;
+
+#ifdef TEST_HIBERNATION
+    if(HibernateIsActive())
+    {
+        int reset_cause = SysCtlResetCauseGet();
+    	SysCtlResetCauseClear(reset_cause);
+    	print_string("hib active\0", 10, 10, 1);
+
+    	//Print Reset Cause
+    	if((reset_cause & SYSCTL_CAUSE_HIB) == SYSCTL_CAUSE_HIB)
+    		print_string("hib", 10, 20, 1);
+    	if((reset_cause & SYSCTL_CAUSE_SW) == SYSCTL_CAUSE_SW)
+    		print_string("sw", 10, 30, 1);
+    	if((reset_cause & SYSCTL_CAUSE_EXT) == SYSCTL_CAUSE_EXT)
+    		print_string("ext", 10, 40, 1);
+    	if((reset_cause & SYSCTL_CAUSE_POR) == SYSCTL_CAUSE_POR)
+    		print_string("por", 10, 50, 1);
+    	if((reset_cause & SYSCTL_CAUSE_BOR) == SYSCTL_CAUSE_BOR)
+    		print_string("bor", 10, 60, 1);
+    	if((reset_cause & SYSCTL_CAUSE_WDOG0) == SYSCTL_CAUSE_WDOG0)
+    		print_string("watch dog", 10, 70, 1);
+
+
+    	delay_ms(1000);
+    }
+#endif //TEST_HIBERNATION
+	if(!log_message("boot up")) fillScreen(ST7735_RED); // fill screen red if cant write to file for debug
+
+	// Wait here for "on" in sleep mode.
+
+	// Check read data size
+	if(total_file_size_check != 3519)
+	{
+		success = false;
+		if(error_message[0] == '\0')
+		{
+			strcat(error_message, "error in sd-card checksum\0");
+		}
+	}
+
+	if(success)
+	{
+		handle_screen_logo(was_reset_by_wdog);
+		delay_ms(1000);
+		screen = SCREEN_NEW_PATIENT;
+	}
+	else
+	{
+		fillScreen(ST7735_BLUE);
+		drawString("System boot failed",  5, 12,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString(error_message,  5, 24,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("TURN OFF VENTILATOR!",  5, 36,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("Call your customer",  5, 84,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("service contact and",  5, 96,  ST7735_YELLOW, ST7735_BLUE, 1);
+		drawString("report the failure.",  5, 108,  ST7735_YELLOW, ST7735_BLUE, 1);
+		//screen = SCREEN_ERROR;
+	}
+
+	get_StartingRotatorStatus();
+
+	get_test_params();
+
+	// Main loop
+	while(1)
+	{
+		// A switch case to handle behaviour in different screens.
+		switch (screen){
+
+		case SCREEN_ERROR:
+			break;
+
+		case SCREEN_NONE:
+			break;
+
+		case SCREEN_NEW_PATIENT:
+			handle_new_patient(was_reset_by_wdog);
+			break;
+
+		case SCREEN_DISCONNECT:
+			handle_screen_disconnect();
+			break;
+
+		case SCREEN_MENU:
+			handle_screen_menu();
+			break;
+
+		case SCREEN_ALERTS1:
+			handle_screen_alerts1();
+			break;
+
+		case SCREEN_ALERTS2:
+			handle_screen_alerts2();
+			break;
+
+		case SCREEN_WEIGHT:
+			handle_screen_weight();
+			break;
+
+		case SCREEN_MODE:
+			handle_screen_mode();
+			break;
+
+		case SCREEN_INVASIVE_MODE:
+			handle_screen_invasive_mode();
+			break;
+
+		case SCREEN_CONNECT:
+			handle_screen_connect();
+			break;
+
+		case SCREEN_RUN:
+			handle_screen_run();
+			break;
+
+		case SCREEN_ACTIVE_ALERTS:
+			handle_screen_active_alerts();
+			break;
+
+		case SCREEN_GRAPH:
+			handle_screen_graph();
+			break;
+
+		case SCREEN_ADVANCED:
+			handle_screen_advanced();
+			break;
+
+		case SCREEN_TRIGGER_SENS:
+			handle_screen_trigger_sens();
+			break;
+
+		case SCREEN_TECH_MODE1:
+			handle_screen_tech_mode1();
+			break;
+
+		case SCREEN_TOTAL_HOURS:
+			handle_screen_total_hours();
+			break;
+
+		case SCREEN_SELF_TEST:
+			handle_screen_self_test();
+			break;
+
+		case SCREEN_FLOW_TEST:
+			handle_screen_test_flow_and_pressure();
+			break;
+
+		case SCREEN_CVT:
+			handle_screen_cvt();
+			break;
+
+		case SCREEN_VVT:
+			handle_screen_vvt();
+			break;
+
+		case SCREEN_SHOW_LOG:
+			handle_screen_show_log();
+			break;
+
+		case SCREEN_TECH_MODE2:
+			handle_screen_tech_mode2();
+			break;
+
+		case SCREEN_EXP_LOG:
+			handle_screen_exp_log();
+			break;
+
+		case SCREEN_SW_VER:
+			handle_screen_sw_version();
+			break;
+
+		case SCREEN_UPDATE_SW:
+			handle_screen_update_sw();
+			break;
+
+		case SCREEN_SET_TIME:
+			handle_screen_set_time();
+			break;
+
+		case SCREEN_CALIBRATION1:
+			handle_screen_calibration1();
+			break;
+
+		case SCREEN_CALIBRATION2:
+			handle_screen_calibration2();
+			break;
+
+		case SCREEN_ENTER_PASSWORD:
+			handle_screen_enter_password();
+			break;
+
+		case SCREEN_WARNING:
+			handle_screen_warning();
+			break;
+
+		case SCREEN_ALERT_VOLUME:
+			handle_screen_alert_vol();
+			break;
+
+		case SCREEN_BRIGHTNESS:
+			handle_screen_brightness();
+			break;
+
+		case SCREEN_ALERT:
+			handle_screen_alert(alert_on_screen);
+			break;
+
+		case SCREEN_SELECT_O2:
+			handle_screen_select_o2();
+			break;
+
+		case SCREEN_SHUTDOWN:
+			handle_screen_shutdown();
+			break;
+
+		case SCREEN_VENT_PARAMS1:
+			handle_screen_vent_params1();
+			break;
+
+		case SCREEN_VENT_PARAMS2:
+			handle_screen_vent_params2();
+			break;
+
+		case SCREEN_SET_DEFAULT:
+			handle_set_default();
+			break;
+
+		case SCREEN_PRESS_SUPPORT:
+			break;
+
+		default:
+			break;
+		}
+
+		if(screen != SCREEN_ERROR)
+		{
+			if(redraw_batt == true)
+			{
+				LCD_draw_batt();
+				redraw_batt = false;
+			}
+		}
+
+		if(count_5V_fault == 1000)
+		{
+			count_5V_fault = 1001;
+			screen = SCREEN_ERROR;
+			fillScreen(ST7735_BLUE);
+			drawString("System failure",  5, 12,  ST7735_YELLOW, ST7735_BLUE, 1);
+			drawString("voltage not in range",  5, 24,  ST7735_YELLOW, ST7735_BLUE, 1);
+			drawString("TURN OFF VENTILATOR!",  5, 36,  ST7735_YELLOW, ST7735_BLUE, 1);
+			drawString("Call your customer",  5, 84,  ST7735_YELLOW, ST7735_BLUE, 1);
+			drawString("service contact and",  5, 96,  ST7735_YELLOW, ST7735_BLUE, 1);
+			drawString("report the failure.",  5, 108,  ST7735_YELLOW, ST7735_BLUE, 1);
+		}
+
+
+		if(print_bat_status)
+		{
+			//print_string("stat a", 10 , 15, TEXT_HIGHLITE_SELECTED);  drawNumber_f12(stat1, ST7735_YELLOW, ST7735_BLUE, 100, 15, 4);
+			//print_string("stat b", 10 , 30, TEXT_HIGHLITE_SELECTED);  drawNumber_f12(stat2, ST7735_YELLOW, ST7735_BLUE, 100, 30, 4);
+			//print_string("voltage", 10 , 45, TEXT_HIGHLITE_SELECTED); drawNumber_f12(battery_value, ST7735_YELLOW, ST7735_BLUE, 100, 45, 4);
+			print_bat_status = false;
+		}
+
+		//char message[4];
+		//usprintf(message,"%d", ventilation_state);
+		//drawString(message,  10, 10,  ST7735_YELLOW, ST7735_BLUE, 1);
+	}
+}
+
+
+

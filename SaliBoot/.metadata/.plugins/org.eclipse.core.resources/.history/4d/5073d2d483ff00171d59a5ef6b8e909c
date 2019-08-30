@@ -1,0 +1,30 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+C_SRCS += \
+../drivers/adc.c \
+../drivers/cfal96x64x16.c 
+
+OBJS += \
+./drivers/adc.obj \
+./drivers/cfal96x64x16.obj 
+
+C_DEPS += \
+./drivers/adc.pp \
+./drivers/cfal96x64x16.pp 
+
+C_DEPS__QUOTED += \
+"drivers\adc.pp" \
+"drivers\cfal96x64x16.pp" 
+
+OBJS__QUOTED += \
+"drivers\adc.obj" \
+"drivers\cfal96x64x16.obj" 
+
+C_SRCS__QUOTED += \
+"../drivers/adc.c" \
+"../drivers/cfal96x64x16.c" 
+
+

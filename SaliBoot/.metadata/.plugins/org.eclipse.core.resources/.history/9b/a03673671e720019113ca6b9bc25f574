@@ -1,0 +1,1910 @@
+//*****************************************************************************
+//
+// MGW830.c - Sali Decoding MGW830 protocol.
+//
+// Copyright (c) 2011-2012 Inovytec.  All rights reserved.
+// Software Development by Smartech Medical Electronics Ltd
+// Version 1.0
+// 13 May 2012
+// 
+// Change Record:
+// 
+// 
+// 
+//
+//*****************************************************************************
+#define SLEEP_MODE  0x27
+#define Sali1  0x25
+
+extern char ecg_wave[1001];
+int index = 0;
+
+char AED_low_battery = 0;
+char AED_system_fail = 0;
+
+#include "inc/hw_ints.h"
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/uart.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/gpio.h"
+#include "stdlib.h"
+#include "driverlib/rom.h"
+#include "def.h"
+#include "MGW830.h"
+#include "ustdlib.h"
+#include "utils/ringbuf.h"
+#include "fatfs/src/ff.h"
+#include "fatfs/src/diskio.h"
+#include "IQmath/IQmathlib.h"
+#define NZEROS 4
+#define NPOLES 4
+#define GAIN  _IQ24(1.573631740)
+#define CONST1 _IQ24(-0.4074595846)
+#define CONST2 _IQ24(-0.3068601364)
+#define CONST3 _IQ24(0.869767188)
+#define CONST4 _IQ24(0.8443368412)
+#define CONST5 _IQ24(2.0)
+_iq24 xv[NZEROS+1],yv[NPOLES+1];
+extern tRingBufObject sRingBuf;
+extern  char Msg1[],Msg2[],Msg3[];
+int clampNotConnected=1;
+int ProbeNotConnected;
+tTime PTime1;
+int cntr;
+int next_output_value=0;
+int dspo2rate_flag_2;
+int  dspo2value_flag_2;
+int VF100[100];
+char NIBPRESULT[2]={0x5E,0xDE};
+int VF100FLAG=0;
+int VF100Cntr1=0;
+extern int  vf_buffer[200];
+extern char reset1;
+extern tRingBufObject sRingBuf_adv;
+extern tRingBufObject RingBuf_ecgfile;
+extern tRingBufObject RingBuf_ecg;
+extern tRingBufObject RingBuf_file;
+extern int rest;
+extern int flagw;
+extern int num2;
+extern char m_event;
+/*extern */char reset;
+int BPS;
+int BPD;
+extern unsigned short usBytesRead;
+unsigned char InputChar;
+void MGW830IntHandler(void);
+void heart_wave_value_cpu1(unsigned int ecg_data_from_decode);
+void MGW830Decode_cpu1(unsigned char data1);
+void DecodeAED(unsigned char InputChar);
+int count_ecg=1 ;
+char send_ecg_to_screen = false;
+unsigned char heart_rate_uart_send[11]={0x94};
+unsigned char heart_rate_value_send[4]={0x88};
+//char M_even[2]={0xa1};
+unsigned char SPO2_rate_value_send[4]={0x87};
+unsigned char ST_elv[5]={0x82};
+unsigned char spo2_strength [2]={0x85};
+char nextstep=1;
+char state1=0;
+char ValidCheckSumFromAED=false; 
+//unsigned int SPO2_debug[20];
+int ST_FLAG_2=0;
+int HR_flag=0;
+int HR_flag_1=0;
+int HR_flag_2=0;
+int SPO2_flag_1;
+extern FRESULT fresult;
+unsigned int i;
+int p=0;
+int a=0;
+static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+	'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+	'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+	'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+	'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+	'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+	'w', 'x', 'y', 'z', '0', '1', '2', '3',
+	'4', '5', '6', '7', '8', '9', '^', '/'};
+
+#ifdef cpu1
+char mgw830_done_self_check = 0;
+char mgw830_pass_self_check = 0;
+char AEDAlive = false;
+int prev_spo2value = 100;
+extern int system_state;
+#define SYSTEM_STATE_ADVANCED_SCREEN          14
+#endif
+
+extern void DebugPrint(char* str);
+extern void DebugPrintWithTime(char* str);
+extern unsigned char ecglogflag;
+extern void saving_log(char content[]);
+
+extern void Write_To_RingBuffer(int dest_cpu, unsigned char *pucData, unsigned long ulLength);
+
+#define PACKET_DATA1_ECGWAVE 45 
+#define PACKET_DATA2_ECGWAVE 46 
+#define PACKET_DATA3_ECGWAVE 47 
+#define PACKET_DATA4_ECGWAVE 48 
+#define PACKET_DATA5_ECGWAVE 49 
+
+#define PACKET_DATA1_HR 55 
+#define PACKET_DATA2_HR 56 
+#define PACKET_DATA3_HR 57 
+#define PACKET_DATA4_HR 58 
+
+#define PACKET_DATA1_SPO2_PR 65 
+#define PACKET_DATA2_SPO2_PR 66 
+#define PACKET_DATA3_SPO2_PR 67 
+#define PACKET_DATA4_SPO2_PR 68 
+
+#define PACKET_DATA1_SPO2_WAVE 75 
+#define PACKET_DATA2_SPO2_WAVE 76 
+#define PACKET_DATA3_SPO2_WAVE 77 
+#define PACKET_DATA4_SPO2_WAVE 78 
+
+//*****************************************************************************
+//
+//	This routine configures the UART port for communications with the MGW830
+//
+//*****************************************************************************/
+
+//*********************************************************************
+// Routine: void UART2CPU1IntHandler(void)
+// Input: none
+// Output: none
+// Function: This routine handles interrupts from the MGW830 Communications
+//*********************************************************************
+void UART2CPU1IntHandler(void)
+{
+
+	unsigned long ulStatus;
+
+	// Get the interrrupt status.
+	ulStatus = ROM_UARTIntStatus(UART2_BASE, true);
+	ROM_UARTIntClear(UART2_BASE, ulStatus);
+
+	// Loop while there are characters in the receive FIFO.
+	while(ROM_UARTCharsAvail(UART2_BASE))
+	{
+		// Read the next character from the UART and write it back to the UART(for cpu2) and also decode him.
+		InputChar=(0xff&ROM_UARTCharGetNonBlocking(UART2_BASE));
+	}
+	reset1=2;
+}
+
+//*********************************************************************
+// Routine: void BLUETOOTHIntHandler(void)
+// Input: none
+// Output: none
+// Function: Passes comm fro UART6 to UART2
+//*********************************************************************
+void BLUETOOTHIntHandler(void)
+{
+	unsigned long ulStatus;
+	ulStatus = ROM_UARTIntStatus(UART6_BASE, true);
+	ROM_UARTIntClear(UART6_BASE, ulStatus);
+	while(ROM_UARTCharsAvail(UART6_BASE))
+	{
+		// Read the next character from the UART and write it back to the UART(for cpu2) and also decode him.
+		InputChar=(0xff&ROM_UARTCharGetNonBlocking(UART6_BASE));
+		ROM_UARTCharPut(UART2_BASE,InputChar);
+		ROM_IntDisable(INT_UART3);  
+	}
+}
+
+//*********************************************************************
+// Routine: void AEDIntHandler(void)
+// Input: none
+// Output: none
+// Function: Gets an intrrupt from the AED and sends it to be decoded.
+//*********************************************************************
+void AEDIntHandler(void)///getting info from the AED
+{
+	unsigned long ulStatus;
+#ifdef cpu1
+	AEDAlive = true;
+#endif
+	//
+	// Get the interrrupt status.
+
+	ulStatus = ROM_UARTIntStatus(UART4_BASE, true);
+
+	// Clear the asserted interrupts.
+	ROM_UARTIntClear(UART4_BASE, ulStatus);
+
+	// Loop while there are characters in the receive FIFO.
+
+	while(ROM_UARTCharsAvail(UART4_BASE))
+	{
+		//
+		// Read the next character from the UART and write it back to the UART(for cpu2) and also decode him.
+		//
+		InputChar=(0xff&ROM_UARTCharGetNonBlocking(UART4_BASE));
+
+
+
+
+		DecodeAED(InputChar);//AED DECODING
+
+	}
+
+}
+
+//*********************************************************************
+// Routine: void MGW830IntHandler(void)
+// Input: none
+// Output: none
+// Function: Gets an intrrupt from the MGW830 and sends it to be decoded.
+//*********************************************************************
+void MGW830IntHandler(void)
+{
+	unsigned long ulStatus;
+	//
+	// Get the interrrupt status.
+	////DebugPrint("MGW830 interrupt!\n\0");
+	ulStatus = ROM_UARTIntStatus(UART3_BASE, true);
+
+	// Clear the asserted interrupts.
+	ROM_UARTIntClear(UART3_BASE, ulStatus);
+	// Loop while there are characters in the receive FIFO.
+	//	
+	while(ROM_UARTCharsAvail(UART3_BASE))
+	{
+		//
+		// Read the next character from the UART and write it back to the UART(for cpu2) and also decode him.
+		//
+		InputChar=(0xff&ROM_UARTCharGetNonBlocking(UART3_BASE));
+		ROM_UARTCharPut(UART2_BASE,InputChar);  ///Sending data to CPU2
+
+		MGW830Decode_cpu1(InputChar);////Decoding MGW830 for CPU1
+
+	}
+}
+
+//*********************************************************************
+// Routine: void BPF(int next_input)
+// Input: next_input
+// Output: none
+// Function: Performs a Band-Pass filter
+//*********************************************************************
+void BPF(int next_input)///Filtering the ecg in order to detect vf/vt
+{
+
+	xv[0]=xv[1];
+	xv[1]=xv[2];
+	xv[2]=xv[3];
+	xv[3]=xv[4];
+	xv[4]=_IQ24div(_IQ24mpyI32(_IQ24(0.001),next_input),GAIN);
+	yv[0]=yv[1];
+	yv[1]=yv[2];
+	yv[2]=yv[3];
+	yv[3]=yv[4];
+	yv[4]=xv[4]+xv[0]-_IQ24mpy(CONST5,xv[2])+_IQ24mpy(CONST1,yv[0])+_IQ24mpy(CONST2,yv[1])+ _IQ24mpy(CONST3,yv[2])+ _IQ24mpy(CONST4,yv[3]);
+	//yv[4]=xv[4]+_IQ24mpyI32(_IQ24(0.001),yv[4]);
+	next_output_value=_IQ24mpyI32int(yv[4],1000);
+
+}
+
+//*********************************************************************
+// Routine: void MGW830Config(void)
+// Input: none
+// Output: none
+// Function: configures the mgw830
+//*********************************************************************
+void MGW830Config(void){
+
+
+	spo2pntr=0;
+	ecg1pntr=0;
+	spo2sendflag=0;
+
+}
+
+//*********************************************************************
+// Routine: void MGW830Send(const unsigned char *pucBuffer, unsigned long ulCount)
+// Input: pucBuffer, ulCount
+// Output: none
+// Function: This routine sends a message to the MGW830
+//*********************************************************************
+void MGW830Send(const unsigned char *pucBuffer, unsigned long ulCount)
+{
+	// Loop while there are more characters to send.
+	while(ulCount--)
+	{
+		// Write the next character to the UART.
+		ROM_UARTCharPutNonBlocking(UART3_BASE, *pucBuffer++);
+	}
+}
+
+//*********************************************************************
+// Routine: void MGW830Decode_cpu2(void )
+// Input: none
+// Output: none
+// Function: This routine decodes a message to the MGW830
+//*********************************************************************
+extern char latest_ecg_sample[2];
+void MGW830Decode_cpu2(void )
+{  
+	unsigned long ulStatus;
+	static int flag=0;
+	unsigned char   data;
+	ulStatus = ROM_UARTIntStatus(UART2_BASE, true);
+	//
+	// Clear the asserted interrupts.
+	//
+	ROM_UARTIntClear(UART2_BASE, ulStatus);
+
+	while(ROM_UARTCharsAvail(UART2_BASE)){
+		data = 0xff&ROM_UARTCharGetNonBlocking(UART2_BASE);
+
+		unsigned int temp;
+
+		if((data < 0x80)&&(flag==0)){
+
+			id=data;
+			if(id==37)   ///Sending data from bluetooth to cpu2
+				flag=1;
+			packet_cntr = PACKET_HEADER;
+
+
+		}
+		else switch (id){
+#ifdef	  develop
+		case Sali1:	
+
+			{
+				switch(packet_cntr){
+				case PACKET_HEADER:
+					header=data;
+
+					num1=data;
+					packet_cntr=PACKET_DATA1;
+					break;
+
+				case PACKET_DATA1:   
+					num1=(int)data*256+num1;
+					packet_cntr=PACKET_DATA2;
+					break;
+
+
+				case PACKET_DATA2:
+
+					packet_cntr=PACKET_DATA3;
+					num1=(int)data*256*256+num1;
+
+
+					break;
+				case PACKET_DATA3:
+					num1=(int)data*256*256*256+num1;
+
+					packet_cntr=PACKET_DATA4;
+					break;
+				case PACKET_DATA4:
+					count1++;
+					RingBufWrite(&RingBuf_file,&data, 1);//Getting more then 1024 bytes 
+
+					if(num1>1023)
+					{ 
+
+						if(count1==1024)
+						{
+
+							count1=0;
+
+							num1=num1-1024;
+							flagw=1;
+
+							if(num1==0)
+							{
+
+								flag=0;
+								packet_cntr=PACKET_SEARCH;
+							}
+						}
+					}
+					else if(num1>0)
+					{
+						if(count1==num1)
+						{
+							count1=0;
+							flag=0;
+							rest=true;
+							num2=num1;
+							packet_cntr=PACKET_SEARCH;
+						}}
+
+
+					break;
+
+				default:
+					break;
+				}
+				break;	
+			}
+#endif
+		case ID_ECGWAVE:
+			switch(packet_cntr){
+
+			case PACKET_HEADER:
+				header=data; 
+				packet_cntr=PACKET_DATA1;
+				break;
+
+#ifdef M200_BOARD
+			case PACKET_DATA1:
+				if(header&0x04)id=0;  //this shouldn't happen so search for new id
+				else tempecg =(data&0x7f)*256;
+
+				packet_cntr=PACKET_DATA2;
+				break;
+
+			case PACKET_DATA2:
+				if(!(header&0x08))tempecg+=(data&0x7f);
+				else tempecg+=data;
+
+				ecg1[0]=encoding_table[tempecg &0x3f];//encoding the data to 64 char table for sending to the cloud
+				ecg1[1]=encoding_table[((tempecg/64) &0x3f)];
+
+				p++;//500 samples become 250
+
+				if (p==2)
+				{
+					p=0;
+
+					ecg1[0]=encoding_table[tempecg &0x3f];//encoding the data to 64 char table for sending to the cloud
+					ecg1[1]=encoding_table[((tempecg/64) &0x3f)];
+
+					RingBufWrite(&RingBuf_ecg,ecg1, 2);
+					RingBufWrite(&RingBuf_ecgfile,ecg1, 2);
+
+					if((RingBufUsed(&RingBuf_ecg))==1000)
+					{
+						ecgsaveflag1=true;
+						ecgsendflag=true;
+					}
+				}
+
+				packet_cntr=PACKET_DATA3;
+				break;
+
+			case PACKET_DATA3:
+				packet_cntr=PACKET_DATA4;
+				break;
+
+			case PACKET_DATA4:
+				packet_cntr=PACKET_DATA5;
+				break;
+
+			case PACKET_DATA5:
+				packet_cntr=PACKET_DATA6;
+				break;
+
+			case PACKET_DATA6:
+				packet_cntr=PACKET_DATA7;
+				break;
+
+			case PACKET_DATA7:
+				if(data&0x01)pacer=1;
+				if(data&0x02)qrs=1;
+				packet_cntr=PACKET_CS;
+				break;
+#else
+			case PACKET_DATA1:
+				packet_cntr=PACKET_DATA2;
+				break;
+
+			case PACKET_DATA2:
+				packet_cntr=PACKET_DATA3;
+
+				break;
+
+			case PACKET_DATA3:
+				if(header&0x04)id=0;  //this shouldn't happen so search for new id
+				else tempecg =(data&0x7f)*256;
+
+
+				packet_cntr=PACKET_DATA4;
+				break;
+
+			case PACKET_DATA4:
+				if(!(header&0x08))tempecg+=(data&0x7f);
+				else tempecg+=data;
+
+				ecg1[0]=encoding_table[tempecg &0x3f];//encoding the data to 64 char table for sending to the cloud
+				ecg1[1]=encoding_table[((tempecg/64) &0x3f)];
+
+				p++;//500 samples become 250
+
+				if (p==2)
+				{
+					p=0;
+
+					ecg1[0]=encoding_table[tempecg &0x3f];//encoding the data to 64 char table for sending to the cloud
+					ecg1[1]=encoding_table[((tempecg/64) &0x3f)];
+
+					RingBufWrite(&RingBuf_ecg,ecg1, 2);
+					RingBufWrite(&RingBuf_ecgfile,ecg1, 2);
+
+					if((RingBufUsed(&RingBuf_ecg))==1000)
+					{
+						ecgsaveflag1=true;
+						ecgsendflag=true;
+						//Debug(100);
+
+					}
+				}
+
+				packet_cntr=PACKET_DATA5;
+				break;
+
+			case PACKET_DATA5:
+				if(data&0x01)pacer=1;
+				if(data&0x02)qrs=1;
+				packet_cntr=PACKET_CS;
+				break;
+#endif
+
+			case PACKET_CS:
+				packet_cntr=PACKET_SEARCH;
+				break;
+
+			default:
+				break;
+			}
+			break;
+
+		case ID_LEAD_STS:
+			{	
+				switch(packet_cntr){
+				case PACKET_HEADER:
+					header=data;
+					packet_cntr=PACKET_DATA1;
+					break;
+
+				case PACKET_DATA1:   
+					if(data&0x02)la_fault=1;
+					if(data&0x04)ra_fault=1; 
+
+					packet_cntr=PACKET_DATA2;
+					break;
+
+
+				case PACKET_DATA2:
+					if(data&0x01)ecg1_overload=1;
+					packet_cntr=PACKET_CS;
+					break;
+
+
+				case PACKET_CS:
+					packet_cntr=PACKET_SEARCH;
+					break;
+
+				default:
+					break;
+				}
+				break;
+			}	
+
+		case ID_HR:	
+			{
+				switch(packet_cntr){
+				case PACKET_HEADER:
+					header=data;
+					packet_cntr=PACKET_DATA1;
+					break;
+
+				case PACKET_DATA1: 
+
+					if(header&0x01)id=0;  //this shouldn't happen so search for new id
+					else heart_rate=(data&0x7f)*256;
+					packet_cntr=PACKET_DATA2;
+					break;
+
+
+				case PACKET_DATA2:
+
+					temp = data&0x7f;   
+					if(header&0x02)temp=temp|0x80;
+					heart_rate+=temp;
+					HR_flag=true;
+					HR_flag_1=true;
+					HR_flag_2=true;
+					usnprintf(dhr,4,"%03d",heart_rate);
+					
+					//	if((heart_rate<50)&& (heart_rate>0))
+					//m_event=2;//heart even 
+					//else if(heart_rate>89)
+					//m_event=3;	
+					packet_cntr=PACKET_CS;
+					break;
+
+
+				case PACKET_CS:
+					packet_cntr=PACKET_SEARCH;
+					break;
+
+				default:
+					break;
+				}
+
+				break;
+			}
+
+		case ID_SPO2_WAVE:
+			{
+				switch(packet_cntr){
+
+				case PACKET_HEADER:
+					header=data;
+					packet_cntr=PACKET_DATA1;
+					break;
+
+
+				case PACKET_DATA1:
+
+					packet_cntr=PACKET_DATA2;
+					break;
+
+
+				case PACKET_DATA2:
+					spo2status = data&0x7f;   
+					if(header&0x02)spo2status=spo2status|0x80;///status of the finger or probe
+					packet_cntr=PACKET_CS;
+					break;
+
+
+				case PACKET_CS:
+					packet_cntr=PACKET_SEARCH;
+					break;
+
+				default:
+					break;
+				}
+				break;
+			}
+
+		case ID_SPO2_PR:
+			{
+				switch(packet_cntr){
+				case PACKET_HEADER:
+
+					header=data;
+
+					packet_cntr=PACKET_DATA1;
+					break;
+
+				case PACKET_DATA1:
+					spo2msg = data&0x7f;   
+					if(header&0x01)spo2msg=spo2msg | 0x80;///strength of the signal
+					spo2msg_flag=true;
+					spo2msg_flag_1=true;
+					usnprintf(spomsg1,3,"%02d",spo2msg&0x0f);
+					packet_cntr=PACKET_DATA2;
+					break;
+
+
+				case PACKET_DATA2:
+
+					if(header&0x02) 
+					{
+						nodata=1;
+					}
+					else
+					{
+						nodata=0;
+
+						temp = data&0x7f;
+
+						spo2rate = temp *256;
+					}
+					packet_cntr=PACKET_DATA3;
+					break;
+
+				case PACKET_DATA3:
+
+					if(!nodata) 
+					{
+						temp=data&0x7f; 
+						if(header&0x04)temp=temp|0x80;
+						spo2rate+=temp;
+						usnprintf(dspo2rate,4,"%03d",spo2rate);
+						dspo2rate_flag=true;
+						dspo2rate_flag_1=true;
+						dspo2rate_flag_2=true;
+					}
+					packet_cntr=PACKET_DATA4;
+					break;
+
+				case PACKET_DATA4:
+
+					if(!(header&0x08))
+
+					{
+						temp=data&0x7f;
+						spo2value=temp;
+
+						usnprintf(dspo2value,4,"%03d",spo2value);			    
+						//if(spo2value<87)
+						//m_event=7;//check for working
+						dspo2value_flag_1=true;
+						dspo2value_flag=true;
+						dspo2value_flag_2=true;
+					}
+					packet_cntr=PACKET_CS;
+					break;
+
+				case PACKET_CS:
+					packet_cntr=PACKET_SEARCH;
+					break;
+				default:
+					break;
+				}
+				break;
+			}
+
+		case SLEEP_MODE:  //CPU2 GOING TO SLEEP
+
+			{
+				if(data==135)
+				{
+					reset=0;
+				}
+
+				packet_cntr=PACKET_SEARCH;
+
+
+				break;
+			}
+		case 38:
+			{
+
+				break;
+			}
+		case ID_ST:
+			{
+				switch(packet_cntr)
+				{
+				case PACKET_HEADER:
+					header=data;
+					packet_cntr=PACKET_DATA1;
+					break;
+
+#ifdef M200_BOARD
+				case PACKET_DATA1:
+					if(header&0x04)
+					{
+						ST=(255-data);
+						neg=true;
+						is_ST_negative = true;
+					}
+					else
+					{
+						neg=false;
+						is_ST_negative = false;
+						ST=data&0x7f;
+					}
+					packet_cntr=PACKET_DATA2;
+					break;
+
+				case PACKET_DATA2:
+					temp = data&0x7f;
+					if(header&0x08)
+						temp=temp|0x80;
+					if (neg)
+					{
+						ST = ST *256+(256-temp);
+						if(ST<80)
+						{
+							//m_event=6;
+							usnprintf(STvalue,6,"-%01d.%02d",ST/100,ST%100);
+							ST_FLAG_2=true;
+							ST_flag_1=true;
+							ST_flag=true;
+						}
+					}
+					else
+					{
+						ST=ST*256+temp;
+						//if(ST==0)
+						//{
+						//m_event=0;
+						//}
+						//else if(ST>10)
+						//{
+						//	m_event=5;
+						//}
+						usnprintf(STvalue,6,"+%01d.%02d",ST/100,ST%100);
+						ST_flag_1=true;
+						ST_flag=true;
+					}
+
+					packet_cntr=PACKET_DATA3;
+					break;
+
+				case PACKET_DATA3:
+					packet_cntr=PACKET_DATA4;
+					break;
+
+				case PACKET_DATA4:
+					packet_cntr=PACKET_DATA5;
+					break;
+
+				case PACKET_DATA5:
+					packet_cntr=PACKET_DATA6;
+					break;
+
+				case PACKET_DATA6:
+					packet_cntr=PACKET_CS;
+					break;
+#else
+				case PACKET_DATA1:
+					packet_cntr=PACKET_DATA2;
+					break;
+
+				case PACKET_DATA2:
+					packet_cntr=PACKET_DATA3;
+					break;
+
+				case PACKET_DATA3:
+					if(header&0x04)
+					{
+						ST=(255-data);
+						neg=true;
+						is_ST_negative = true;
+					}
+					else 
+					{ 
+						neg=false;
+						is_ST_negative = false;
+						ST=data&0x7f;
+					}
+					packet_cntr=PACKET_DATA4;
+					break;
+
+				case PACKET_DATA4:
+					temp = data&0x7f;   
+					if(header&0x08)
+						temp=temp|0x80;
+					if (neg)
+					{
+						ST = ST *256+(256-temp);
+						if(ST<80)
+						{ 
+							//m_event=6;						
+							usnprintf(STvalue,6,"-%01d.%02d",ST/100,ST%100);
+							ST_FLAG_2=true;
+							ST_flag_1=true;
+							ST_flag=true;
+						}
+					}
+					else
+					{
+						ST=ST*256+temp;
+						//if(ST==0)
+						//{
+						//m_event=0;
+						//}
+						//else if(ST>10)
+						//{
+						//	m_event=5;
+						//}
+						usnprintf(STvalue,6,"+%01d.%02d",ST/100,ST%100);
+						ST_flag_1=true;
+						ST_flag=true;
+					}
+
+					packet_cntr=PACKET_CS;
+					break;
+#endif
+
+				case PACKET_CS:
+					packet_cntr=PACKET_SEARCH;
+					break;	
+				default:
+					break;
+				}
+				break;
+			}
+		default:
+			break;
+		}
+	}
+}
+
+//*********************************************************************
+// Routine: void heart_wave_value_cpu1(unsigned int ecg_data_from_decode)
+// Input: ecg_data_from_decode
+// Output: none
+// Function: This routine filters unwanted ecg data
+//*********************************************************************
+void heart_wave_value_cpu1(unsigned int ecg_data_from_decode)
+{
+	if (count_ecg <11){
+		heart_rate_uart_send[count_ecg++]=(char)(abs(ecg_data_from_decode/32));
+	}
+
+	if(count_ecg == 11)
+	{
+		count_ecg = 1;
+		send_ecg_to_screen = true;
+	}
+}
+
+//*********************************************************************
+// Routine: void MGW830Decode_cpu1(unsigned char data)
+// Input: data
+// Output: none
+// Function: This routine decodes data for cpu1 from mgw830
+//*********************************************************************
+#ifdef cpu1
+void MGW830Decode_cpu1(unsigned char data)
+{   
+	static signed int v5avg=0;
+
+	static int c100=0;
+
+	static int VF5Cntr=0;
+	static int VF5SUM=0;
+
+	static int VF100Cntr=0;
+	unsigned int temp;
+	static unsigned int temp_hr = 0;
+	static unsigned int temp_spo2rate = 0;
+
+	if(data < 0x80){
+		id=data;
+		packet_cntr = PACKET_HEADER;	
+	}
+	else switch (id){
+		//ecg wave
+	case ID_ECGWAVE:
+		switch(packet_cntr){
+
+		case PACKET_HEADER:
+			header=data; 
+			packet_cntr=PACKET_DATA1;
+			break;
+
+#ifdef M200_BOARD
+		case PACKET_DATA1:
+			if(header&0x01)id=0;  //this shouldn't happen so search for new id
+			else tempecg =(data&0x7f)*256;
+
+			packet_cntr=PACKET_DATA2;
+			break;
+
+		case PACKET_DATA2:
+			if(!(header&0x02))tempecg+=(data&0x7f);
+			else tempecg+=data;
+
+			//usprintf(str_event,"%04d, \0", tempecg);
+			//DebugPrint(str_event);
+
+			if(clampNotConnected==0)//only when clamps are connected
+			{
+				VF5SUM+=tempecg;
+
+				if(++VF5Cntr==5)/// 500 become 100 samples
+				{ 
+					v5avg=(VF5SUM/5);
+					VF5SUM=0;
+
+					v5avg=v5avg-2048;
+					BPF(v5avg);//Filtering 
+
+					vf_buffer[VF100Cntr++]=next_output_value;//buffer twice long
+					c100++;
+					if(VF100Cntr==200)
+					{
+						VF100Cntr=0;
+					}
+
+					VF5Cntr=0;	
+					if(c100==100)
+					{   
+						if(VF100Cntr==0)
+							VF100Cntr1=200;
+						else
+							VF100Cntr1=VF100Cntr;
+
+						c100=0;
+
+						VF100FLAG=1;
+					}
+				}
+			}
+
+			static int p=0;  
+			p++;//500 pixel/sec become to 125
+			if (p==3)
+			{
+				heart_wave_value_cpu1(tempecg);
+				p=0;
+
+				ecg_wave[index++] = encoding_table[tempecg &0x3f];//encoding the data to 64 char table for sending to the cloud
+				ecg_wave[index++] = encoding_table[((tempecg/64) &0x3f)];
+
+				ecg_num_vals[ecg_wave_index] = tempecg;
+				ecg_wave_index++;
+
+				if(index == 1000)
+				{
+					index = 0;
+					ecgsendflag = true;
+				}
+
+				if(ecg_wave_index == 1000)
+				{
+					/*usprintf(ecg_val,"ECG Values: \0");
+							int inner_index;
+
+							for(ecg_wave_index = 0; ecg_wave_index < 1000; ecg_wave_index++)
+							{
+								for(inner_index = 0; inner_index < 100; inner_index++)
+								{
+									itoa(ecg_num_vals[ecg_wave_index], val, 10);
+									strcat(ecg_val, ",");
+									strcat(ecg_val, val);
+
+									if(inner_index != 99)
+									{
+										ecg_wave_index++;
+									}
+								}
+
+								log_ecg_wave(ecg_val);
+								usprintf(ecg_val,"ECG Values: \0");
+							}*/
+
+					ecg_wave_index = 0;
+				}
+			} 
+
+			packet_cntr=PACKET_DATA3;
+			break;
+
+		case PACKET_DATA3:
+			packet_cntr=PACKET_DATA4;
+			break;
+
+		case PACKET_DATA4:
+			packet_cntr=PACKET_DATA5;
+			break;
+
+		case PACKET_DATA5:
+			packet_cntr=PACKET_DATA6;
+			break;
+
+		case PACKET_DATA6:
+			packet_cntr=PACKET_DATA7;
+			break;
+
+		case PACKET_DATA7:
+			if(data&0x01)qrs=1;
+			if(data&0x02)pacer=1;
+			packet_cntr=PACKET_CS;
+			break;
+#else
+		case PACKET_DATA1:
+			packet_cntr=PACKET_DATA2;
+			break;
+
+		case PACKET_DATA2:
+			packet_cntr=PACKET_DATA3;
+			break;
+
+		case PACKET_DATA3:
+			if(header&0x01)id=0;  //this shouldn't happen so search for new id
+			else tempecg =(data&0x7f)*256;
+
+			packet_cntr=PACKET_DATA4;
+			break;
+
+		case PACKET_DATA4:
+			if(!(header&0x02))tempecg+=(data&0x7f);
+			else tempecg+=data;
+
+			//usprintf(str_event,"%04d, \0", tempecg);
+			//DebugPrint(str_event);
+
+			if(clampNotConnected==0)//only when clamps are connected
+			{
+				VF5SUM+=tempecg;
+
+				if(++VF5Cntr==5)/// 500 become 100 samples
+				{
+					v5avg=(VF5SUM/5);
+					VF5SUM=0;
+
+					v5avg=v5avg-2048;
+					BPF(v5avg);//Filtering
+
+					vf_buffer[VF100Cntr++]=next_output_value;//buffer twice long
+					c100++;
+					if(VF100Cntr==200)
+					{
+						VF100Cntr=0;
+					}
+
+					VF5Cntr=0;
+					if(c100==100)
+					{
+						if(VF100Cntr==0)
+							VF100Cntr1=200;
+						else
+							VF100Cntr1=VF100Cntr;
+
+						c100=0;
+
+						VF100FLAG=1;
+					}
+				}
+			}
+
+			static int p=0;
+			p++;//500 pixel/sec become to 125
+			if (p==3)
+			{
+				heart_wave_value_cpu1(tempecg);
+				p=0;
+
+				ecg_wave[index++] = encoding_table[tempecg &0x3f];//encoding the data to 64 char table for sending to the cloud
+				ecg_wave[index++] = encoding_table[((tempecg/64) &0x3f)];
+
+				ecg_num_vals[ecg_wave_index] = tempecg;
+				ecg_wave_index++;
+
+				if(index == 1000)
+				{
+					index = 0;
+					ecgsendflag = true;
+				}
+
+				if(ecg_wave_index == 1000)
+				{
+					/*usprintf(ecg_val,"ECG Values: \0");
+							int inner_index;
+
+							for(ecg_wave_index = 0; ecg_wave_index < 1000; ecg_wave_index++)
+							{
+								for(inner_index = 0; inner_index < 100; inner_index++)
+								{
+									itoa(ecg_num_vals[ecg_wave_index], val, 10);
+									strcat(ecg_val, ",");
+									strcat(ecg_val, val);
+
+									if(inner_index != 99)
+									{
+										ecg_wave_index++;
+									}
+								}
+
+								log_ecg_wave(ecg_val);
+								usprintf(ecg_val,"ECG Values: \0");
+							}*/
+
+					ecg_wave_index = 0;
+				}
+			}
+
+			packet_cntr=PACKET_DATA5;
+			break;
+
+		case PACKET_DATA5:
+			if(data&0x01)qrs=1;
+			if(data&0x02)pacer=1;
+			packet_cntr=PACKET_CS;
+			break;
+#endif
+		case PACKET_CS:
+			packet_cntr=PACKET_SEARCH;
+			break;
+
+		default:
+			break;
+		}
+		break;
+	case ID_SELFTEST:
+		{
+			switch(packet_cntr){
+			case PACKET_HEADER:
+				//DebugPrint("[ ------------------ MGW SELFTEST ------------------ ] ");
+				mgw830_done_self_check = 0;
+				mgw830_pass_self_check = 1;
+				header=data;
+				packet_cntr=PACKET_DATA1;
+				break;
+
+			case PACKET_DATA1: // Self-checking result 1 , check bits 0-4
+				if((data & 0x1f) != 0)
+				{
+					mgw830_pass_self_check = 0;
+				}
+				packet_cntr=PACKET_DATA2;
+				break;
+
+			case PACKET_DATA2: // Self-checking result 2 , check bits 0-5
+				if((data & 0x3f) != 0)
+				{
+					mgw830_pass_self_check = 0;
+				}
+				packet_cntr=PACKET_DATA3;
+				break;
+			case PACKET_DATA3: // Version number
+
+				packet_cntr=PACKET_DATA4;
+				break;
+			case PACKET_DATA4: // Module sign 1
+
+				packet_cntr=PACKET_DATA5;
+				break;
+			case PACKET_DATA5: // Module sign 2
+
+				packet_cntr=PACKET_DATA6;
+				break;
+			case PACKET_DATA6: // Module sign 3
+
+				packet_cntr=PACKET_CS;
+				break;
+			case PACKET_CS: // Checksum
+				mgw830_done_self_check = 1;
+				packet_cntr=PACKET_SEARCH;
+				break;
+			default:
+				break;
+			}
+			break;
+		}
+	case ID_LEAD_STS:	
+		switch(packet_cntr){
+		case PACKET_HEADER:
+			header=data;
+			packet_cntr=PACKET_DATA1;
+			break;
+
+		case PACKET_DATA1:   
+			//	
+			if(data&0x02)
+			{
+				la_fault=1;
+
+				if(!clampNotConnected)
+				{
+					DebugPrintWithTime("ECG not connected\r\n");
+				}
+
+				clampNotConnected=1;
+			}
+			else if(data&0x04)
+			{
+				ra_fault=1; 
+
+				if(!clampNotConnected)
+				{
+					DebugPrintWithTime("ECG not connected\r\n");
+				}
+
+				clampNotConnected=1;
+			}
+			else
+			{
+				if(clampNotConnected)
+				{
+					DebugPrintWithTime("ECG connected\r\n");
+				}
+
+				clampNotConnected=0;
+			}
+
+			if(clampNotConnected==1)
+			{
+				if(ProbeNotConnected==1)
+				{
+					heart_rate=0;
+				}
+				else
+				{
+					heart_rate=spo2rate;
+				}
+
+				//heart_rate_value_send[2]=(char)((heart_rate>>4) & 0x0f);
+				//heart_rate_value_send[3]=(char)(heart_rate & 0x0f); //HR lsb
+				//RingBufWrite(&sRingBuf_adv,heart_rate_value_send, 4);
+			}
+			packet_cntr=PACKET_DATA2;
+			break;
+
+		case PACKET_DATA2:
+			if(data&0x01)ecg1_overload=1;
+			packet_cntr=PACKET_CS;
+			break;
+
+		case PACKET_CS:
+			packet_cntr=PACKET_SEARCH;
+			break;
+
+		default:
+			break;
+		}
+		break;		
+	case ID_HR:	
+		switch(packet_cntr){
+		case PACKET_HEADER:
+			header=data;
+			packet_cntr=PACKET_DATA1;
+			break;
+
+		case PACKET_DATA1:   
+			if(header&0x01)id=0;  //this shouldn't happen so search for new id
+			else temp_hr=(data&0x7f)*256;
+			packet_cntr=PACKET_DATA2;
+			break;
+
+		case PACKET_DATA2:
+			temp = data&0x7f;   
+			if(header&0x02)temp=temp|0x80;
+			temp_hr+=temp;
+			
+			if(ProbeNotConnected == 0 && spo2rate > 0)
+			{
+				temp_hr=spo2rate;
+			}
+
+			heart_rate = temp_hr;
+			temp_hr = 0;
+
+			unsigned char video_heart_rate[4] = {0x88, 0, heart_rate / 16, heart_rate % 16};
+			Write_To_RingBuffer(3, video_heart_rate, 4);
+			//heart_rate_value_send[2]=(char)((heart_rate>>4) & 0x0f);
+			//heart_rate_value_send[3]=(char)(heart_rate & 0x0f); //HR lsb
+			//RingBufWrite(&sRingBuf_adv,heart_rate_value_send, 4);
+			//	ROM_UARTCharPut(UART0_BASE,0x04);
+			HR_flag=1;
+			HR_flag_1=1;
+			packet_cntr=PACKET_CS;
+			break;
+
+		case PACKET_CS:
+			packet_cntr=PACKET_SEARCH;
+			break;
+
+		default:
+			break;
+		}
+		break;
+	case ID_SPO2_WAVE:  
+		switch(packet_cntr)
+		{
+		case PACKET_HEADER:
+			header=data;
+			packet_cntr=PACKET_DATA1;
+			break;
+		case PACKET_DATA1:
+			packet_cntr=PACKET_DATA2;
+			break;
+		case PACKET_DATA2:
+			spo2status = data&0x7f;   
+			if(header&0x02)
+			{
+				if(!ProbeNotConnected)
+				{
+					DebugPrintWithTime("Probe not connected\r\n");
+				}
+
+				ProbeNotConnected=1;
+				spo2status=spo2status|0x80;
+			}
+			else
+			{
+				if(ProbeNotConnected)
+				{
+					DebugPrintWithTime("Probe connected\r\n");
+				}
+
+				ProbeNotConnected=0;
+			}
+			///status of the finger or probe
+			packet_cntr=PACKET_CS;
+			break;
+		case PACKET_CS:
+			packet_cntr=PACKET_SEARCH;
+			break;
+		default:
+			break;
+		}
+		break;
+	case ID_SPO2_PR:
+		{
+			switch(packet_cntr){
+			case PACKET_HEADER:
+				header=data;
+				packet_cntr=PACKET_DATA1;
+				break;
+				
+			case PACKET_DATA1:
+				spo2msg = data&0x7f;   
+				if(header&0x01)spo2msg=spo2msg | 0x80;///strength of the signal
+				spomsg[1]=(char)(spo2msg & 0x0f); //HR lsb
+				if(spomsg[1]==15)
+				{
+					temp=0;
+					SPO2_rate_value_send[1]=(char)((temp>>4) & 0x0f);
+					SPO2_rate_value_send[2]=(char)(temp & 0x0f);
+
+					Write_To_RingBuffer(3, SPO2_rate_value_send, 3);
+				}
+
+				Write_To_RingBuffer(3, spomsg, 2);
+
+				packet_cntr=PACKET_DATA2;
+				break;
+				
+			case PACKET_DATA2:
+				if(header&0x02) ///SPO2_HR
+				{
+					nodata=1;
+				}
+				else
+				{
+					nodata=0;
+					temp = data&0x7f;
+					temp_spo2rate = temp *256;
+				}
+				packet_cntr=PACKET_DATA3;
+				break;
+				
+			case PACKET_DATA3:
+				if(!nodata) 
+				{
+					temp=data&0x7f; 
+					if(header&0x04)temp=temp|0x80;
+					temp_spo2rate+=temp;
+					dspo2rate_flag=true;
+
+					spo2rate = temp_spo2rate;
+					temp_spo2rate = 0;
+
+					if(ProbeNotConnected == 0)
+					{
+						heart_rate=spo2rate;
+					}
+
+					unsigned char video_heart_rate[4] = {0x88, 0, heart_rate / 16, heart_rate % 16};
+					Write_To_RingBuffer(3, video_heart_rate, 4);
+				}
+				packet_cntr=PACKET_DATA4;
+				break;
+				
+			case PACKET_DATA4:
+				if(!(header&0x08))
+				{	
+					temp=data&0x7f;
+					
+					if(temp >= 100)
+					{
+						temp = 99;
+					}
+					
+					spo2value=temp;////SPO_VALUE
+					
+					dspo2value_flag=true;
+					////DebugPrint("Got SPO2 HR \0");
+					SPO2_rate_value_send[1]=(char)((temp>>4) & 0x0f);
+					SPO2_rate_value_send[2]=(char)(temp & 0x0f); //HR lsb
+
+					Write_To_RingBuffer(3, SPO2_rate_value_send, 3);
+
+					spo2_hr_flag = true;
+					
+					// Play sound if spo2 goes red
+					/*if(prev_spo2value >=  90 && spo2value < 90)
+					{
+						if(system_state == SYSTEM_STATE_ADVANCED_SCREEN)
+						{
+							unsigned char cpr_push_sound[2]={0x82,0x0F};
+							Write_To_RingBuffer(2, cpr_push_sound, 2);
+						}
+					}*/
+					prev_spo2value = spo2value;
+				}
+				packet_cntr=PACKET_CS;
+				break;
+
+			case PACKET_CS:
+				packet_cntr=PACKET_SEARCH;
+				break;
+				
+			default:
+				break;
+			}
+			break;
+		}
+#ifdef develop
+	case ID_NIBP_END:
+		{
+			switch(packet_cntr){
+			case PACKET_HEADER:
+				header=data;
+				packet_cntr=PACKET_DATA1;
+				break;
+				
+			case PACKET_DATA1:
+				packet_cntr=PACKET_CS;
+				break;
+				
+			case PACKET_CS:
+				MGW830Send(NIBPRESULT,2);
+				packet_cntr=PACKET_SEARCH;
+				break;
+
+			default:
+				break;
+			}
+			break;
+		}
+	case ID_NIBP_RESULT1:
+		{
+			switch(packet_cntr){
+			case PACKET_HEADER:
+				//	ROM_UARTCharPut(UART0_BASE,'A');
+				header=data;
+				packet_cntr=PACKET_DATA1;
+				///	ROM_UARTCharPut(UART7_BASE,header);
+				break;
+
+			case PACKET_DATA1:
+				if(header&0x01)id=0;  //this shouldn't happen so search for new id
+				else BPS=(data&0x7f)*256;
+				packet_cntr=PACKET_DATA2;
+				break;
+
+			case PACKET_DATA2:
+				temp = data&0x7f;   
+				if(header&0x02)temp=temp|0x80;
+				BPS+=temp;
+				UARTprintf("%d,",BPS);
+				packet_cntr=PACKET_DATA3;
+				//ROM_UARTCharPut(UART7_BASE,ST&0xFF);
+				break;
+
+			case PACKET_DATA3:
+				if(header&0x04)id=0;  //this shouldn't happen so search for new id
+				else BPD=(data&0x7f)*256;
+				packet_cntr=PACKET_DATA4;
+				break;
+				
+			case PACKET_DATA4:
+				temp = data&0x7f;   
+				if(header&0x08)temp=temp|0x80;
+				BPD+=temp;
+				UARTprintf("%d,",BPD);
+				packet_cntr=PACKET_DATA5;
+				
+			case PACKET_DATA5:
+				packet_cntr=PACKET_DATA6;
+				break;
+
+			case PACKET_DATA6:
+				packet_cntr=PACKET_CS;
+				break;
+					
+			case PACKET_CS:
+				packet_cntr=PACKET_SEARCH;
+				break;	
+				
+			default:
+				break;
+			}
+			break;
+		}
+#endif
+	case ID_ST:
+		{			
+			switch(packet_cntr){
+			case PACKET_HEADER:
+				header=data;
+				packet_cntr=PACKET_DATA1;
+				break;
+#ifdef M200_BOARD
+			case PACKET_DATA1:
+				if(header&0x01)
+				{
+					ST=(255-data);
+					neg=true;
+					is_ST_negative = true;
+					ST_elv[1]=1;
+				}
+				else 
+				{ 
+					ST_elv[1]=0;	
+					neg=false;
+					is_ST_negative = false;
+					ST=data&0x7f;
+				}
+
+				packet_cntr=PACKET_DATA2;
+				break;
+
+			case PACKET_DATA2:
+				temp = data&0x7f;   
+				if(header&0x02)
+					temp=temp|0x80;
+				if (neg)
+				{
+					ST = ST *256+(256-temp);
+					//ST_flag=true;
+					//if(ST<80)
+						//{
+						// M_even[1]=2;
+					// RingBufWrite(&sRingBuf_adv, M_even, 2);
+					//}
+				}
+				else
+				{
+					ST=ST*256+temp;
+
+					//	if(ST>10)
+					//	{
+					//	M_even[1]=3;
+					//	RingBufWrite(&sRingBuf_adv,M_even, 2);
+					//}
+				}
+				if(ST<80)
+				{						
+					ST_elv[2]=(char)((ST>>8) &0x0f);
+					ST_elv[3]=(char)((ST>>4) &0x0f);
+					ST_elv[4]=(char)(ST &0x0f);
+				}
+				else
+				{
+					ST_elv[1]=0;
+					ST_elv[2]=0;
+					ST_elv[3]=0;
+					ST_elv[4]=0;
+				}
+				ST_flag=true;
+
+				Write_To_RingBuffer(3, ST_elv, 5);
+
+				packet_cntr=PACKET_DATA3;
+				break;
+
+			case PACKET_DATA3:
+				packet_cntr=PACKET_DATA4;
+				break;
+
+			case PACKET_DATA4:
+				packet_cntr=PACKET_DATA5;
+				break;
+
+			case PACKET_DATA5:
+				packet_cntr=PACKET_DATA6;
+				break;
+
+			case PACKET_DATA6:
+#else
+			case PACKET_DATA1:
+				packet_cntr=PACKET_DATA2;
+				break;
+
+			case PACKET_DATA2:
+				packet_cntr=PACKET_DATA3;
+				break;
+
+			case PACKET_DATA3:
+				if(header&0x01)
+				{
+					ST=(255-data);
+					neg=true;
+					is_ST_negative = true;
+					ST_elv[1]=1;
+				}
+				else
+				{
+					ST_elv[1]=0;
+					neg=false;
+					is_ST_negative = false;
+					ST=data&0x7f;
+				}
+
+				packet_cntr=PACKET_DATA4;
+				break;
+
+			case PACKET_DATA4:
+				temp = data&0x7f;
+				if(header&0x02)
+					temp=temp|0x80;
+				if (neg)
+				{
+					ST = ST *256+(256-temp);
+					//ST_flag=true;
+					//if(ST<80)
+						//{
+						// M_even[1]=2;
+						// RingBufWrite(&sRingBuf_adv, M_even, 2);
+					//}
+				}
+				else
+				{
+					ST=ST*256+temp;
+
+					//	if(ST>10)
+					//	{
+					//	M_even[1]=3;
+					//	RingBufWrite(&sRingBuf_adv,M_even, 2);
+					//}
+				}
+				if(ST<80)
+				{
+					ST_elv[2]=(char)((ST>>8) &0x0f);
+					ST_elv[3]=(char)((ST>>4) &0x0f);
+					ST_elv[4]=(char)(ST &0x0f);
+				}
+				else
+				{
+					ST_elv[1]=0;
+					ST_elv[2]=0;
+					ST_elv[3]=0;
+					ST_elv[4]=0;
+				}
+				ST_flag=true;
+
+				Write_To_RingBuffer(3, ST_elv, 5);
+#endif
+				packet_cntr=PACKET_CS;
+				break;
+
+			case PACKET_CS:
+				packet_cntr=PACKET_SEARCH;
+				break;
+					
+			default:
+				break;
+			}
+
+		}
+	default:
+		break;
+	}
+}
+#endif //cpu1
+
+
+//*********************************************************************
+// Routine: void DecodeAED(unsigned char InputChar)
+// Input: InputChar
+// Output: none
+// Function: decoding AED protocol	
+//*********************************************************************
+void DecodeAED(unsigned char InputChar)
+{
+	static char checksumadd;
+				
+	switch(nextstep)
+	{
+	case 1:
+		{
+			switch(InputChar)
+			{
+			// The first 2 hex are always 0x1B
+			case 0x1B:
+	
+				nextstep=2;
+				break;
+			}
+			break;
+		}
+	case 2:
+		{
+			switch(InputChar)
+			{
+			// Check the PADs
+			case 0x20:
+				state1=1;///check pads
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x18:
+				//case 46://analyzing
+				state1=9;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x13:
+				//shock advised
+				ROM_UARTCharPut(UART0_BASE,0x03);
+				state1=10;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x1A:
+				///shock delivered
+				state1=11;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x16:
+				//no shock advised
+				state1=12;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x0A:
+				//start cpr
+				state1=13;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x0D:
+				//stop cpr
+				//DebugPrint("AED stop CPR ");
+				state1=15;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x17:
+				//charging, don't touch
+				state1=16;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x19:
+				//time-out
+				state1=17;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x14:
+				//charging stop
+				state1=18;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x15:
+				//charging complete
+				state1=19;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x0C:
+			    //DebugPrint("AED Low Battery! ");
+				AED_low_battery = true;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+			case 0x0B:
+				//DebugPrint("AED System Failure! ");
+				AED_system_fail = true;
+				checksumadd=checksumadd+InputChar;
+				nextstep=3;
+				break;
+
+			}
+			break;
+		}
+	case 3:
+		{
+			checksumadd=checksumadd+InputChar;
+			if(checksumadd==229)
+			{
+				ValidCheckSumFromAED=true;
+			}
+			checksumadd=0;
+			nextstep=1;
+			break;
+		}
+	default:
+		break;
+	}
+}
+
+
+
+
+
+
+

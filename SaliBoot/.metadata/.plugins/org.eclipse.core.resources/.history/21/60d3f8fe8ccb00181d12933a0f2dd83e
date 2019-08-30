@@ -1,0 +1,41 @@
+# FIXED
+
+RealTimeClock.obj: ../RealTimeClock.c
+RealTimeClock.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h
+RealTimeClock.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h
+RealTimeClock.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdlib.h
+RealTimeClock.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h
+RealTimeClock.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+RealTimeClock.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+RealTimeClock.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h
+RealTimeClock.obj: c:/ti/TivaWare_C_Series-2.1.4.178/utils/ustdlib.h
+RealTimeClock.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdarg.h
+RealTimeClock.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/time.h
+RealTimeClock.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/abi_prefix.h
+RealTimeClock.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/hibernate.h
+RealTimeClock.obj: ../main.h
+RealTimeClock.obj: ../defines.h
+RealTimeClock.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h
+RealTimeClock.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h
+RealTimeClock.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h
+RealTimeClock.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h
+
+../RealTimeClock.c: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdlib.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/utils/ustdlib.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdarg.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/time.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/abi_prefix.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/hibernate.h: 
+../main.h: 
+../defines.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h: 

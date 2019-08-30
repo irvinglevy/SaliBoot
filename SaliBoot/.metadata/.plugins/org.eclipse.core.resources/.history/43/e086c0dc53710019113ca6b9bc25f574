@@ -1,0 +1,179 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+GEN_OPTS__FLAG := 
+GEN_CMDS__FLAG := 
+
+ORDERED_OBJS += \
+"./MGW830.obj" \
+"./adc.obj" \
+"./boot_sali.obj" \
+"./buttons.obj" \
+"./ff.obj" \
+"./gpio.obj" \
+"./jsonmsg.obj" \
+"./main.obj" \
+"./mmc-ek-lm4f232h5qd.obj" \
+"./modem.obj" \
+"./ringbuf.obj" \
+"./ssi.obj" \
+"./startup_ccs.obj" \
+"./sysctl.obj" \
+"./ustdlib.obj" \
+"./drivers/cfal96x64x16.obj" \
+"./utils/uartstdio.obj" \
+"../lm4f232h5qd.cmd" \
+$(GEN_CMDS__FLAG) \
+-l"C:/StellarisWare/IQmath/ccs-cm4f/IQmathLib-cm4f/Debug/IQmathLib-cm4f.lib" \
+-llibc.a \
+-l"C:/StellarisWare/driverlib/ccs-cm4f/Debug/driverlib-cm4f.lib" \
+-l"C:/StellarisWare/grlib/ccs-cm4f/Debug/grlib-cm4f.lib" \
+
+-include ../makefile.init
+
+RM := DEL /F
+RMDIR := RMDIR /S/Q
+
+# All of the sources participating in the build are defined here
+-include sources.mk
+-include subdir_vars.mk
+-include drivers/subdir_vars.mk
+-include utils/subdir_vars.mk
+-include subdir_rules.mk
+-include drivers/subdir_rules.mk
+-include utils/subdir_rules.mk
+-include objects.mk
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(strip $(C55_DEPS)),)
+-include $(C55_DEPS)
+endif
+ifneq ($(strip $(C_UPPER_DEPS)),)
+-include $(C_UPPER_DEPS)
+endif
+ifneq ($(strip $(S67_DEPS)),)
+-include $(S67_DEPS)
+endif
+ifneq ($(strip $(S62_DEPS)),)
+-include $(S62_DEPS)
+endif
+ifneq ($(strip $(S_DEPS)),)
+-include $(S_DEPS)
+endif
+ifneq ($(strip $(OPT_DEPS)),)
+-include $(OPT_DEPS)
+endif
+ifneq ($(strip $(C??_DEPS)),)
+-include $(C??_DEPS)
+endif
+ifneq ($(strip $(ASM_UPPER_DEPS)),)
+-include $(ASM_UPPER_DEPS)
+endif
+ifneq ($(strip $(S??_DEPS)),)
+-include $(S??_DEPS)
+endif
+ifneq ($(strip $(C64_DEPS)),)
+-include $(C64_DEPS)
+endif
+ifneq ($(strip $(CXX_DEPS)),)
+-include $(CXX_DEPS)
+endif
+ifneq ($(strip $(S64_DEPS)),)
+-include $(S64_DEPS)
+endif
+ifneq ($(strip $(INO_DEPS)),)
+-include $(INO_DEPS)
+endif
+ifneq ($(strip $(CLA_DEPS)),)
+-include $(CLA_DEPS)
+endif
+ifneq ($(strip $(S55_DEPS)),)
+-include $(S55_DEPS)
+endif
+ifneq ($(strip $(SV7A_DEPS)),)
+-include $(SV7A_DEPS)
+endif
+ifneq ($(strip $(C62_DEPS)),)
+-include $(C62_DEPS)
+endif
+ifneq ($(strip $(C67_DEPS)),)
+-include $(C67_DEPS)
+endif
+ifneq ($(strip $(PDE_DEPS)),)
+-include $(PDE_DEPS)
+endif
+ifneq ($(strip $(K_DEPS)),)
+-include $(K_DEPS)
+endif
+ifneq ($(strip $(C_DEPS)),)
+-include $(C_DEPS)
+endif
+ifneq ($(strip $(CC_DEPS)),)
+-include $(CC_DEPS)
+endif
+ifneq ($(strip $(C++_DEPS)),)
+-include $(C++_DEPS)
+endif
+ifneq ($(strip $(C43_DEPS)),)
+-include $(C43_DEPS)
+endif
+ifneq ($(strip $(S43_DEPS)),)
+-include $(S43_DEPS)
+endif
+ifneq ($(strip $(ASM_DEPS)),)
+-include $(ASM_DEPS)
+endif
+ifneq ($(strip $(S_UPPER_DEPS)),)
+-include $(S_UPPER_DEPS)
+endif
+ifneq ($(strip $(CPP_DEPS)),)
+-include $(CPP_DEPS)
+endif
+ifneq ($(strip $(SA_DEPS)),)
+-include $(SA_DEPS)
+endif
+endif
+
+-include ../makefile.defs
+
+# Add inputs and outputs from these tool invocations to the build variables 
+EXE_OUTPUTS += \
+Sali.out \
+
+EXE_OUTPUTS__QUOTED += \
+"Sali.out" \
+
+
+# All Target
+all: Sali.out
+
+# Tool invocations
+Sali.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
+	@echo 'Building target: "$@"'
+	@echo 'Invoking: TMS470 Linker'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O0 -g --gcc --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --diag_warning=225 --gen_func_subsections=on --optimizer_interlist --call_assumptions=2 --gen_opt_info=1 --asm_listing --ual -z --stack_size=4096 -m"hello_ccs.map" --heap_size=0 -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/lib" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --reread_libs --warn_sections --xml_link_info="Sali_linkInfo.xml" --make_static --rom_model -o "Sali.out" $(ORDERED_OBJS)
+	@echo 'Finished building target: "$@"'
+	@echo ' '
+	@$(MAKE) --no-print-directory post-build
+
+# Other Targets
+clean:
+	-$(RM) $(EXE_OUTPUTS__QUOTED)
+	-$(RM) "MGW830.lst" "adc.lst" "boot_sali.lst" "buttons.lst" "ff.lst" "gpio.lst" "jsonmsg.lst" "main.lst" "mmc-ek-lm4f232h5qd.lst" "modem.lst" "ringbuf.lst" "ssi.lst" "startup_ccs.lst" "sysctl.lst" "ustdlib.lst" "drivers/cfal96x64x16.lst" "utils/uartstdio.lst" 
+	-$(RM) "MGW830.obj" "adc.obj" "boot_sali.obj" "buttons.obj" "ff.obj" "gpio.obj" "jsonmsg.obj" "main.obj" "mmc-ek-lm4f232h5qd.obj" "modem.obj" "ringbuf.obj" "ssi.obj" "startup_ccs.obj" "sysctl.obj" "ustdlib.obj" "drivers\cfal96x64x16.obj" "utils\uartstdio.obj" 
+	-$(RM) "MGW830.d" "adc.d" "boot_sali.d" "buttons.d" "ff.d" "gpio.d" "jsonmsg.d" "main.d" "mmc-ek-lm4f232h5qd.d" "modem.d" "ringbuf.d" "ssi.d" "startup_ccs.d" "sysctl.d" "ustdlib.d" "drivers\cfal96x64x16.d" "utils\uartstdio.d" 
+	-@echo 'Finished clean'
+	-@echo ' '
+
+post-build:
+	-"C:/ti/ccsv7/utils/tiobj2bin/tiobj2bin" "Sali.out" "Sali.bin" "C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/ofd470" "C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/hex470" "C:/ti/ccsv7/utils/tiobj2bin/mkhex4bin"
+	-@echo ' '
+
+.PHONY: all clean dependents
+.SECONDARY:
+
+-include ../makefile.targets
+

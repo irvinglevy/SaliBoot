@@ -1,0 +1,35 @@
+# FIXED
+
+mmc-ek-lm4f232h5qd.obj: ../mmc-ek-lm4f232h5qd.c
+mmc-ek-lm4f232h5qd.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdint.h
+mmc-ek-lm4f232h5qd.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h
+mmc-ek-lm4f232h5qd.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h
+mmc-ek-lm4f232h5qd.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h
+mmc-ek-lm4f232h5qd.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h
+mmc-ek-lm4f232h5qd.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h
+mmc-ek-lm4f232h5qd.obj: C:/StellarisWare/inc/hw_memmap.h
+mmc-ek-lm4f232h5qd.obj: C:/StellarisWare/inc/hw_types.h
+mmc-ek-lm4f232h5qd.obj: C:/StellarisWare/driverlib/gpio.h
+mmc-ek-lm4f232h5qd.obj: C:/StellarisWare/driverlib/pin_map.h
+mmc-ek-lm4f232h5qd.obj: C:/StellarisWare/driverlib/rom.h
+mmc-ek-lm4f232h5qd.obj: C:/StellarisWare/driverlib/ssi.h
+mmc-ek-lm4f232h5qd.obj: C:/StellarisWare/driverlib/sysctl.h
+mmc-ek-lm4f232h5qd.obj: C:/StellarisWare/third_party/fatfs/src/diskio.h
+mmc-ek-lm4f232h5qd.obj: C:/StellarisWare/third_party/fatfs/src/integer.h
+
+../mmc-ek-lm4f232h5qd.c: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdint.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h: 
+C:/StellarisWare/inc/hw_memmap.h: 
+C:/StellarisWare/inc/hw_types.h: 
+C:/StellarisWare/driverlib/gpio.h: 
+C:/StellarisWare/driverlib/pin_map.h: 
+C:/StellarisWare/driverlib/rom.h: 
+C:/StellarisWare/driverlib/ssi.h: 
+C:/StellarisWare/driverlib/sysctl.h: 
+C:/StellarisWare/third_party/fatfs/src/diskio.h: 
+C:/StellarisWare/third_party/fatfs/src/integer.h: 

@@ -1,0 +1,35 @@
+# FIXED
+
+piggy_back.obj: ../piggy_back.c
+piggy_back.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h
+piggy_back.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h
+piggy_back.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdlib.h
+piggy_back.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h
+piggy_back.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+piggy_back.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+piggy_back.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/uart.h
+piggy_back.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h
+piggy_back.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h
+piggy_back.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/interrupt.h
+piggy_back.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h
+piggy_back.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h
+piggy_back.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h
+piggy_back.obj: ../piggy_back.h
+piggy_back.obj: ../st7735.h
+
+../piggy_back.c: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdlib.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/uart.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/interrupt.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h: 
+../piggy_back.h: 
+../st7735.h: 

@@ -1,0 +1,113 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../lm4f232h5qd.cmd 
+
+C_SRCS += \
+../MGW830.c \
+../adc.c \
+../boot_sali.c \
+../buttons.c \
+../ff.c \
+../gpio.c \
+../jsonmsg.c \
+../main.c \
+../mmc-ek-lm4f232h5qd.c \
+../modem.c \
+../ringbuf.c \
+../ssi.c \
+../startup_ccs.c \
+../sysctl.c \
+../ustdlib.c 
+
+C_DEPS += \
+./MGW830.d \
+./adc.d \
+./boot_sali.d \
+./buttons.d \
+./ff.d \
+./gpio.d \
+./jsonmsg.d \
+./main.d \
+./mmc-ek-lm4f232h5qd.d \
+./modem.d \
+./ringbuf.d \
+./ssi.d \
+./startup_ccs.d \
+./sysctl.d \
+./ustdlib.d 
+
+OBJS += \
+./MGW830.obj \
+./adc.obj \
+./boot_sali.obj \
+./buttons.obj \
+./ff.obj \
+./gpio.obj \
+./jsonmsg.obj \
+./main.obj \
+./mmc-ek-lm4f232h5qd.obj \
+./modem.obj \
+./ringbuf.obj \
+./ssi.obj \
+./startup_ccs.obj \
+./sysctl.obj \
+./ustdlib.obj 
+
+OBJS__QUOTED += \
+"MGW830.obj" \
+"adc.obj" \
+"boot_sali.obj" \
+"buttons.obj" \
+"ff.obj" \
+"gpio.obj" \
+"jsonmsg.obj" \
+"main.obj" \
+"mmc-ek-lm4f232h5qd.obj" \
+"modem.obj" \
+"ringbuf.obj" \
+"ssi.obj" \
+"startup_ccs.obj" \
+"sysctl.obj" \
+"ustdlib.obj" 
+
+C_DEPS__QUOTED += \
+"MGW830.d" \
+"adc.d" \
+"boot_sali.d" \
+"buttons.d" \
+"ff.d" \
+"gpio.d" \
+"jsonmsg.d" \
+"main.d" \
+"mmc-ek-lm4f232h5qd.d" \
+"modem.d" \
+"ringbuf.d" \
+"ssi.d" \
+"startup_ccs.d" \
+"sysctl.d" \
+"ustdlib.d" 
+
+C_SRCS__QUOTED += \
+"../MGW830.c" \
+"../adc.c" \
+"../boot_sali.c" \
+"../buttons.c" \
+"../ff.c" \
+"../gpio.c" \
+"../jsonmsg.c" \
+"../main.c" \
+"../mmc-ek-lm4f232h5qd.c" \
+"../modem.c" \
+"../ringbuf.c" \
+"../ssi.c" \
+"../startup_ccs.c" \
+"../sysctl.c" \
+"../ustdlib.c" 
+
+

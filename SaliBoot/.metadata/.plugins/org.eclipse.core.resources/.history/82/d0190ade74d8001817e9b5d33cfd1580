@@ -1,0 +1,57 @@
+# FIXED
+
+main.obj: ../main.c
+main.obj: ../FT_communication_interface.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include/stdbool.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include/stdlib.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include/linkage.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include/stdint.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ssi.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/systick.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/uart.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/rom.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/ssi.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/timer.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/interrupt.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/watchdog.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include/string.h
+main.obj: ../FT_Gpu.h
+main.obj: ../FT_Gpu_Hal.h
+main.obj: ../FT_graphic_commands.h
+main.obj: ../flow_pressure_measure.h
+main.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/adc.h
+
+../main.c: 
+../FT_communication_interface.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include/stdbool.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include/stdlib.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include/linkage.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include/stdint.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ssi.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/systick.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/uart.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/rom.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/ssi.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/timer.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/interrupt.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/watchdog.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include/string.h: 
+../FT_Gpu.h: 
+../FT_Gpu_Hal.h: 
+../FT_graphic_commands.h: 
+../flow_pressure_measure.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/adc.h: 

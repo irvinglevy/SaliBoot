@@ -1,0 +1,55 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../bl_link_ccs.cmd 
+
+S_SRCS += \
+../bl_startup_ccs.s 
+
+C_SRCS += \
+C:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.c \
+../main.c \
+C:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/port/mmc-dk-tm4c123g.c 
+
+S_DEPS += \
+./bl_startup_ccs.d 
+
+C_DEPS += \
+./ff.d \
+./main.d \
+./mmc-dk-tm4c123g.d 
+
+OBJS += \
+./bl_startup_ccs.obj \
+./ff.obj \
+./main.obj \
+./mmc-dk-tm4c123g.obj 
+
+OBJS__QUOTED += \
+"bl_startup_ccs.obj" \
+"ff.obj" \
+"main.obj" \
+"mmc-dk-tm4c123g.obj" 
+
+C_DEPS__QUOTED += \
+"ff.d" \
+"main.d" \
+"mmc-dk-tm4c123g.d" 
+
+S_DEPS__QUOTED += \
+"bl_startup_ccs.d" 
+
+S_SRCS__QUOTED += \
+"../bl_startup_ccs.s" 
+
+C_SRCS__QUOTED += \
+"C:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.c" \
+"../main.c" \
+"C:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/port/mmc-dk-tm4c123g.c" 
+
+

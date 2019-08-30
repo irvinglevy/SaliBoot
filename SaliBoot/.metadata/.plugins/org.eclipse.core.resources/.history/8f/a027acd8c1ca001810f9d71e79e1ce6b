@@ -1,0 +1,13 @@
+# FIXED
+
+ff.obj: ../ff.c
+ff.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h
+ff.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h
+ff.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h
+ff.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h
+
+../ff.c: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h: 

@@ -1,0 +1,73 @@
+# FIXED
+
+screens.obj: ../screens.c
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdint.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdbool.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/yvals.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/linkage.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/_lock.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/string.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/utils/ustdlib.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/time.h
+screens.obj: ../ventilate.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+screens.obj: ../screens.h
+screens.obj: ../graphics.h
+screens.obj: ../pressure_sensor.h
+screens.obj: ../ST7735.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pwm.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/watchdog.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/time.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/hibernate.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h
+screens.obj: ../audio.h
+screens.obj: ../alerts.h
+screens.obj: ../loader.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/interrupt.h
+screens.obj: ../defines.h
+screens.obj: ../log.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h
+screens.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/rom.h
+
+../screens.c: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdint.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdbool.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/yvals.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/linkage.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/_lock.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/string.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/utils/ustdlib.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/time.h: 
+../ventilate.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+../screens.h: 
+../graphics.h: 
+../pressure_sensor.h: 
+../ST7735.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pwm.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/watchdog.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/time.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/hibernate.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h: 
+../audio.h: 
+../alerts.h: 
+../loader.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/interrupt.h: 
+../defines.h: 
+../log.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/rom.h: 

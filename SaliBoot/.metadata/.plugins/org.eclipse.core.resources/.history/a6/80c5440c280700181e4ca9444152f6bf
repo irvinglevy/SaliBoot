@@ -1,0 +1,92 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Each subdirectory must supply rules for building sources it contributes
+BlueNRG.obj: ../BlueNRG.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="BlueNRG.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+CardioSPI.obj: ../CardioSPI.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="CardioSPI.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+LECD.obj: ../LECD.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="LECD.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+aci.obj: ../aci.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="aci.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+adc.obj: ../adc.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="adc.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+buffer.obj: ../buffer.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="buffer.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+events.obj: ../events.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="events.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+hci.obj: ../hci.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="hci.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+main.obj: ../main.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="main.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+resp.obj: ../resp.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="resp.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+sensor_service.obj: ../sensor_service.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="sensor_service.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+spo2.obj: ../spo2.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: MSP430 Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/bin/cl430" -vmspx --abi=eabi --code_model=large --data_model=restricted --near_data=none --use_hw_mpy=F5 --include_path="C:/ti/ccsv7/ccs_base/msp430/include" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include" --include_path="C:/Users/Irving/workspace_v7/nano1/driverlib/MSP430F5xx_6xx" --advice:power=all -g --define=__MSP430F6736__ --define=BRG_HARDWARE --define=SPO2_HARDWARE1 --display_error_number --diag_warning=225 --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal --preproc_with_compile --preproc_dependency="spo2.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+

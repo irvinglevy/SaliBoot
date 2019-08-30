@@ -1,0 +1,35 @@
+# FIXED
+
+graphics.obj: ../graphics.c
+graphics.obj: ../graphics.h
+graphics.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h
+graphics.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h
+graphics.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/string.h
+graphics.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h
+graphics.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdlib.h
+graphics.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+graphics.obj: ../ST7735.h
+graphics.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h
+graphics.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h
+graphics.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h
+graphics.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h
+graphics.obj: ../defines.h
+graphics.obj: ../audio.h
+graphics.obj: ../main.h
+
+../graphics.c: 
+../graphics.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/string.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdlib.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+../ST7735.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h: 
+../defines.h: 
+../audio.h: 
+../main.h: 

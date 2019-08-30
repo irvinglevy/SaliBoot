@@ -1,0 +1,33 @@
+ Volume in drive C is OS
+ Volume Serial Number is 9E0B-8E74
+
+ Directory of C:\Users\Irving\workspace_v6_0\ETBoot
+
+01/19/2017  12:58 PM    <DIR>          .
+01/19/2017  12:58 PM    <DIR>          ..
+01/19/2017  12:08 PM               557 .ccsproject
+01/19/2017  12:08 PM            25,741 .cproject
+01/19/2017  12:08 PM               836 .project
+01/19/2017  12:08 PM    <DIR>          .settings
+06/25/2014  09:32 AM             9,457 bl_autobaud.c
+07/30/2014  12:57 PM             8,637 bl_check.c
+06/25/2014  09:32 AM             1,635 bl_check.h
+06/25/2014  09:32 AM            10,631 bl_commands.h
+07/06/2014  02:15 PM             6,491 bl_config.c
+09/11/2014  04:48 PM            46,588 bl_config.h
+07/06/2014  02:17 PM             7,338 bl_flash.c
+07/06/2014  02:17 PM             5,953 bl_flash.h
+09/11/2014  03:14 PM             2,477 bl_link_ccs.cmd
+08/03/2014  03:48 PM            32,607 bl_main.c
+08/03/2014  05:18 PM             9,112 bl_packet.c
+07/06/2014  02:19 PM             1,625 bl_packet.h
+07/06/2014  02:01 PM            22,095 bl_startup_ccs.s
+08/03/2014  04:20 PM             4,950 bl_uart.c
+06/25/2014  09:32 AM             3,517 bl_uart.h
+01/19/2017  12:08 PM    <DIR>          Debug
+06/25/2014  09:23 AM                49 main.c
+01/19/2017  12:58 PM                 0 print.txt
+06/25/2014  09:23 AM             1,528 tm4c1231c3pm.cmd
+06/25/2014  09:23 AM            14,591 tm4c1231c3pm_startup_ccs.c
+              22 File(s)        216,415 bytes
+               4 Dir(s)  214,812,049,408 bytes free

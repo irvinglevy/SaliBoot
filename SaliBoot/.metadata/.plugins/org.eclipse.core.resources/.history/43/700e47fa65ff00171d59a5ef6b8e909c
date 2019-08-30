@@ -1,0 +1,93 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../lnk_msp430f6736.cmd 
+
+C_SRCS += \
+../BlueNRG.c \
+../CardioSPI.c \
+../LECD.c \
+../aci.c \
+../adc.c \
+../buffer.c \
+../events.c \
+../hci.c \
+../main.c \
+../resp.c \
+../sensor_service.c \
+../spo2.c 
+
+OBJS += \
+./BlueNRG.obj \
+./CardioSPI.obj \
+./LECD.obj \
+./aci.obj \
+./adc.obj \
+./buffer.obj \
+./events.obj \
+./hci.obj \
+./main.obj \
+./resp.obj \
+./sensor_service.obj \
+./spo2.obj 
+
+C_DEPS += \
+./BlueNRG.pp \
+./CardioSPI.pp \
+./LECD.pp \
+./aci.pp \
+./adc.pp \
+./buffer.pp \
+./events.pp \
+./hci.pp \
+./main.pp \
+./resp.pp \
+./sensor_service.pp \
+./spo2.pp 
+
+C_DEPS__QUOTED += \
+"BlueNRG.pp" \
+"CardioSPI.pp" \
+"LECD.pp" \
+"aci.pp" \
+"adc.pp" \
+"buffer.pp" \
+"events.pp" \
+"hci.pp" \
+"main.pp" \
+"resp.pp" \
+"sensor_service.pp" \
+"spo2.pp" 
+
+OBJS__QUOTED += \
+"BlueNRG.obj" \
+"CardioSPI.obj" \
+"LECD.obj" \
+"aci.obj" \
+"adc.obj" \
+"buffer.obj" \
+"events.obj" \
+"hci.obj" \
+"main.obj" \
+"resp.obj" \
+"sensor_service.obj" \
+"spo2.obj" 
+
+C_SRCS__QUOTED += \
+"../BlueNRG.c" \
+"../CardioSPI.c" \
+"../LECD.c" \
+"../aci.c" \
+"../adc.c" \
+"../buffer.c" \
+"../events.c" \
+"../hci.c" \
+"../main.c" \
+"../resp.c" \
+"../sensor_service.c" \
+"../spo2.c" 
+
+

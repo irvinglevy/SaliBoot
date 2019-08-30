@@ -1,0 +1,105 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../lm4f232h5qd.cmd 
+
+C_SRCS += \
+../MGW830.c \
+../adc.c \
+../boot_sali.c \
+../buttons.c \
+../ff.c \
+../gpio.c \
+../jsonmsg.c \
+../main.c \
+../mmc-ek-lm4f232h5qd.c \
+../ringbuf.c \
+../ssi.c \
+../startup_ccs.c \
+../uartstdio.c \
+../ustdlib.c 
+
+OBJS += \
+./MGW830.obj \
+./adc.obj \
+./boot_sali.obj \
+./buttons.obj \
+./ff.obj \
+./gpio.obj \
+./jsonmsg.obj \
+./main.obj \
+./mmc-ek-lm4f232h5qd.obj \
+./ringbuf.obj \
+./ssi.obj \
+./startup_ccs.obj \
+./uartstdio.obj \
+./ustdlib.obj 
+
+C_DEPS += \
+./MGW830.pp \
+./adc.pp \
+./boot_sali.pp \
+./buttons.pp \
+./ff.pp \
+./gpio.pp \
+./jsonmsg.pp \
+./main.pp \
+./mmc-ek-lm4f232h5qd.pp \
+./ringbuf.pp \
+./ssi.pp \
+./startup_ccs.pp \
+./uartstdio.pp \
+./ustdlib.pp 
+
+C_DEPS__QUOTED += \
+"MGW830.pp" \
+"adc.pp" \
+"boot_sali.pp" \
+"buttons.pp" \
+"ff.pp" \
+"gpio.pp" \
+"jsonmsg.pp" \
+"main.pp" \
+"mmc-ek-lm4f232h5qd.pp" \
+"ringbuf.pp" \
+"ssi.pp" \
+"startup_ccs.pp" \
+"uartstdio.pp" \
+"ustdlib.pp" 
+
+OBJS__QUOTED += \
+"MGW830.obj" \
+"adc.obj" \
+"boot_sali.obj" \
+"buttons.obj" \
+"ff.obj" \
+"gpio.obj" \
+"jsonmsg.obj" \
+"main.obj" \
+"mmc-ek-lm4f232h5qd.obj" \
+"ringbuf.obj" \
+"ssi.obj" \
+"startup_ccs.obj" \
+"uartstdio.obj" \
+"ustdlib.obj" 
+
+C_SRCS__QUOTED += \
+"../MGW830.c" \
+"../adc.c" \
+"../boot_sali.c" \
+"../buttons.c" \
+"../ff.c" \
+"../gpio.c" \
+"../jsonmsg.c" \
+"../main.c" \
+"../mmc-ek-lm4f232h5qd.c" \
+"../ringbuf.c" \
+"../ssi.c" \
+"../startup_ccs.c" \
+"../uartstdio.c" \
+"../ustdlib.c" 
+
+

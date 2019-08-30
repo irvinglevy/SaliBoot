@@ -1,0 +1,113 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Each subdirectory must supply rules for building sources it contributes
+MGW830.obj: ../MGW830.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="MGW830.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+adc.obj: C:/StellarisWare/driverlib/adc.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="adc.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+boot_sali.obj: ../boot_sali.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="boot_sali.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+buttons.obj: C:/Users/Irving/StellarisWare/boards/ek-lm4f232/drivers/buttons.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="buttons.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+ff.obj: C:/Users/Irving/StellarisWare/third_party/fatfs/src/ff.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="ff.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+gpio.obj: ../gpio.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="gpio.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+jsonmsg.obj: ../jsonmsg.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="jsonmsg.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+main.obj: ../main.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="main.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+mmc-ek-lm4f232h5qd.obj: C:/Users/Irving/StellarisWare/third_party/fatfs/port/mmc-ek-lm4f232h5qd.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="mmc-ek-lm4f232h5qd.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+modem.obj: ../modem.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="modem.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+ringbuf.obj: ../ringbuf.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="ringbuf.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+ssi.obj: ../ssi.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="ssi.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+startup_ccs.obj: ../startup_ccs.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="startup_ccs.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+sysctl.obj: ../sysctl.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="sysctl.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+ustdlib.obj: ../ustdlib.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O0 --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.7.LTS/include" --include_path="C:/StellarisWare/third_party" --include_path="C:/StellarisWare/boards/ek-lm4f232" --include_path="C:/StellarisWare" --define=ccs --define=cpu2 --define=UART_BUFFERED --define=PART_LM4F232H5QC --define=TARGET_IS_BLIZZARD_RA1 --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --gen_func_subsections=on --abi=eabi --call_assumptions=2 --asm_listing --ual --gen_opt_info=1 --preproc_with_compile --preproc_dependency="ustdlib.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+

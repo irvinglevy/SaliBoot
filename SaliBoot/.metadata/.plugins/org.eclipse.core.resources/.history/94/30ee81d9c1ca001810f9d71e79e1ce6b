@@ -1,0 +1,9 @@
+# FIXED
+
+usb_serial_structs.obj: ../usb_serial_structs.c
+usb_serial_structs.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h
+usb_serial_structs.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h
+
+../usb_serial_structs.c: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h: 

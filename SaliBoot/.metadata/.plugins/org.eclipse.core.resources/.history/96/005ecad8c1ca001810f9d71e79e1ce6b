@@ -1,0 +1,25 @@
+# FIXED
+
+pressure_sensor.obj: ../pressure_sensor.c
+pressure_sensor.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdbool.h
+pressure_sensor.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/yvals.h
+pressure_sensor.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h
+pressure_sensor.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/linkage.h
+pressure_sensor.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/_lock.h
+pressure_sensor.obj: ../pressure_sensor.h
+pressure_sensor.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdint.h
+pressure_sensor.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+pressure_sensor.obj: ../ST7735.h
+pressure_sensor.obj: ../defines.h
+
+../pressure_sensor.c: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdbool.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/yvals.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/linkage.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/_lock.h: 
+../pressure_sensor.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdint.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+../ST7735.h: 
+../defines.h: 

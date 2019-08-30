@@ -1,0 +1,59 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../lm4f232h5qc.cmd 
+
+C_SRCS += \
+../MainVideo.c \
+../SSD1963.c \
+C:/StellarisWare/third_party/fatfs/src/ff.c \
+C:/StellarisWare/third_party/fatfs/port/mmc-ek-lm4f232h5qd.c \
+../ringbuf.c \
+C:/StellarisWare/boards/ek-lm4f232/blinky/startup_ccs.c 
+
+C_DEPS += \
+./MainVideo.d \
+./SSD1963.d \
+./ff.d \
+./mmc-ek-lm4f232h5qd.d \
+./ringbuf.d \
+./startup_ccs.d 
+
+OBJS += \
+./MainVideo.obj \
+./SSD1963.obj \
+./ff.obj \
+./mmc-ek-lm4f232h5qd.obj \
+./ringbuf.obj \
+./startup_ccs.obj 
+
+OBJS__QUOTED += \
+"MainVideo.obj" \
+"SSD1963.obj" \
+"ff.obj" \
+"mmc-ek-lm4f232h5qd.obj" \
+"ringbuf.obj" \
+"startup_ccs.obj" 
+
+C_DEPS__QUOTED += \
+"MainVideo.d" \
+"SSD1963.d" \
+"ff.d" \
+"mmc-ek-lm4f232h5qd.d" \
+"ringbuf.d" \
+"startup_ccs.d" 
+
+C_SRCS__QUOTED += \
+"../MainVideo.c" \
+"../SSD1963.c" \
+"C:/StellarisWare/third_party/fatfs/src/ff.c" \
+"C:/StellarisWare/third_party/fatfs/port/mmc-ek-lm4f232h5qd.c" \
+"../ringbuf.c" \
+"C:/StellarisWare/boards/ek-lm4f232/blinky/startup_ccs.c" 
+
+

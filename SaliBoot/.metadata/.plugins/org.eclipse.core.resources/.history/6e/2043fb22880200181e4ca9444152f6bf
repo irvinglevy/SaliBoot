@@ -1,0 +1,99 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Each subdirectory must supply rules for building sources it contributes
+Auxiliary.obj: ../Auxiliary.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="Auxiliary.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+GloveRingBuffer.obj: ../GloveRingBuffer.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="GloveRingBuffer.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+GloveSSI.obj: ../GloveSSI.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="GloveSSI.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+HPF.obj: ../HPF.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="HPF.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+PcRingBuffer.obj: ../PcRingBuffer.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="PcRingBuffer.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+PcUart.obj: ../PcUart.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="PcUart.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+PowerSafe.obj: ../PowerSafe.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="PowerSafe.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+ProductTest.obj: ../ProductTest.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="ProductTest.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+WatchDogTimer.obj: ../WatchDogTimer.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="WatchDogTimer.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+battery.obj: ../battery.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="battery.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+hpf1.obj: ../hpf1.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="hpf1.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+main.obj: ../main.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="main.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+tm4c1231c3pm_startup_ccs.obj: ../tm4c1231c3pm_startup_ccs.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="C:/ti/TivaWare_C_Series-2.1.0.12573" -g --define=ccs="ccs" --display_error_number --diag_wrap=off --diag_warning=225 --preproc_with_compile --preproc_dependency="tm4c1231c3pm_startup_ccs.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+

@@ -1,0 +1,134 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Each subdirectory must supply rules for building sources it contributes
+RealTimeClock.obj: ../RealTimeClock.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="RealTimeClock.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+ST7735.obj: ../ST7735.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="ST7735.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+alerts.obj: ../alerts.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="alerts.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+audio.obj: ../audio.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="audio.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+ff.obj: ../ff.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="ff.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+flash_test.obj: ../flash_test.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="flash_test.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+gpio.obj: ../gpio.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="gpio.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+graphics.obj: ../graphics.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="graphics.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+loader.obj: ../loader.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="loader.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+log.obj: ../log.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="log.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+main.obj: ../main.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="main.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+mmc-dk-tm4c123g.obj: ../mmc-dk-tm4c123g.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="mmc-dk-tm4c123g.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+pressure_sensor.obj: ../pressure_sensor.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="pressure_sensor.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+screens.obj: ../screens.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="screens.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+tm4c123gh6pm_startup_ccs.obj: ../tm4c123gh6pm_startup_ccs.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="tm4c123gh6pm_startup_ccs.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+usb_serial_structs.obj: ../usb_serial_structs.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="usb_serial_structs.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+ustdlib.obj: ../ustdlib.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="ustdlib.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+ventilate.obj: ../ventilate.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O3 --fp_mode=relaxed --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/utils/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/" --include_path="c:/ti/TivaWare_C_Series-2.1.4.178/inc/" -g --gcc --undefine=EVAL_BOARD --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --diag_warning=225 --diag_wrap=off --display_error_number --preproc_with_compile --preproc_dependency="ventilate.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
+

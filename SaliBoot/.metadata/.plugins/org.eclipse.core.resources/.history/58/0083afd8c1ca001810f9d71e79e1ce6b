@@ -1,0 +1,29 @@
+# FIXED
+
+flash_test.obj: ../flash_test.c
+flash_test.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdio.h
+flash_test.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/linkage.h
+flash_test.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h
+flash_test.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdint.h
+flash_test.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdbool.h
+flash_test.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/yvals.h
+flash_test.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h
+flash_test.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/_lock.h
+flash_test.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+flash_test.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+flash_test.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h
+flash_test.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/flash.h
+
+../flash_test.c: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdio.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/linkage.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdint.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdbool.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/yvals.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/_lock.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/flash.h: 

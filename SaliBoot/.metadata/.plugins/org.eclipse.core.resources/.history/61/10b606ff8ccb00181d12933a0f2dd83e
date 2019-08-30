@@ -1,0 +1,53 @@
+# FIXED
+
+audio.obj: ../audio.c
+audio.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h
+audio.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h
+audio.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdlib.h
+audio.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ssi.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/ssi.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/i2c.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/interrupt.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/systick.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h
+audio.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h
+audio.obj: ../audio.h
+audio.obj: ../defines.h
+audio.obj: ../main.h
+audio.obj: ../ST7735.h
+
+../audio.c: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdlib.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ssi.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/ssi.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/i2c.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/interrupt.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/systick.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h: 
+../audio.h: 
+../defines.h: 
+../main.h: 
+../ST7735.h: 

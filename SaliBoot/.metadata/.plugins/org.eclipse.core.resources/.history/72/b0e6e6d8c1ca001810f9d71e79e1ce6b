@@ -1,0 +1,37 @@
+# FIXED
+
+ventilate.obj: ../ventilate.c
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdint.h
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdbool.h
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/yvals.h
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/linkage.h
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/_lock.h
+ventilate.obj: ../ventilate.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+ventilate.obj: ../alerts.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pwm.h
+ventilate.obj: ../graphics.h
+ventilate.obj: ../ST7735.h
+ventilate.obj: ../defines.h
+ventilate.obj: ../screens.h
+
+../ventilate.c: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdint.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdbool.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/yvals.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/linkage.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include/_lock.h: 
+../ventilate.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+../alerts.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pwm.h: 
+../graphics.h: 
+../ST7735.h: 
+../defines.h: 
+../screens.h: 

@@ -1,0 +1,27 @@
+# FIXED
+
+usb_serial_structs.obj: ../usb_serial_structs.c
+usb_serial_structs.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h
+usb_serial_structs.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h
+usb_serial_structs.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+usb_serial_structs.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/usb.h
+usb_serial_structs.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usblib.h
+usb_serial_structs.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usbcdc.h
+usb_serial_structs.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usb-ids.h
+usb_serial_structs.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdevice.h
+usb_serial_structs.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdevicepriv.h
+usb_serial_structs.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdcdc.h
+usb_serial_structs.obj: ../usb_serial_structs.h
+
+../usb_serial_structs.c: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/usb.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usblib.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usbcdc.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usb-ids.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdevice.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdevicepriv.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdcdc.h: 
+../usb_serial_structs.h: 

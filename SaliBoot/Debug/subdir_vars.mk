@@ -1,0 +1,85 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../bl_link_ccs.cmd 
+
+S_SRCS += \
+../bl_startup_ccs.s 
+
+C_SRCS += \
+../bl_autobaud.c \
+../bl_check.c \
+../bl_flash.c \
+../bl_main.c \
+../bl_packet.c \
+../ff.c \
+../mmc-dk-tm4c123g.c \
+../tm4c1231c3pm_startup_ccs.c 
+
+S_DEPS += \
+./bl_startup_ccs.d 
+
+C_DEPS += \
+./bl_autobaud.d \
+./bl_check.d \
+./bl_flash.d \
+./bl_main.d \
+./bl_packet.d \
+./ff.d \
+./mmc-dk-tm4c123g.d \
+./tm4c1231c3pm_startup_ccs.d 
+
+OBJS += \
+./bl_autobaud.obj \
+./bl_check.obj \
+./bl_flash.obj \
+./bl_main.obj \
+./bl_packet.obj \
+./bl_startup_ccs.obj \
+./ff.obj \
+./mmc-dk-tm4c123g.obj \
+./tm4c1231c3pm_startup_ccs.obj 
+
+OBJS__QUOTED += \
+"bl_autobaud.obj" \
+"bl_check.obj" \
+"bl_flash.obj" \
+"bl_main.obj" \
+"bl_packet.obj" \
+"bl_startup_ccs.obj" \
+"ff.obj" \
+"mmc-dk-tm4c123g.obj" \
+"tm4c1231c3pm_startup_ccs.obj" 
+
+C_DEPS__QUOTED += \
+"bl_autobaud.d" \
+"bl_check.d" \
+"bl_flash.d" \
+"bl_main.d" \
+"bl_packet.d" \
+"ff.d" \
+"mmc-dk-tm4c123g.d" \
+"tm4c1231c3pm_startup_ccs.d" 
+
+S_DEPS__QUOTED += \
+"bl_startup_ccs.d" 
+
+C_SRCS__QUOTED += \
+"../bl_autobaud.c" \
+"../bl_check.c" \
+"../bl_flash.c" \
+"../bl_main.c" \
+"../bl_packet.c" \
+"../ff.c" \
+"../mmc-dk-tm4c123g.c" \
+"../tm4c1231c3pm_startup_ccs.c" 
+
+S_SRCS__QUOTED += \
+"../bl_startup_ccs.s" 
+
+

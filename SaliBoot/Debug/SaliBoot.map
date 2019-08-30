@@ -1,0 +1,279 @@
+******************************************************************************
+                  TI ARM Linker PC v16.9.6                     
+******************************************************************************
+>> Linked Tue Aug 27 18:34:38 2019
+
+OUTPUT FILE NAME:   <SaliBoot.out>
+ENTRY POINT SYMBOL: "_c_int00"  address: 20003737
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+  FLASH                 00000000   00004000  00003866  0000079a  R  X
+  SRAM                  20000000   00010000  00003a46  0000c5ba  RW X
+
+
+SEGMENT ALLOCATION MAP
+
+run origin  load origin   length   init length attrs members
+----------  ----------- ---------- ----------- ----- -------
+00003838    00003838    00000030   00000030    r--
+  00003838    00003838    00000030   00000030    r-- .cinit
+20000000    00000000    00003834   00003834    r-x
+  20000000    00000000    00000044   00000044    r-- .intvecs
+  20000044    00000044    000037f0   000037f0    r-x .text
+20003834    00003834    00000002   00000000    rw-
+  20003834    00003834    00000002   00000000    rw- .data
+20003838    20003838    00000210   00000000    rw-
+  20003838    20003838    0000000e   00000000    rw- .bss
+  20003848    20003848    00000200   00000000    rw- .stack
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+.intvecs   0    00000000    00000044     RUN ADDR = 20000000
+                  00000000    00000044     bl_startup_ccs.obj (.intvecs)
+
+.text      0    00000044    000037f0     RUN ADDR = 20000044
+                  00000044    00002a0e     ff.obj (.text)
+                  00002a52    00000002     --HOLE-- [fill = 0]
+                  00002a54    000009c8     mmc-dk-tm4c123g.obj (.text)
+                  0000341c    00000130     bl_main.obj (.text)
+                  0000354c    000000b8     bl_check.obj (.text)
+                  00003604    0000009c     rtsv7M4_T_le_v4SPD16_eabi.lib : memcpy_t2.obj (.text)
+                  000036a0    00000098     bl_startup_ccs.obj (.text)
+                  00003738    0000007a     rtsv7M4_T_le_v4SPD16_eabi.lib : memset_t2.obj (.text)
+                  000037b2    00000068                                   : copy_decompress_lzss.obj (.text:decompress:lzss)
+                  0000381a    0000000e                                   : copy_decompress_none.obj (.text:decompress:none)
+                  00003828    0000000c                                   : copy_zero_init.obj (.text:decompress:ZI)
+
+.const     0    00003834    00000000     UNINITIALIZEDRUN ADDR = 20003834
+
+.data      0    00003834    00000002     UNINITIALIZEDRUN ADDR = 20003834
+                  00003834    00000002     mmc-dk-tm4c123g.obj (.data)
+
+.bss       0    20003838    0000000e     UNINITIALIZED
+                  20003838    00000004     ff.obj (.bss:FatFs)
+                  2000383c    00000004     (.common:g_ui32Forced)
+                  20003840    00000003     mmc-dk-tm4c123g.obj (.bss)
+                  20003843    00000001     --HOLE--
+                  20003844    00000002     ff.obj (.bss)
+
+.stack     0    20003848    00000200     UNINITIALIZED
+                  20003848    000000c0     bl_startup_ccs.obj (.stack)
+                  20003908    00000140     --HOLE--
+
+.cinit     0    00003838    00000030     
+                  00003838    0000000c     (__TI_handler_table)
+                  00003844    00000004     --HOLE-- [fill = 0]
+                  00003848    00000008     (.cinit..bss.load) [load image, compression = zero_init]
+                  00003850    00000006     (.cinit..data.load) [load image, compression = lzss]
+                  00003856    00000002     --HOLE-- [fill = 0]
+                  00003858    00000010     (__TI_cinit_table)
+
+MODULE SUMMARY
+
+       Module                     code    ro data   rw data
+       ------                     ----    -------   -------
+    .\
+       ff.obj                     21532   0         6      
+       mmc-dk-tm4c123g.obj        5008    0         7      
+       bl_main.obj                608     0         0      
+       bl_startup_ccs.obj         304     136       0      
+       bl_check.obj               368     0         4      
+    +--+--------------------------+-------+---------+---------+
+       Total:                     27820   136       17     
+                                                           
+    C:\ti\ccsv7\tools\compiler\ti-cgt-arm_16.9.6.LTS\lib\rtsv7M4_T_le_v4SPD16_eabi.lib
+       memcpy_t2.obj              312     0         0      
+       memset_t2.obj              244     0         0      
+       copy_decompress_lzss.obj   208     0         0      
+       copy_decompress_none.obj   28      0         0      
+       copy_zero_init.obj         24      0         0      
+    +--+--------------------------+-------+---------+---------+
+       Total:                     816     0         0      
+                                                           
+       Stack:                     0       0         512    
+       Linker Generated:          0       42        0      
+    +--+--------------------------+-------+---------+---------+
+       Grand Total:               28636   178       529    
+
+
+LINKER GENERATED COPY TABLES
+
+__TI_cinit_table @ 00003858 records: 2, size/record: 8, table size: 16
+	.bss: load addr=00003848, load size=00000008 bytes, run addr=20003838, run size=0000000e bytes, compression=zero_init
+	.data: load addr=00003850, load size=00000006 bytes, run addr=20003834, run size=00000002 bytes, compression=lzss
+
+
+LINKER GENERATED HANDLER TABLE
+
+__TI_handler_table @ 00003838 records: 3, size/record: 4, table size: 12
+	index: 0, handler: __TI_decompress_lzss
+	index: 1, handler: __TI_decompress_none
+	index: 2, handler: __TI_zero_init
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+address   name                    
+-------   ----                    
+200035a3  CheckForceUpdate        
+2000354d  CheckGPIOForceUpdate    
+2000342f  ConfigureDevice         
+20003731  Delay                   
+200036e5  ResetISR                
+20003707  StartApplication        
+2000341d  SwapWord                
+2000347f  Updater                 
+20000000  Vectors                 
+20003a48  __STACK_END             
+00000200  __STACK_SIZE            
+20003a48  __STACK_TOP             
+00003858  __TI_CINIT_Base         
+00003868  __TI_CINIT_Limit        
+00003838  __TI_Handler_Table_Base 
+00003844  __TI_Handler_Table_Limit
+200037b3  __TI_decompress_lzss    
+2000381b  __TI_decompress_none    
+ffffffff  __TI_pprof_out_hndl     
+ffffffff  __TI_prof_data_size     
+ffffffff  __TI_prof_data_start    
+00003838  __TI_static_base__      
+20003829  __TI_zero_init          
+20003739  __aeabi_memclr          
+20003739  __aeabi_memclr4         
+20003739  __aeabi_memclr8         
+20003605  __aeabi_memcpy          
+20003605  __aeabi_memcpy4         
+20003605  __aeabi_memcpy8         
+2000373b  __aeabi_memset          
+2000373b  __aeabi_memset4         
+2000373b  __aeabi_memset8         
+ffffffff  __binit__               
+ffffffff  __c_args__              
+20003848  __stack                 
+20003737  _c_int00                
+ffffffff  binit                   
+20003a48  bss_end                 
+20003838  bss_run                 
+00000210  bss_size                
+200002dd  clust2sect              
+20002e71  disk_initialize         
+200031c1  disk_ioctl              
+2000302f  disk_read               
+20003015  disk_status             
+200033c3  disk_timerproc          
+200030d9  disk_write              
+200027e7  f_chmod                 
+20001eb1  f_close                 
+200022a9  f_getfree               
+20001ed1  f_lseek                 
+20002601  f_mkdir                 
+20001653  f_mount                 
+200016a5  f_open                  
+2000211f  f_opendir               
+200018bd  f_read                  
+200021cf  f_readdir               
+200028fb  f_rename                
+20002259  f_stat                  
+20001db5  f_sync                  
+2000240b  f_truncate              
+200024ff  f_unlink                
+20002877  f_utime                 
+20001b11  f_write                 
+2000383c  g_ui32Forced            
+2000030d  get_fat                 
+20003407  get_fattime             
+00000000  init_load               
+20000000  init_run                
+00003836  init_size               
+20003605  memcpy                  
+20003741  memset                  
+20000431  put_fat                 
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+address   name                    
+-------   ----                    
+00000000  init_load               
+00000200  __STACK_SIZE            
+00000210  bss_size                
+00003836  init_size               
+00003838  __TI_Handler_Table_Base 
+00003838  __TI_static_base__      
+00003844  __TI_Handler_Table_Limit
+00003858  __TI_CINIT_Base         
+00003868  __TI_CINIT_Limit        
+20000000  Vectors                 
+20000000  init_run                
+200002dd  clust2sect              
+2000030d  get_fat                 
+20000431  put_fat                 
+20001653  f_mount                 
+200016a5  f_open                  
+200018bd  f_read                  
+20001b11  f_write                 
+20001db5  f_sync                  
+20001eb1  f_close                 
+20001ed1  f_lseek                 
+2000211f  f_opendir               
+200021cf  f_readdir               
+20002259  f_stat                  
+200022a9  f_getfree               
+2000240b  f_truncate              
+200024ff  f_unlink                
+20002601  f_mkdir                 
+200027e7  f_chmod                 
+20002877  f_utime                 
+200028fb  f_rename                
+20002e71  disk_initialize         
+20003015  disk_status             
+2000302f  disk_read               
+200030d9  disk_write              
+200031c1  disk_ioctl              
+200033c3  disk_timerproc          
+20003407  get_fattime             
+2000341d  SwapWord                
+2000342f  ConfigureDevice         
+2000347f  Updater                 
+2000354d  CheckGPIOForceUpdate    
+200035a3  CheckForceUpdate        
+20003605  __aeabi_memcpy          
+20003605  __aeabi_memcpy4         
+20003605  __aeabi_memcpy8         
+20003605  memcpy                  
+200036e5  ResetISR                
+20003707  StartApplication        
+20003731  Delay                   
+20003737  _c_int00                
+20003739  __aeabi_memclr          
+20003739  __aeabi_memclr4         
+20003739  __aeabi_memclr8         
+2000373b  __aeabi_memset          
+2000373b  __aeabi_memset4         
+2000373b  __aeabi_memset8         
+20003741  memset                  
+200037b3  __TI_decompress_lzss    
+2000381b  __TI_decompress_none    
+20003829  __TI_zero_init          
+20003838  bss_run                 
+2000383c  g_ui32Forced            
+20003848  __stack                 
+20003a48  __STACK_END             
+20003a48  __STACK_TOP             
+20003a48  bss_end                 
+ffffffff  __TI_pprof_out_hndl     
+ffffffff  __TI_prof_data_size     
+ffffffff  __TI_prof_data_start    
+ffffffff  __binit__               
+ffffffff  __c_args__              
+ffffffff  binit                   
+
+[73 symbols]

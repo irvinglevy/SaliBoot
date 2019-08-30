@@ -1,0 +1,89 @@
+# FIXED
+
+log.obj: ../log.c
+log.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h
+log.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_uart.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_sysctl.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/debug.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/fpu.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/interrupt.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/systick.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/timer.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/uart.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/usb.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/rom.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usblib.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usbcdc.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usb-ids.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdevice.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdevicepriv.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdcdc.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/utils/ustdlib.h
+log.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdarg.h
+log.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/time.h
+log.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h
+log.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/abi_prefix.h
+log.obj: ../usb_serial_structs.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/utils/uartstdio.h
+log.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdarg.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h
+log.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h
+log.obj: ../main.h
+log.obj: ../defines.h
+log.obj: ../audio.h
+log.obj: ../piggy_back.h
+log.obj: ../ventilate.h
+
+../log.c: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_uart.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_sysctl.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/debug.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/fpu.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/interrupt.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/systick.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/timer.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/uart.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/usb.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/rom.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usblib.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usbcdc.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/usb-ids.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdevice.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdevicepriv.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/usblib/device/usbdcdc.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/utils/ustdlib.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdarg.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/time.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/abi_prefix.h: 
+../usb_serial_structs.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/utils/uartstdio.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdarg.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h: 
+../main.h: 
+../defines.h: 
+../audio.h: 
+../piggy_back.h: 
+../ventilate.h: 

@@ -1,0 +1,19 @@
+# FIXED
+
+alarms.obj: ../alarms.c
+alarms.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h
+alarms.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h
+alarms.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h
+alarms.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h
+alarms.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h
+alarms.obj: ../alarms.h
+alarms.obj: ../screens.h
+
+../alarms.c: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h: 
+../alarms.h: 
+../screens.h: 

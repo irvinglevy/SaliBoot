@@ -1,0 +1,9 @@
+# FIXED
+
+mmc-dk-tm4c123g.obj: ../mmc-dk-tm4c123g.c
+mmc-dk-tm4c123g.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h
+mmc-dk-tm4c123g.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h
+
+../mmc-dk-tm4c123g.c: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h: 

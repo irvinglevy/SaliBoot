@@ -1,0 +1,51 @@
+# FIXED
+
+ventilate.obj: ../ventilate.c
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/utils/ustdlib.h
+ventilate.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdarg.h
+ventilate.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/time.h
+ventilate.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h
+ventilate.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/abi_prefix.h
+ventilate.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h
+ventilate.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h
+ventilate.obj: ../ventilate.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+ventilate.obj: ../defines.h
+ventilate.obj: ../alerts.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pwm.h
+ventilate.obj: ../graphics.h
+ventilate.obj: ../ST7735.h
+ventilate.obj: ../screens.h
+ventilate.obj: ../piggy_back.h
+ventilate.obj: ../main.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h
+ventilate.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h
+
+../ventilate.c: 
+c:/ti/TivaWare_C_Series-2.1.4.178/utils/ustdlib.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdarg.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/time.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/linkage.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/abi_prefix.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdbool.h: 
+../ventilate.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+../defines.h: 
+../alerts.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pwm.h: 
+../graphics.h: 
+../ST7735.h: 
+../screens.h: 
+../piggy_back.h: 
+../main.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h: 

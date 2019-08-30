@@ -1,0 +1,8 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+USER_OBJS :=
+
+LIBS := -l"libc.a" -l"/driverlib/ccs-cm4f/Debug/driverlib-cm4f.lib" -l"/grlib/ccs-cm4f/Debug/grlib-cm4f.lib"
+

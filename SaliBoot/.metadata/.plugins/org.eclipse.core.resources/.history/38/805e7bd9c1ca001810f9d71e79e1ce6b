@@ -1,0 +1,51 @@
+# FIXED
+
+screens.obj: ../screens.c
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdint.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h
+screens.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/string.h
+screens.obj: ../screens.h
+screens.obj: ../graphics.h
+screens.obj: C:/StellarisWare/inc/hw_types.h
+screens.obj: ../ST7735.h
+screens.obj: C:/StellarisWare/driverlib/pwm.h
+screens.obj: C:/StellarisWare/driverlib/sysctl.h
+screens.obj: C:/StellarisWare/driverlib/watchdog.h
+screens.obj: C:/StellarisWare/inc/hw_memmap.h
+screens.obj: C:/StellarisWare/inc/hw_ints.h
+screens.obj: ../audio.h
+screens.obj: ../alarms.h
+screens.obj: ../loader.h
+screens.obj: C:/StellarisWare/driverlib/gpio.h
+screens.obj: C:/StellarisWare/driverlib/pin_map.h
+screens.obj: ../log.h
+screens.obj: C:/StellarisWare/driverlib/rom.h
+
+../screens.c: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdint.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/string.h: 
+../screens.h: 
+../graphics.h: 
+C:/StellarisWare/inc/hw_types.h: 
+../ST7735.h: 
+C:/StellarisWare/driverlib/pwm.h: 
+C:/StellarisWare/driverlib/sysctl.h: 
+C:/StellarisWare/driverlib/watchdog.h: 
+C:/StellarisWare/inc/hw_memmap.h: 
+C:/StellarisWare/inc/hw_ints.h: 
+../audio.h: 
+../alarms.h: 
+../loader.h: 
+C:/StellarisWare/driverlib/gpio.h: 
+C:/StellarisWare/driverlib/pin_map.h: 
+../log.h: 
+C:/StellarisWare/driverlib/rom.h: 

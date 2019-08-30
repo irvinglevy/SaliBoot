@@ -1,0 +1,20 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Each subdirectory must supply rules for building sources it contributes
+drivers/adc.obj: ../drivers/adc.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: TMS470 Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 -g --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="/boards/ek-lm4f232" --include_path= --gcc --define=ccs --define=PART_LM4F232H5QD --define=TARGET_IS_BLIZZARD_RA1 --diag_warning=225 --gen_func_subsections=on --ual --preproc_with_compile --preproc_dependency="drivers/adc.pp" --obj_directory="drivers" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+drivers/cfal96x64x16.obj: ../drivers/cfal96x64x16.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: TMS470 Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 -g --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="/boards/ek-lm4f232" --include_path= --gcc --define=ccs --define=PART_LM4F232H5QD --define=TARGET_IS_BLIZZARD_RA1 --diag_warning=225 --gen_func_subsections=on --ual --preproc_with_compile --preproc_dependency="drivers/cfal96x64x16.pp" --obj_directory="drivers" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+

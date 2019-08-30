@@ -1,0 +1,101 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../tm4c1231c3pm.cmd 
+
+C_SRCS += \
+../Auxiliary.c \
+../GloveRingBuffer.c \
+../GloveSSI.c \
+../HPF.c \
+../PcRingBuffer.c \
+../PcUart.c \
+../PowerSafe.c \
+../ProductTest.c \
+../WatchDogTimer.c \
+../battery.c \
+../hpf1.c \
+../main.c \
+../tm4c1231c3pm_startup_ccs.c 
+
+C_DEPS += \
+./Auxiliary.d \
+./GloveRingBuffer.d \
+./GloveSSI.d \
+./HPF.d \
+./PcRingBuffer.d \
+./PcUart.d \
+./PowerSafe.d \
+./ProductTest.d \
+./WatchDogTimer.d \
+./battery.d \
+./hpf1.d \
+./main.d \
+./tm4c1231c3pm_startup_ccs.d 
+
+OBJS += \
+./Auxiliary.obj \
+./GloveRingBuffer.obj \
+./GloveSSI.obj \
+./HPF.obj \
+./PcRingBuffer.obj \
+./PcUart.obj \
+./PowerSafe.obj \
+./ProductTest.obj \
+./WatchDogTimer.obj \
+./battery.obj \
+./hpf1.obj \
+./main.obj \
+./tm4c1231c3pm_startup_ccs.obj 
+
+OBJS__QUOTED += \
+"Auxiliary.obj" \
+"GloveRingBuffer.obj" \
+"GloveSSI.obj" \
+"HPF.obj" \
+"PcRingBuffer.obj" \
+"PcUart.obj" \
+"PowerSafe.obj" \
+"ProductTest.obj" \
+"WatchDogTimer.obj" \
+"battery.obj" \
+"hpf1.obj" \
+"main.obj" \
+"tm4c1231c3pm_startup_ccs.obj" 
+
+C_DEPS__QUOTED += \
+"Auxiliary.d" \
+"GloveRingBuffer.d" \
+"GloveSSI.d" \
+"HPF.d" \
+"PcRingBuffer.d" \
+"PcUart.d" \
+"PowerSafe.d" \
+"ProductTest.d" \
+"WatchDogTimer.d" \
+"battery.d" \
+"hpf1.d" \
+"main.d" \
+"tm4c1231c3pm_startup_ccs.d" 
+
+C_SRCS__QUOTED += \
+"../Auxiliary.c" \
+"../GloveRingBuffer.c" \
+"../GloveSSI.c" \
+"../HPF.c" \
+"../PcRingBuffer.c" \
+"../PcUart.c" \
+"../PowerSafe.c" \
+"../ProductTest.c" \
+"../WatchDogTimer.c" \
+"../battery.c" \
+"../hpf1.c" \
+"../main.c" \
+"../tm4c1231c3pm_startup_ccs.c" 
+
+

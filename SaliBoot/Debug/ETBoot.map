@@ -1,0 +1,189 @@
+******************************************************************************
+                  TI ARM Linker PC v5.1.6                      
+******************************************************************************
+>> Linked Thu Jan 19 15:52:31 2017
+
+OUTPUT FILE NAME:   <ETBoot.out>
+ENTRY POINT SYMBOL: "_c_int00"  address: 200006cf
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+  FLASH                 00000000   00000800  000007c8  00000038  R  X
+  SRAM                  20000000   00010000  00000a14  0000f5ec  RW X
+
+
+SEGMENT ALLOCATION MAP
+
+run origin  load origin   length   init length attrs members
+----------  ----------- ---------- ----------- ----- -------
+000007b8    000007b8    00000014   00000014    r--
+  000007b8    000007b8    00000014   00000014    r-- .cinit
+20000000    00000000    000007b4   000007b4    r-x
+  20000000    00000000    00000044   00000044    r-- .intvecs
+  20000044    00000044    0000076c   0000076c    r-x .text
+  200007b0    000007b0    00000004   00000004    r-- .const
+200007b8    200007b8    00000260   00000000    rw-
+  200007b8    200007b8    0000005d   00000000    rw- .bss
+  20000818    20000818    00000200   00000000    rw- .stack
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+.intvecs   0    00000000    00000044     RUN ADDR = 20000000
+                  00000000    00000044     bl_startup_ccs.obj (.intvecs)
+
+.text      0    00000044    0000076c     RUN ADDR = 20000044
+                  00000044    000003c0     bl_main.obj (.text)
+                  00000404    00000150     bl_packet.obj (.text)
+                  00000554    000000e4     bl_flash.obj (.text)
+                  00000638    00000098     bl_startup_ccs.obj (.text)
+                  000006d0    0000008c     bl_uart.obj (.text)
+                  0000075c    00000042     bl_check.obj (.text)
+                  0000079e    00000012     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_zero_init.obj (.text:decompress:ZI)
+
+.const     0    000007b0    00000004     RUN ADDR = 200007b0
+                  000007b0    00000004     bl_packet.obj (.const:.string)
+
+.data      0    000007b4    00000000     UNINITIALIZEDRUN ADDR = 200007b4
+
+.cinit     0    000007b8    00000014     
+                  000007b8    00000008     (.cinit..bss.load) [load image, compression = zero_init]
+                  000007c0    00000004     (__TI_handler_table)
+                  000007c4    00000008     (__TI_cinit_table)
+
+.bss       0    200007b8    0000005d     UNINITIALIZED
+                  200007b8    00000050     bl_main.obj (.bss:g_pui32DataBuffer)
+                  20000808    00000004     (.common:g_pui8DataBuffer)
+                  2000080c    00000004     (.common:g_ui32TransferAddress)
+                  20000810    00000004     (.common:g_ui32TransferSize)
+                  20000814    00000001     (.common:g_ui8Status)
+
+.stack     0    20000818    00000200     UNINITIALIZED
+                  20000818    000000c0     bl_startup_ccs.obj (.stack)
+                  200008d8    00000140     --HOLE--
+
+
+LINKER GENERATED COPY TABLES
+
+__TI_cinit_table @ 000007c4 records: 1, size/record: 8, table size: 8
+	.bss: load addr=000007b8, load size=00000008 bytes, run addr=200007b8, run size=0000005d bytes, compression=zero_init
+
+
+LINKER GENERATED HANDLER TABLE
+
+__TI_handler_table @ 000007c0 records: 1, size/record: 4, table size: 4
+	index: 0, handler: __TI_zero_init
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+address    name
+--------   ----
+2000043d   AckPacket
+20000555   BLInternalFlashErase
+2000060f   BLInternalFlashErrorCheck
+20000607   BLInternalFlashErrorClear
+20000573   BLInternalFlashProgram
+200005bd   BLInternalFlashSizeGet
+200005cb   BLInternalFlashStartAddrCheck
+2000075d   CheckForceUpdate
+20000405   CheckSum
+20000057   ConfigureDevice
+200006c9   Delay
+20000449   NakPacket
+20000455   ReceivePacket
+2000067d   ResetISR
+200004ef   SendPacket
+2000069f   StartApplication
+20000045   SwapWord
+20000705   UARTFlush
+20000717   UARTReceive
+200006d1   UARTSend
+200000cd   Updater
+20000000   Vectors
+20000a18   __STACK_END
+00000200   __STACK_SIZE
+20000a18   __STACK_TOP
+000007c4   __TI_CINIT_Base
+000007cc   __TI_CINIT_Limit
+000007c0   __TI_Handler_Table_Base
+000007c4   __TI_Handler_Table_Limit
+000007b8   __TI_static_base__
+2000079f   __TI_zero_init
+ffffffff   __binit__
+ffffffff   __c_args__
+20000818   __stack
+200006cf   _c_int00
+ffffffff   binit
+20000a18   bss_end
+200007b8   bss_run
+00000260   bss_size
+200007b8   g_pui32DataBuffer
+20000808   g_pui8DataBuffer
+2000080c   g_ui32TransferAddress
+20000810   g_ui32TransferSize
+20000814   g_ui8Status
+00000000   init_load
+20000000   init_run
+000007b4   init_size
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+address    name
+--------   ----
+00000000   init_load
+00000200   __STACK_SIZE
+00000260   bss_size
+000007b4   init_size
+000007b8   __TI_static_base__
+000007c0   __TI_Handler_Table_Base
+000007c4   __TI_CINIT_Base
+000007c4   __TI_Handler_Table_Limit
+000007cc   __TI_CINIT_Limit
+20000000   Vectors
+20000000   init_run
+20000045   SwapWord
+20000057   ConfigureDevice
+200000cd   Updater
+20000405   CheckSum
+2000043d   AckPacket
+20000449   NakPacket
+20000455   ReceivePacket
+200004ef   SendPacket
+20000555   BLInternalFlashErase
+20000573   BLInternalFlashProgram
+200005bd   BLInternalFlashSizeGet
+200005cb   BLInternalFlashStartAddrCheck
+20000607   BLInternalFlashErrorClear
+2000060f   BLInternalFlashErrorCheck
+2000067d   ResetISR
+2000069f   StartApplication
+200006c9   Delay
+200006cf   _c_int00
+200006d1   UARTSend
+20000705   UARTFlush
+20000717   UARTReceive
+2000075d   CheckForceUpdate
+2000079f   __TI_zero_init
+200007b8   bss_run
+200007b8   g_pui32DataBuffer
+20000808   g_pui8DataBuffer
+2000080c   g_ui32TransferAddress
+20000810   g_ui32TransferSize
+20000814   g_ui8Status
+20000818   __stack
+20000a18   __STACK_END
+20000a18   __STACK_TOP
+20000a18   bss_end
+ffffffff   __binit__
+ffffffff   __c_args__
+ffffffff   binit
+
+[47 symbols]

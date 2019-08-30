@@ -1,0 +1,35 @@
+# FIXED
+
+ventilate.obj: ../ventilate.c
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdint.h
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h
+ventilate.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h
+ventilate.obj: ../ventilate.h
+ventilate.obj: C:/StellarisWare/inc/hw_types.h
+ventilate.obj: C:/StellarisWare/driverlib/gpio.h
+ventilate.obj: C:/StellarisWare/driverlib/pin_map.h
+ventilate.obj: C:/StellarisWare/inc/hw_memmap.h
+ventilate.obj: ../alarms.h
+ventilate.obj: C:/StellarisWare/driverlib/pwm.h
+ventilate.obj: ../graphics.h
+ventilate.obj: ../ST7735.h
+
+../ventilate.c: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdint.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h: 
+../ventilate.h: 
+C:/StellarisWare/inc/hw_types.h: 
+C:/StellarisWare/driverlib/gpio.h: 
+C:/StellarisWare/driverlib/pin_map.h: 
+C:/StellarisWare/inc/hw_memmap.h: 
+../alarms.h: 
+C:/StellarisWare/driverlib/pwm.h: 
+../graphics.h: 
+../ST7735.h: 

@@ -1,0 +1,53 @@
+# FIXED
+
+ST7735.obj: ../ST7735.c
+ST7735.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdint.h
+ST7735.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h
+ST7735.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h
+ST7735.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h
+ST7735.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h
+ST7735.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/tm4c123gh6pm.h
+ST7735.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdlib.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/utils/ustdlib.h
+ST7735.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h
+ST7735.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/time.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/rom.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/ssi.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h
+ST7735.obj: ../ST7735.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h
+ST7735.obj: c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h
+
+../ST7735.c: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdint.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/tm4c123gh6pm.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdlib.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/utils/ustdlib.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/time.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/rom.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/ssi.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h: 
+../ST7735.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ff.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/integer.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/ffconf.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/third_party/fatfs/src/diskio.h: 

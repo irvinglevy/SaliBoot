@@ -1,0 +1,111 @@
+# FIXED
+
+main.obj: ../main.c
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/driverlib.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/inc/hw_memmap.h
+main.obj: C:/ti/ccsv7/ccs_base/msp430/include/msp430.h
+main.obj: C:/ti/ccsv7/ccs_base/msp430/include/msp430fr5728.h
+main.obj: C:/ti/ccsv7/ccs_base/msp430/include/in430.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/intrinsics.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/intrinsics_legacy_undefs.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/inc/../deprecated/CCS/msp430fr57xxgeneric.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/stdint.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/stdbool.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/adc10_b.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/comp_d.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/crc.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/cs.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/dma.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_a_spi.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_a_uart.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_b_i2c.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_b_spi.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_i2c.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_spi.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_uart.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/fram.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/gpio.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/mpu.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/mpy32.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/pmm.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/ref.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/rtc_b.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/sfr.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/sys.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/timer_a.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/timer_b.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/tlv.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/wdt_a.h
+main.obj: ../def.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/driverlib.h
+main.obj: ../CardioSPI.h
+main.obj: ../BlueNRG.h
+main.obj: ../buffer.h
+main.obj: ../events.h
+main.obj: ../aci_constants.h
+main.obj: ../gatt_server.h
+main.obj: ../def.h
+main.obj: C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/driverlib.h
+main.obj: ../hci_constants.h
+main.obj: ../BlueNRG_gatt_constants.h
+main.obj: ../aci.h
+main.obj: ../sensor_service.h
+main.obj: ../adc.h
+main.obj: ../nand.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/string.h
+main.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/linkage.h
+
+../main.c: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/driverlib.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/inc/hw_memmap.h: 
+C:/ti/ccsv7/ccs_base/msp430/include/msp430.h: 
+C:/ti/ccsv7/ccs_base/msp430/include/msp430fr5728.h: 
+C:/ti/ccsv7/ccs_base/msp430/include/in430.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/intrinsics.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/intrinsics_legacy_undefs.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/inc/../deprecated/CCS/msp430fr57xxgeneric.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/stdint.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/stdbool.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/adc10_b.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/comp_d.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/crc.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/cs.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/dma.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_a_spi.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_a_uart.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_b_i2c.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_b_spi.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_i2c.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_spi.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/eusci_uart.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/fram.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/gpio.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/mpu.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/mpy32.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/pmm.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/ref.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/rtc_b.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/sfr.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/sys.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/timer_a.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/timer_b.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/tlv.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/wdt_a.h: 
+../def.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/driverlib.h: 
+../CardioSPI.h: 
+../BlueNRG.h: 
+../buffer.h: 
+../events.h: 
+../aci_constants.h: 
+../gatt_server.h: 
+../def.h: 
+C:/Users/Irving/workspace_v7/CardioNRG/driverlib/MSP430FR57xx/driverlib.h: 
+../hci_constants.h: 
+../BlueNRG_gatt_constants.h: 
+../aci.h: 
+../sensor_service.h: 
+../adc.h: 
+../nand.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/string.h: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.6.LTS/include/linkage.h: 

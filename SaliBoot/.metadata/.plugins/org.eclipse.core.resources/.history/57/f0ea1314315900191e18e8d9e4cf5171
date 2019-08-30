@@ -1,0 +1,68 @@
+/*
+ * display_task.c
+ *
+ *  Created on: Mar 27, 2019
+ *      Author: Irving
+ */
+#include <stdint.h>
+#include <stdbool.h>
+#include "display_task.h"
+#include "idle_task.h"
+#include "priorities.h"
+#include "FreeRTOS.h"
+#include "utils/uartstdio.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
+
+
+xTaskHandle g_sDisplayTask;
+
+//*****************************************************************************
+//
+// The stack size for the display task.
+//
+//*****************************************************************************
+#define STACKSIZE_DISPLAYTASK   128
+
+
+uint32_t
+DisplayTaskInit(void)
+{
+    //
+    // Create a queue for sending messages to the display task.
+    //
+    g_pDisplayQueue = xQueueCreate(DISPLAY_QUEUE_SIZE, DISPLAY_ITEM_SIZE);
+    if(g_pDisplayQueue == NULL)
+    {
+        return(1);
+    }
+
+    //
+    // Create the display task.
+    //
+    if(xTaskCreate(DisplayTask, (const portCHAR *)"Display",
+                   STACKSIZE_DISPLAYTASK, NULL,
+                   tskIDLE_PRIORITY + PRIORITY_DISPLAY_TASK, &g_sDisplayTask) !=  pdTRUE)
+    { // FIXME
+        return(1);
+    }
+
+    //
+    // Configure UART.
+    //
+    UARTStdioConfig(0, 115200, g_ui32SysClock);
+
+    //
+    // Clear the terminal and print banner.
+    //
+    UARTprintf("\033[2J\033[H");
+    UARTprintf("Ethernet lwIP example\n\n");
+    //
+    // Success.
+    //
+    return(0);
+}
+
+
+

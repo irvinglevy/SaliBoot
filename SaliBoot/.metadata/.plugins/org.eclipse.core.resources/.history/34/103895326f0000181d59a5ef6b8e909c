@@ -1,0 +1,125 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Each subdirectory must supply rules for building sources it contributes
+ST7735.obj: ../ST7735.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="ST7735.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+alerts.obj: ../alerts.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="alerts.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+audio.obj: ../audio.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="audio.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+ff.obj: ../ff.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="ff.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+gpio.obj: ../gpio.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="gpio.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+graphics.obj: ../graphics.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="graphics.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+loader.obj: ../loader.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="loader.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+log.obj: ../log.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="log.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+main.obj: ../main.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="main.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+mmc-dk-tm4c123g.obj: ../mmc-dk-tm4c123g.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="mmc-dk-tm4c123g.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+mmc-ek-lm4f232h5qd.obj: ../mmc-ek-lm4f232h5qd.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="mmc-ek-lm4f232h5qd.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+pressure_sensor.obj: ../pressure_sensor.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="pressure_sensor.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+screens.obj: ../screens.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="screens.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+tm4c123gh6pm_startup_ccs.obj: ../tm4c123gh6pm_startup_ccs.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="tm4c123gh6pm_startup_ccs.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+usb_serial_structs.obj: ../usb_serial_structs.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="usb_serial_structs.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+ustdlib.obj: ../ustdlib.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="ustdlib.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+ventilate.obj: ../ventilate.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: ARM Compiler'
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O2 --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.7/include" --include_path="C:/StellarisWare/third_party" --include_path="c:/ti/TivaWare_C_Series-2.1.3.156/inc/" --include_path= --include_path="/boards/ek-lm4f120xl" --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_TM4C123_RB1 --undefine=EVAL_BOARD --diag_wrap=off --display_error_number --diag_warning=225 --preproc_with_compile --preproc_dependency="ventilate.pp" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+

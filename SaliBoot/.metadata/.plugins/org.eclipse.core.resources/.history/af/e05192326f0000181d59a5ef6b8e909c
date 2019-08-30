@@ -1,0 +1,123 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../tm4c123gh6pm.cmd 
+
+C_SRCS += \
+../ST7735.c \
+../alerts.c \
+../audio.c \
+../ff.c \
+../gpio.c \
+../graphics.c \
+../loader.c \
+../log.c \
+../main.c \
+../mmc-dk-tm4c123g.c \
+../mmc-ek-lm4f232h5qd.c \
+../pressure_sensor.c \
+../screens.c \
+../tm4c123gh6pm_startup_ccs.c \
+../usb_serial_structs.c \
+../ustdlib.c \
+../ventilate.c 
+
+OBJS += \
+./ST7735.obj \
+./alerts.obj \
+./audio.obj \
+./ff.obj \
+./gpio.obj \
+./graphics.obj \
+./loader.obj \
+./log.obj \
+./main.obj \
+./mmc-dk-tm4c123g.obj \
+./mmc-ek-lm4f232h5qd.obj \
+./pressure_sensor.obj \
+./screens.obj \
+./tm4c123gh6pm_startup_ccs.obj \
+./usb_serial_structs.obj \
+./ustdlib.obj \
+./ventilate.obj 
+
+C_DEPS += \
+./ST7735.pp \
+./alerts.pp \
+./audio.pp \
+./ff.pp \
+./gpio.pp \
+./graphics.pp \
+./loader.pp \
+./log.pp \
+./main.pp \
+./mmc-dk-tm4c123g.pp \
+./mmc-ek-lm4f232h5qd.pp \
+./pressure_sensor.pp \
+./screens.pp \
+./tm4c123gh6pm_startup_ccs.pp \
+./usb_serial_structs.pp \
+./ustdlib.pp \
+./ventilate.pp 
+
+C_DEPS__QUOTED += \
+"ST7735.pp" \
+"alerts.pp" \
+"audio.pp" \
+"ff.pp" \
+"gpio.pp" \
+"graphics.pp" \
+"loader.pp" \
+"log.pp" \
+"main.pp" \
+"mmc-dk-tm4c123g.pp" \
+"mmc-ek-lm4f232h5qd.pp" \
+"pressure_sensor.pp" \
+"screens.pp" \
+"tm4c123gh6pm_startup_ccs.pp" \
+"usb_serial_structs.pp" \
+"ustdlib.pp" \
+"ventilate.pp" 
+
+OBJS__QUOTED += \
+"ST7735.obj" \
+"alerts.obj" \
+"audio.obj" \
+"ff.obj" \
+"gpio.obj" \
+"graphics.obj" \
+"loader.obj" \
+"log.obj" \
+"main.obj" \
+"mmc-dk-tm4c123g.obj" \
+"mmc-ek-lm4f232h5qd.obj" \
+"pressure_sensor.obj" \
+"screens.obj" \
+"tm4c123gh6pm_startup_ccs.obj" \
+"usb_serial_structs.obj" \
+"ustdlib.obj" \
+"ventilate.obj" 
+
+C_SRCS__QUOTED += \
+"../ST7735.c" \
+"../alerts.c" \
+"../audio.c" \
+"../ff.c" \
+"../gpio.c" \
+"../graphics.c" \
+"../loader.c" \
+"../log.c" \
+"../main.c" \
+"../mmc-dk-tm4c123g.c" \
+"../mmc-ek-lm4f232h5qd.c" \
+"../pressure_sensor.c" \
+"../screens.c" \
+"../tm4c123gh6pm_startup_ccs.c" \
+"../usb_serial_structs.c" \
+"../ustdlib.c" \
+"../ventilate.c" 
+
+

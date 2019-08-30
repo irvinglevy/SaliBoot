@@ -1,0 +1,964 @@
+//*****************************************************************************
+//
+// jsonmsg.c - json message program.
+//
+// Copyright (c) 2015 Inovytec.  All rights reserved.
+// Software Development by Smartech Medical Electronics Ltd
+// Version 1.0
+// 19/10/2015
+// 
+// Change Record:
+// 
+//*****************************************************************************
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "utils/uartstdio.h"
+#include "jsonmsg.h"
+#include "ustdlib.h"
+
+#include "fatfs/src/ff.h"
+#include "fatfs/src/diskio.h"
+
+#include "sysctl.h"
+
+#define ONE_SECOND 80000
+#define MODEM_WATCHDOG_CHECK \
+		SysCtlDelay(ONE_SECOND); \
+		if(modem_watchdog_flag == 1)return; \
+		if(UARTPeek(0x0d)>=0)
+#define MODEM_WATCHDOG_CHECK_RETURN_FAILURE \
+		SysCtlDelay(ONE_SECOND); \
+		if(modem_watchdog_flag == 1)return 0; \
+		if(UARTPeek(0x0d)>=0)
+extern unsigned char modem_watchdog_flag;
+int connectivity_timing = 0;
+
+extern int resetStatus;
+extern int version;
+extern int build;
+
+extern int curr_year;
+extern char curr_month;
+extern char curr_day;
+extern char curr_hour;
+extern char curr_minute;
+extern char curr_sec;
+
+extern int comm_state;
+
+extern int play_audio_cpu2;
+
+extern void led_on();
+extern void led_off();
+extern void DebugPrint(char* str);
+extern void DebugPrintWithTime(char* str);
+//extern void DebugPrint_cpu2(char *str);
+
+void saving_log(char content[]);
+void float_to_string(float f, char r[]);
+//API root: service.inovytec.com/api/
+
+extern char events[9];
+extern char event_old[9];
+extern char gmt;
+extern bool modem_call_status_check;
+extern bool checkCallStatus();
+extern int getStrings(char strings[], int* size, int tmo);
+extern int Init_m10_cpu2(void);
+
+int trials;
+
+#ifdef cpu1
+//#define UARTprintf DebugPrint
+//extern void DebugPrint(char* str);
+extern unsigned char spomsg[2];
+extern int write_to_file(char* content, char * filename, BYTE open_mode);
+extern int read_file(char *name, char* content);
+extern char log_filename[20];
+extern char log_filename_prev[20];
+extern char log_filename_changed;
+
+extern int write_log(char* content);
+
+#define UARTprintf write_log
+
+//****************************************************************************************************************
+// Routine: void itoa(int value, char* result, int base)
+// Input: value - integer to convert, result - the converted value in string format, base - the base of the integer value
+// Function: Converts an integer to a string
+//****************************************************************************************************************
+void itoa(int value, char* result, int base)
+{
+	// check that the base is valid
+	if (base < 2 || base > 36)
+	{
+		*result = '\0';
+	}
+
+	char* ptr = result, *ptr1 = result, tmp_char;
+	int tmp_value;
+
+	do
+	{
+		tmp_value = value;
+		value /= base;
+		*ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz" [35 + (tmp_value - value * base)];
+	}while (value);
+
+	// Apply negative sign
+	if (tmp_value < 0)
+	{
+		*ptr++ = '-';
+	}
+
+	*ptr-- = '\0';
+
+	while(ptr1 < ptr)
+	{
+		tmp_char = *ptr;
+		*ptr--= *ptr1;
+		*ptr1++ = tmp_char;
+	}
+}
+
+void create_log_filename()
+{
+	// Start a new log file name.
+	if(curr_year + curr_month + curr_day + curr_hour != 0)
+	{
+		usprintf(log_filename,"%02d%02d%02d%02d.txt",(curr_year%100),curr_month,curr_day,curr_hour);
+		DebugPrintWithTime("Got a new log file name:\r\n ");
+		DebugPrint(log_filename);
+		DebugPrint("\r\n");
+	}
+	// No time, use index as name
+	else
+	{
+		int index = 0;
+		char content[3];
+		int success = false;
+		int k;
+
+		for(k = 0; k < 3; k++)
+		{
+			content[k] = 0;
+		}
+
+		//read index value saved in file
+		success = read_file("log_num.txt", content);
+
+		//if we found the log index file, we will need to update the index in the file.
+		if(success)
+		{
+			index = atoi(content);
+			index++;
+
+			//we want to limit the amount of indexed logs to 50.
+			index = index % 50;
+
+			char index_str[3];
+
+			index_str[0] = 0;
+			index_str[1] = 0;
+			index_str[2] = '\r';
+
+			itoa(index, index_str, 10);
+
+			write_to_file(index_str, "log_num.txt", FA_WRITE | FA_CREATE_ALWAYS);
+		}
+		else //no log index file found, so start one with a value of zero.
+		{
+			write_to_file("0", "log_num.txt", FA_WRITE | FA_CREATE_ALWAYS);
+		}
+
+		//save the log file name with the new index.
+		usprintf(log_filename,"i%07d.txt", index);
+
+		//remove any file that already exists with this name.
+		f_unlink(log_filename);
+	}	
+}
+
+void log_message(char* content)
+{
+	if(log_filename[0] == '\0') return;
+
+	char time_stamp[40];
+	usprintf(time_stamp,"[%02d:%02d:%02d]: ",curr_hour,curr_minute,curr_sec);
+	strcat(time_stamp, content);
+	strcat(time_stamp, "\r");
+	write_log(time_stamp);
+}
+
+void log_ecg_wave(char *content)
+{
+	if(log_filename[0] == '\0') return;
+
+	char time_stamp[600];
+	usprintf(time_stamp,"[%02d:%02d:%02d]: ",curr_hour,curr_minute,curr_sec);
+	strcat(time_stamp, content);
+	strcat(time_stamp, "\r");
+	write_log(time_stamp);
+}
+#endif
+
+#ifdef cpu2
+extern char comm_status_cpu2;
+static char str[30];
+extern char ip_string[20];
+#endif
+//char http_answer[100];
+extern int ip_len;
+
+int JSON_message_size = 0;
+int HTTP_header_size = 0;
+extern int  dspo2value_flag_2;
+extern unsigned int spo2value;
+extern unsigned int spo2rate;
+extern unsigned int heart_rate;
+extern char average_resprate;
+extern unsigned int ST;
+extern char is_ST_negative;
+extern char spomsg1[3];
+
+extern int ecg_string_length;
+extern int new_event;
+extern int new_event_value;
+extern bool ipFromDomainName;
+
+#ifdef cpu2
+extern char ProbeNotConnected_cpu2;
+extern char clampNotConnected_cpu2;
+#endif
+#ifdef cpu1
+extern int ProbeNotConnected;
+extern int clampNotConnected;
+#endif
+
+char atp_status1[3];
+char atp_status2[3];
+char testCount_str[10];
+char eventCount_str[10];
+char mount_state;
+char mount_count[4];
+//char unitSerialNumber[19] = "23948192875"; int SerialNumberSize = 11;
+char unitSerialNumber_cpu2[19] = "000000000000000"; int SerialNumberSize = 2;
+extern char unitSerialNumber_cpu1[20];
+char key[501] = "ieh/oe582LRPTfBVY1UR5lwbTjMNdcWyX4i9EHzHHY65608CAcVif7idqfT8cYvd usLbbekbTXvBfYDZBeLFlHo8AMbztQhtsLj44SLNKgcedzVw55ahrUiy+52nmteE vCXTY9bzoNPEDNazZCAiJ5jkzweQLpt6JONCV4qUw3rut2pYbZNaQnf+G5egMaz8 z3sEZLF1Be7F6CIvG1EQGnJkjLieYjHHtD9ddikgJP64sasW0fjtaYHS699fuQgb cTKBkmP3nHAaDQfYEDplTlED+mD1d1jQTRv8E5zqshXMPo7rewQRkWHsWXUwQRzb KmEKU5E1y5KJJY6FW5PPSzHq9VY+YwEWue2gmylUcVtP+JK5soiieqPI+Gpg5+2o PC5OC3JDZCrBgHRBf47h1Ok4IPnGItkp4d2s/UroGublTulkkxVB+BAPpsQEv+bk nlRyME1sFlOKb35Bras+gjD460pKN82f1fw17m8byrLlO";
+char eventId[20] = "00000000001234";
+char startTime[20] = "00:00:00";
+char currTime[20] = "2015-10-31 00:12:34";
+char currVersion[10] = "1.156";
+extern char ecg_wave[1001];
+char hr[20] = "00";
+char hrSource[2] = "2";
+char st[20] = "00";
+char spo2_value_str[4] = "000";
+char spo2_quality[20] = "2"; // 0-10
+char breathr[20] = "15";
+int o2_remain = 30;
+char o2[20] = "30"; // change to 30 -6
+char new_event_str[20] = "-1"; // num , -1 if there is no event
+char event_value[20] = "-1"; // -1 there is no value
+int no_spo2_count = 0;
+
+extern void Debug(int freq);
+
+#ifdef cpu2
+//*****************************************************************************
+// Routine: void send_EmergencyIncident()
+// Input: none
+// Output: none
+// Function: Sends data to the emergency center during an event, sent every second.
+//*****************************************************************************
+void send_EmergencyIncident()
+{
+	int TOTAL_message_size;
+	JSON_message_size = 1981+13; // Total is 2150
+	HTTP_header_size = 186;//184;
+	TOTAL_message_size = JSON_message_size + HTTP_header_size;
+
+	if(!send_message(msg_sendEmergencyIncident, TOTAL_message_size))
+	{
+		trials++;
+	}
+	else
+	{
+		trials=0;
+	}
+
+	if(trials > 9)
+	{
+		Init_m10_cpu2();  //replace this later with something more sophisticated
+		trials=0;
+	}
+}
+
+
+//*****************************************************************************
+// Routine: void send_getUpdate_req()
+// Input: none
+// Output: none
+// Function: Communicates with the server in order to receive an updated version.
+//*****************************************************************************
+void send_getUpdate_req()
+{
+	int TOTAL_message_size;
+	JSON_message_size = 655+13;
+	HTTP_header_size = 173;//171;
+	TOTAL_message_size = JSON_message_size + HTTP_header_size;
+
+	for(trials = 0; trials < 10; ++trials)
+	{
+		if(send_message(msg_update, TOTAL_message_size))
+		{
+			break;
+		}
+
+		SysCtlDelay(SysCtlClockGet()/3);  //wait 2 seconds before trying again
+	}
+
+	if(trials > 9)
+	{
+		Init_m10_cpu2();  //replace this later with something more sophisticated
+	}
+}
+
+//*****************************************************************************
+// Routine: void send_register_req()
+// Input: none
+// Output: none
+// Function: Registers a new device on the server.
+//*****************************************************************************
+void send_register_req()
+{
+	int TOTAL_message_size;
+
+	JSON_message_size = 675;//+counter2;
+	HTTP_header_size = 177;//175 + ip_len - 11;//+counter1;
+	TOTAL_message_size = JSON_message_size + HTTP_header_size;
+
+	for(trials = 0; trials < 10; ++trials)
+	{
+		if(send_message(msg_register, TOTAL_message_size))
+		{
+			break;
+		}
+
+		SysCtlDelay(SysCtlClockGet()/3);  //wait 2 seconds before trying again
+	}
+
+	if(trials > 9)
+	{
+		Init_m10_cpu2();  //replace this later with something more sophisticated
+	}
+}
+
+//*****************************************************************************
+// Routine: void send_ATP_result()
+// Input: none
+// Output: none
+// Function: Registers a new device on the server.
+//*****************************************************************************
+void send_ATP_result(int result)
+{
+	int TOTAL_message_size;
+	usprintf(atp_status1,"%d", result);
+	usprintf(atp_status2,"%d", result);
+	usprintf(testCount_str,"%d", result);
+	usprintf(eventCount_str,"%d", 0);
+
+	JSON_message_size = 810+13;
+	HTTP_header_size = 186;//184 + ip_len - 11;
+	TOTAL_message_size = JSON_message_size + HTTP_header_size;
+
+	for(trials = 0; trials < 10; ++trials)
+	{
+		if(send_message(msg_atp_result, TOTAL_message_size))
+		{
+			break;
+		}
+
+		SysCtlDelay(SysCtlClockGet()/3);  //wait 2 seconds before trying again
+	}
+
+	if(trials > 9)
+	{
+		Init_m10_cpu2();  //replace this later with something more sophisticated
+	}
+}
+
+//*****************************************************************************
+// Routine: void send_mount_state(int state)
+// Input: state 0 - off wall mount 1 - on wall mount
+// Output: none
+// Function: Sent wall mount state to the server.
+//*****************************************************************************
+void send_mount_state(int state)
+{
+	int TOTAL_message_size;
+
+	mount_state = state;
+
+	JSON_message_size = 686+13;
+	HTTP_header_size = 181;//179 + ip_len - 11;
+	TOTAL_message_size = JSON_message_size + HTTP_header_size;
+
+	for(trials = 0; trials < 10; ++trials)
+	{
+		if(send_message(msg_mount_state, TOTAL_message_size))
+		{
+			break;
+		}
+
+		SysCtlDelay(SysCtlClockGet()/3);  //wait 2 seconds before trying again
+	}
+
+	if(trials > 9)
+	{
+		Init_m10_cpu2();  //replace this later with something more sophisticated
+	}
+}
+
+void send_payload(msg_type message_type);
+
+#endif
+
+//*****************************************************************************
+// Routine: int send_message(msg_type message_type, int TOTAL_message_size)
+// Input: msg_type message_type, int TOTAL_message_size
+// Output: sending result
+// Function: Gets a message type (emergency, register, get_update) and packet size
+//			 and it sends an http packet to the server.
+//*****************************************************************************
+int send_message(msg_type message_type, int TOTAL_message_size)
+{
+	int message_sent = false;
+
+#ifdef cpu2
+	char site_message[30];
+	int k;
+	int counter;
+	int ret = 0;
+	int size;
+
+	resetStatus=33;
+
+	if(Sending_message)
+	{
+		//if(modem_watchdog_flag == 1) return message_sent;  //this is no longer needed but keep to make sure
+		Sending_message = false;
+	}
+
+	// Dont try to send message if comm is down
+	if(comm_status_cpu2 == false) return message_sent;
+
+	Sending_message = true;
+
+	//led_on();
+	// HTTP Post
+	// the post should return CONNECT to indicate that the message was received
+	// after connect the data (payload) should be sent.
+	// the post will return OK after the payload is received
+	// the timeout should be long enough for the entire payload to be received
+	// by the modem.  Given that this function is interrupted often the time needs
+	// to be carefully considered (ie long).
+	// the getString function is used to receive the results as follows
+	/*
+	 * 1.  OK -- returns 1
+	 * 2.  Data -- returns 2
+	 * 3.  CONNECT -- returns 3
+	 * 4.  Error -- returns -1
+	 * 5.  Timeout -- returns -2
+	 */
+	counter = 0;
+	UARTFlushRx();
+	//usprintf(str,"AT+QHTTPPOST=%d,120,120\r\0", TOTAL_message_size);
+	usprintf(str,"AT+QHTTPPOST=%d,30,30\r\0", TOTAL_message_size);
+	UARTprintf(str);
+	//saving_log(str);
+
+	while(ret !=3)
+	{
+		ret = getStrings(site_message,&size,5);
+		if(ret == 1)counter++; // this should not happen. this is a reply to old message!
+		else if((ret ==2)|| (ret == -1))
+		{
+			//saving_log(site_message);
+			Sending_message = false;
+			return message_sent;        //http failure
+
+
+			//ret = URC(site_message,size); //check if this is an unrecognized message
+			// decide what to do...
+		}
+		else if(ret == -2)counter++;  //wait a little longer
+
+		if(counter == 10)
+		{
+			Sending_message = false;
+			return message_sent;
+		}
+	}
+	//saving_log(site_message);
+
+	UARTFlushRx();
+	if(message_type == msg_sendEmergencyIncident)
+		UARTprintf("POST /api/sendemergencyincident HTTP/1.1\n");
+	else if(message_type == msg_register)
+		UARTprintf("POST /api/register HTTP/1.1\n");
+	else if(message_type == msg_update)
+		UARTprintf("POST /api/getupdate HTTP/1.1\n");
+	else if(message_type == msg_atp_result)
+		UARTprintf("POST /api/performatp HTTP/1.1\n");
+	else if(message_type == msg_mount_state)
+		UARTprintf("POST /api/senddeviceonoffwall HTTP/1.1\n");
+
+	if(!ipFromDomainName)
+	{
+		UARTprintf("Host: 18.184.33.150\n");//52.58.46.76  52.59.114.0
+	}
+	else
+	{
+		for (k = 0; k < 30; k++){str[k]=0;}
+
+		usprintf(str,"Host: %s\n",ip_string);
+		UARTprintf(str);
+	}
+
+	UARTprintf("Accept: */*\n");
+	UARTprintf("User-Agent: QUECTEL_MODULE\n");
+	UARTprintf("Connection: Keep-Alive\n");
+	UARTprintf("Content-Type: application/json\n");
+
+	usprintf(str,"Content-Length: %d\n", JSON_message_size);
+	UARTprintf(str);
+
+	str[19] = '\0';
+	//saving_log(str,20);
+
+	UARTprintf("\n");
+#endif
+	// JSON HEADER
+	UARTprintf("{    \n");
+	UARTprintf("    \"header\" : null,    \n");
+	UARTprintf("    \"payload\" :    \n");
+	UARTprintf("    {    \n");
+
+	// JSON PAYLOAD
+	send_payload(message_type);
+	UARTprintf(" }\n");
+#ifdef cpu2
+	UARTprintf("}\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\n");
+#endif
+#ifdef cpu1
+	UARTprintf("}\r\n");
+#endif
+
+#ifdef cpu2
+
+	ret = 0;
+	counter = 0;
+	while(ret !=1)
+	{
+		ret = getStrings(site_message,&size,10);
+
+		if(ret == 3) // this should not happen. this is a reply to old message!
+		{
+			counter++;
+		}
+		else if((ret == 2) || (ret == -1))
+		{
+			//saving_log(site_message);
+			Sending_message = false;
+			return message_sent;  //http failure
+
+			//ret = URC(site_message,size); //check if this is an unrecognized message
+			// decide what to do...
+		}
+		else if(ret == -2) //wait a little longer
+		{
+			counter++;
+		}
+
+		if(counter == 3) //we've already waited for three rounds...
+		{
+			//saving_log(site_message);
+			Sending_message = false;
+			return message_sent;
+		}
+	}
+	//saving_log(site_message);
+#endif
+
+	message_sent = true;
+
+#ifdef cpu2
+
+	Sending_message = false;
+
+	if((new_event >= 0) && (message_type == msg_sendEmergencyIncident))
+	{
+		//only when we've succesfully sent the shock event then we want to allow the sending of a new vf event.
+		if(new_event == EVENT_SHOCK)
+		{
+			VF_Detected_cpu2 = false;
+		}
+
+		events[new_event]=false;
+		event_old[new_event]=false;
+		new_event = -1;
+		new_event_value = -1;
+		usprintf(new_event_str,"%d", new_event);
+		usprintf(event_value,"%d", new_event_value);
+	}
+#endif
+
+	return message_sent;
+}
+
+//*****************************************************************************
+// Routine: void send_payload(msg_type message_type)
+// Input: msg_type message_type
+// Output: none
+// Function: Gets the message type and sends the JSON payload for that packet.
+//*****************************************************************************
+void send_payload(msg_type message_type)
+{
+	//char num[16];
+	char buffer[500];
+	buffer[0] = '\0';
+	char mount_state_str[4];
+	char utc_hour = curr_hour - gmt;
+	char gmt_string[3];
+
+	switch (message_type) 
+	{
+	case msg_register:
+		usprintf(currTime,"%4d-%2d-%2d %2d:%2d:%2d",curr_year,curr_month,curr_day,utc_hour,curr_minute,curr_sec);
+		//usprintf(num,"%d000000000%d",JSON_message_size,HTTP_header_size);
+		//num[15 ] = '\0';
+
+		UARTprintf("    \"key\": \""); UARTprintf(key); UARTprintf("\",\n");
+		UARTprintf("    \"unitSerialNumber\": \""); UARTprintf(unitSerialNumber_cpu2); UARTprintf("\",\n");
+		UARTprintf("    \"deviceDateTime\": \""); UARTprintf(currTime); UARTprintf("\"\n");
+		break;
+
+	case msg_update:
+		usprintf(currVersion,"%d.%d", version, build);
+
+		UARTprintf("    \"key\": \""); UARTprintf(key); UARTprintf("\",\n");
+		UARTprintf("    \"unitSerialNumber\": \""); UARTprintf(unitSerialNumber_cpu2); UARTprintf("\",\n");
+		UARTprintf("    \"currentVersion\": \""); UARTprintf(currVersion); UARTprintf("\"\n");
+		break;
+
+	case msg_atp_result:
+		usprintf(currVersion,"%d.%d", version, build);
+
+		UARTprintf("    \"key\": \""); UARTprintf(key); UARTprintf("\",\n");
+		UARTprintf("    \"unitSerialNumber\": \""); UARTprintf(unitSerialNumber_cpu2); UARTprintf("\",\n");
+		UARTprintf("    \"testCount\": \""); UARTprintf(testCount_str); UARTprintf("\",\n");
+		UARTprintf("    \"eventCount\": \""); UARTprintf(eventCount_str); UARTprintf("\",\n");
+		UARTprintf("    \"version\": \""); UARTprintf(currVersion); UARTprintf("\",\n");
+		UARTprintf("    \"simNumber\": \""); UARTprintf("+9720584764444"); UARTprintf("\",\n");
+
+		usprintf(gmt_string,"%3d", gmt);
+
+		UARTprintf("    \"timeZone\": \"");  UARTprintf(gmt_string); UARTprintf("\",\n");
+		UARTprintf("    \"status1\": \"");  UARTprintf(atp_status1); UARTprintf("\",\n");
+		UARTprintf("    \"status2\": \"");  UARTprintf(atp_status2); UARTprintf("\"\n");
+		break;
+	case msg_mount_state:
+		usprintf(mount_state_str,"%d",mount_state);
+
+		UARTprintf("    \"key\": \""); UARTprintf(key); UARTprintf("\",\n");
+		UARTprintf("    \"unitSerialNumber\": \""); UARTprintf(unitSerialNumber_cpu2); UARTprintf("\",\n");
+		UARTprintf("    \"eventCount\": \""); UARTprintf("0"); UARTprintf("\",\n");
+		UARTprintf("    \"status1\": \"");  UARTprintf(mount_state_str); UARTprintf("\",\n");
+		UARTprintf("    \"status2\": \"");  UARTprintf("0"); UARTprintf("\"\n");
+		break;
+
+	case msg_sendEmergencyIncident:
+
+
+		if(eventId[0] == '0' && eventId[1] == '0' && eventId[2] == '0' && eventId[3] == '0')
+		{
+			usprintf(eventId,"%4d%2d%2d%2d%2d%2d",curr_year,curr_month,curr_day,utc_hour,curr_minute,curr_sec);
+		}
+
+		//starts with "00:00:00";
+		if(startTime[0] == '0' && startTime[1] == '0' &&
+				startTime[3] == '0' && startTime[4] == '0' &&
+				startTime[6] == '0' && startTime[7] == '0')
+		{
+			usprintf(startTime,"%2d:%2d:%2d",utc_hour, curr_minute, curr_sec);
+
+		}
+
+		usprintf(currTime,"%4d-%2d-%2d %2d:%2d:%2d",curr_year,curr_month,curr_day,curr_hour,curr_minute,curr_sec);
+
+#ifdef cpu2
+		if(dspo2value_flag_2)
+#endif
+#ifdef cpu1
+			if(1)
+#endif
+			{ 
+				usprintf(spo2_value_str,"%d", spo2value);
+				no_spo2_count = 0;
+			}
+#ifdef cpu2			
+		if(ProbeNotConnected_cpu2)
+		{
+			spo2_value_str[0] = '-';
+			spo2_value_str[1] = '-';
+			spo2_value_str[2] = '\0';
+		}
+
+		spo2_quality[0] = spomsg1[1];
+		spo2_quality[1] = spomsg1[2];
+#endif
+#ifdef cpu1
+		usprintf(spo2_quality,"%d", spomsg[1]);
+#endif			
+		spo2_quality[2] = '\0';
+
+		int hrs = 0;
+		usprintf(hr,"00");
+#ifdef cpu2				
+		if(spo2rate && !ProbeNotConnected_cpu2)
+#endif
+#ifdef cpu1			
+			if(spo2rate && !ProbeNotConnected)
+#endif
+			{
+				usprintf(hr,"%d", spo2rate);
+				hrs = 2;
+			}
+#ifdef cpu2	
+			else if(heart_rate && !clampNotConnected_cpu2)
+#endif
+#ifdef cpu1	
+				else if(heart_rate && !clampNotConnected)
+#endif
+				{
+					usprintf(hr,"%d",heart_rate);
+					hrs = 1;
+				}
+#ifdef cpu2	
+				else if(ProbeNotConnected_cpu2 && clampNotConnected_cpu2)
+				{
+					hrs = 0;
+					usprintf(hr,"--");
+				}
+#endif			
+
+		usprintf(hrSource,"%d", hrs);
+		usprintf(breathr,"%d", average_resprate);
+		usprintf(o2,"%d", o2_remain);
+
+
+		if(ST != 10000)
+		{
+			float st_f;
+			st_f = ((float)ST) / 100;
+			if(is_ST_negative)
+				st_f = -1 * st_f;
+
+			float_to_string(st_f, st);
+		}
+		else
+		{
+			st[0] = '0'; st[1] = '.'; st[2] = '0';  st[3] = '0'; st[4] = '\0';
+		}
+
+		if(new_event >= 0)
+		{
+			usprintf(new_event_str,"%d", new_event);
+			usprintf(event_value,"%d", new_event_value);
+		}
+
+		UARTprintf("        \"key\": \"");
+#ifdef cpu1
+		UARTprintf("0");
+#endif
+#ifdef cpu2	
+		UARTprintf(key);
+#endif
+		strcat(buffer,"\",    \n");
+		//strcat(buffer,"        \"key\": \""); strcat(buffer,key);  strcat(buffer,"\",    \n");
+#ifdef cpu1
+		strcat(buffer,"    \"unitSerialNumber\": \""); strcat(buffer,unitSerialNumber_cpu1); strcat(buffer,"\",    \n");
+#endif
+#ifdef cpu2	
+		strcat(buffer,"    \"unitSerialNumber\": \""); strcat(buffer,unitSerialNumber_cpu2); strcat(buffer,"\",    \n");
+#endif		
+		strcat(buffer,"    \"eventId\": \""); strcat(buffer,eventId); strcat(buffer,"\",    \n");
+		strcat(buffer,"    \"startTime\": \""); strcat(buffer,startTime); strcat(buffer,"\",    \n");
+		strcat(buffer,"    \"time\": \""); strcat(buffer,currTime); strcat(buffer,"\",    \n");
+		strcat(buffer,"    \"ecg_wave\": \"");
+		UARTprintf(buffer);
+
+		buffer[0] = '\0';
+		UARTprintf(ecg_wave);
+
+		strcat(buffer,"\",    \n");
+		strcat(buffer,"    \"hr\": \""); strcat(buffer,hr); strcat(buffer,"\",    \n");
+		strcat(buffer,"\"hrSource\" :"); strcat(buffer,hrSource); strcat(buffer,",\n");
+		strcat(buffer,"    \"st\": \""); strcat(buffer,st); strcat(buffer,"\",    \n");
+		strcat(buffer,"    \"spo2_value\": \""); strcat(buffer,spo2_value_str); strcat(buffer,"\",    \n");
+		strcat(buffer,"    \"spo2_quality\": \""); strcat(buffer,spo2_quality); strcat(buffer,"\",    \n");
+		strcat(buffer,"    \"br\": \""); strcat(buffer,breathr); strcat(buffer,"\",    \n");
+		strcat(buffer,"    \"o2\": \""); strcat(buffer,o2); strcat(buffer,"\",    \n");
+		strcat(buffer,"    \"event\": "); strcat(buffer,new_event_str); strcat(buffer,",    \n");
+		strcat(buffer,"    \"event_value\": \""); strcat(buffer,event_value); strcat(buffer,"\"\n");
+		UARTprintf(buffer);
+		buffer[0] = '\0';
+
+		/*if(new_event >= 0)
+			{
+				events[new_event]=false;
+				event_old[new_event]=false;
+				new_event = -1;
+				new_event_value = -1;
+				usprintf(new_event_str,"%d", new_event);
+				usprintf(event_value,"%d", new_event_value);
+			}*/
+		break;
+	}
+}
+
+
+//*****************************************************************************
+// Routine: void read_response(msg_type message_type)
+// Input: msg_type message_type
+// Output: none
+// Function: Gets the message type and reads the response received from the emergency center.
+//*****************************************************************************
+void read_response(msg_type message_type)
+{
+	int index = 0;
+	if(message_type == msg_sendEmergencyIncident)
+	{
+	}
+	else if(message_type == msg_register)
+	{
+	}
+	/*else if(message_type == msg_update)
+	{
+		while(http_answer[index] != NULL)
+		{
+			if(modem_watchdog_flag == 1)return;
+			if(http_answer[index+0] == 'S' && 
+					http_answer[index+1] == 't' &&
+					http_answer[index+2] == 'a' &&
+					http_answer[index+3] == 't' &&
+					http_answer[index+4] == 'u' &&
+					http_answer[index+5] == 's')
+			{
+				//return_value[0] = http_answer[index+8];
+				//return_value[1] = http_answer[index+9];
+				//return_value[2] = http_answer[index+10];					
+			}
+			index++;
+		}	
+	}*/
+}
+
+
+
+//*****************************************************************************
+// Routine: int n_tu(int number, int count)
+// Input: int number, int count
+// Output: result
+// Function: Gets number and count and returns reslt = number ^ count
+//*****************************************************************************
+int n_tu(int number, int count)
+{
+	int result=1;
+	while(count-- > 0)
+		result *=number;
+
+	return result;
+}
+
+//*****************************************************************************
+// Routine: void float_to_string(float f, char r[])
+// Input: float f
+// Output: char r[]
+// Function: Convert float f to string r
+//*****************************************************************************
+void float_to_string(float f, char r[])
+{
+	long long int length, length2, i, number, position, sign;
+	float number2;
+
+	sign=-1;   // -1 == positive number
+	if (f <0)
+	{
+		sign='-';
+		f *= -1;
+	}
+
+
+	number2=f;
+	number=f;
+	length=0;  // size of decimal part
+	length2=0; //  size of tenth
+
+
+	/* calculate length2 tenth part*/
+	while( (number2 - (float)number) != 0.0 && !((number2 - (float)number) < 0.0) )
+	{
+
+		number2= f * (n_tu(10.0,length2+1));
+		number=number2;
+
+		length2++;
+
+	}
+
+	/* calculate length decimal part*/
+	for(length=(f> 1) ? 0 : 1; f > 1; length++)
+		f /= 10;
+
+
+	position=length;
+	length=length+1+length2;
+	number=number2;
+	if(sign=='-')
+	{
+		length++;
+		position++;
+	}
+
+	for(i=length; i >= 0 ; i--)
+	{
+		if(i== (length))
+			r[i]='\0';
+		else if(i==(position))
+			r[i]='.';
+		else if(sign=='-' && i==0)
+			r[i]='-';
+		else
+		{
+			r[i]= (number % 10)+'0';
+			number /=10;
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+

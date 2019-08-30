@@ -1,0 +1,37 @@
+# FIXED
+
+loader.obj: ../loader.c
+loader.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdint.h
+loader.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h
+loader.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h
+loader.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h
+loader.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h
+loader.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h
+loader.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdlib.h
+loader.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h
+loader.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h
+loader.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h
+loader.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h
+loader.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h
+loader.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/rom.h
+loader.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/watchdog.h
+loader.obj: c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h
+loader.obj: c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h
+
+../loader.c: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdint.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdbool.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/yvals.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdarg.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/linkage.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/_lock.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.5/include/stdlib.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_types.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_memmap.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/gpio.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/pin_map.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/rom.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/watchdog.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/inc/hw_ints.h: 
+c:/ti/TivaWare_C_Series-2.1.4.178/driverlib/sysctl.h: 

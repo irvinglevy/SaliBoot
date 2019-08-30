@@ -1,0 +1,6872 @@
+/*
+ * screens.c
+ *
+ *  Created on: 18 ???? 2017
+ *      Author: Nadav
+ */
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <ustdlib.h>
+
+#include "ventilate.h"
+#include "screens.h"
+#include "graphics.h"
+#include "pressure_sensor.h"
+#include "inc/hw_types.h"
+#include "ST7735.h"
+#include "driverlib/pwm.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/watchdog.h"
+#include "time.h"
+#include "driverlib/hibernate.h"
+#include "inc/hw_memmap.h"
+#include "inc/hw_ints.h"
+#include "audio.h"
+#include "alerts.h"
+#include "loader.h"
+#include <stdbool.h>
+#include "driverlib/interrupt.h"
+#include "defines.h"
+#include "driverlib/gpio.h"
+#include "log.h"
+#include "RealTimeClock.h"
+
+#define TIMER0_TICKS_PER_SECOND 500
+#define TIMER1_TICKS_PER_SECOND 500
+
+void LCD_draw_BR(int br);
+void LCD_draw_Alerts_Num(int state);
+void LCD_draw_PIP();
+void LCD_draw_PEEP();
+void LCD_draw_IE();
+void LCD_draw_TV();
+void LCD_draw_MV(int br);
+void LCD_draw_bar(double value);
+
+extern int is_pediatric_patient;
+
+extern double TIDAL_VOLUME;
+
+extern char log_filename[20];
+extern char version_num[10];
+extern int build_num;
+
+extern double last_positive_volume;
+extern double positive_volume;
+extern double last_negative_volume;
+extern double negative_volume;
+
+extern int reset_SIMV_vent;
+extern int reset_CPAP_vent;
+
+extern double negative_volume;
+
+extern bool is_add_alert_apnea;
+
+int redraw_screen = false;
+
+int alert_was_on_screen = false;
+
+extern int test_watchdog;
+
+extern int first_breaths;
+
+extern int get_new_log_file_name(char* filename);
+
+extern int get_working_params();
+extern int read_log_file_for_print(int *line_start);
+extern void print_log_file_lines(int current_line, int total_lines, int *line_start);
+extern int log_message(char* content);
+extern void delay_ms(int ms);
+
+extern void set_blower_duty(float val);
+
+extern int save_working_params();
+
+extern int ignore_trigger;
+
+int recalibrate_sensors = 0;
+
+int inverse_ie = false;
+
+int start_counter = -1;
+int self_test_warning = 0;
+
+int reset_vent = false;
+
+extern int alert_status[MAX_ALERT_NUM];
+
+extern int trigger_detected_flag;
+
+extern int breath_counter;
+
+// Modifiable parameters
+extern int param_o2_percent;
+extern float param_selected_peep;
+extern int param_pressure_support;
+extern int param_tidal_volume_limit;
+
+extern int working_hours_minute_counter;
+extern char working_minutes_left[7];
+extern int total_work_hours;
+
+extern void itoa(int value, char* result, int base);
+extern int save_working_hours_amount(char* content);
+
+float blower_intensity = 100.0f;
+
+extern int screen;
+extern int prev_screen;
+//extern int return_screen;
+int next_screen_after_popup = SCREEN_NONE;
+int advance_screen_stack_after_popup = false;
+
+int menu_stack[15] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+int stack_index = 0;
+
+extern int num_of_active_alerts;
+
+extern int isCurrentlyPainting;
+extern char wait_for_ok;
+extern char wait_for_release;
+extern char wait_for_3_sec;
+
+extern char sensors_calibrated;
+
+extern int weight_table_index;
+
+extern int g_altimeter_input;
+extern int g_new_altimeter_input;
+
+extern int is_ventilating;
+
+int redraw_buttons = false;
+int selected_button_menu = 0;
+int prev_selected_button_menu = -1;
+
+int tech_mode_flag = 0;
+
+extern uint8_t rotate_ccw;
+extern uint8_t rotate_cw;
+
+extern float curr_calibration_correction_factor;
+extern float curr_o2_correction_factor;
+extern float o2_correction_factor[9];
+extern float height_correction_factor[7];
+extern float curr_height_correction_factor;
+extern int curr_altitude;
+extern int average_altitude;
+
+extern float alt_pressure_values[26];
+extern int height_values[26];
+
+int selected_button_disconnect_screen = 0;
+
+#define TABLE_MIN 0
+#define TABLE_MAX 8
+
+extern float curr_set_insp_time;
+extern int curr_set_br;
+extern int curr_set_vt;
+extern int weight_table_index;
+extern  int prev_weight_table_index;
+extern bool weight_chosen;
+
+extern int   table_weight[9];
+extern int   table_bpm[9];
+extern float table_insp_time[9];
+extern int   table_volume_limit[9];
+extern int   table_tidal_volume[9];
+extern int   starting_blower_speed_simv[9];
+extern int   starting_blower_speed_cpap[9];
+
+extern int vent_mode;
+extern int invasive_mode;
+extern int prev_mode_index;
+
+extern double Flow_baseline;
+
+extern uint32_t  adc_data[8];
+
+extern int is_hibernating;
+
+extern unsigned long Pressure;
+extern double Pressure_baseline;
+extern double voltageToPressureCoefficient;
+
+double prev_pressure_baseline = 0;
+double prev_flow_baseline = 0;
+int updated_baselines = 0;
+
+extern int systemUp;
+
+extern void reset_all_alert_counters();
+
+extern int alert_param_resp_rate_high;          // 4-60  times per minute
+extern int alert_param_resp_rate_low;           // 1-55  times per minute
+extern int alert_param_minute_volume_high;      // 105-150%
+extern int alert_param_minute_volume_low;       // 20-95%
+extern int alert_param_insp_pressure_high;      // 4-60  cmH2o
+extern int alert_param_insp_pressure_low;       // 1-50  cmH2o
+extern int alert_param_apnea;                   // 5-120 seconds
+extern int alert_param_leak;                    // 0%-100%
+extern int alert_param_low_tidal_volume;        // off or 15%-85%
+extern int alert_param_volume_limit_reached;    // 100-2000 mL
+extern int alert_param_inv_i_e;                 // true = on, false = off
+extern int alert_param_patient_disconnect;      // true = on, false = off
+extern int alert_param_pressure_limit;		    // 10 - 60 cmH2o
+extern int alert_param_pressure_alert;          // 10 - 55 cmH2o
+
+//*****************************************************************************
+// Main table for CPAP
+//*****************************************************************************
+extern int   table_cpap_weight[9];
+extern int   table_cpap_pressure_support[9];
+extern int   table_cpap_tidal_volume_limit_invasive[9];
+extern int   table_cpap_tidal_volume_limit_noninvasive[9];
+extern int   table_cpap_max_pressure_invasive[9];
+extern int   table_cpap_pressure_limit_invasive[9];
+extern int   table_cpap_max_pressure_noninvasive[9];
+extern int   table_cpap_pressure_limit_all[9];
+extern int   table_cpap_apnea[9];
+extern int   table_cpap_trigger_sens[9];
+
+
+extern int trigger_param_flow;                  // off, (3) - (10) LPM
+extern int trigger_param_pressure;              // off, (-2) - (-10) cmH2o
+
+// Parameters
+int param_brightness = 4;
+int last_brightness = -1;
+
+int param_alert_volume = 4;
+int last_alert_volume = -1;
+
+char warning_line1[15] = "\n";
+char warning_line2[15] = "\n";
+char warning_line3[15] = "\n";
+
+int screen_after_warning_ok = SCREEN_NONE;
+int screen_after_warning_cancel = SCREEN_NONE;
+
+extern bool is_remove_alert_screen;
+
+bool is_return_from_alerts = false;
+
+extern int seconds_counter;
+extern int flow_test_on;
+extern int g_blower_cycles_per_minute;
+
+extern int g_date_year;
+extern int g_date_month;
+extern int g_date_day;
+extern int g_time_hour;
+extern int g_time_minute;
+extern int g_time_sec;
+
+extern int average_adc_data_for_flow;
+
+int self_test_flow = 0;
+
+int temp_check_of_rpm1 = 0;
+int temp_check_of_rpm2 = 0;
+int temp_check_of_rpm3 = 0;
+int average_g_blower_cycle_per_minutes = 0;
+float rpm_percentage_difference = 0.0f;
+int expected_blower_cycle_per_minute = 36800;
+
+float temp_check_of_flow1 = 0.0f;
+float temp_check_of_flow2 = 0.0f;
+float temp_check_of_flow3 = 0.0f;
+float average_flow = 0.0f;
+float expected_flow = 114.0f;
+float expected_flow_ped = 130.0f;
+
+double temp_check_pressure1 = 0;
+double temp_check_pressure2 = 0;
+double temp_check_pressure3 = 0;
+float average_pressure = 0.0f;
+float expected_pressure = 10.0f;
+
+int test_state = 0;
+
+int progress_bar = 0;
+
+int self_test = 0;
+
+float time_to_reach = 0.0f;
+
+int test_phase = 0;
+
+extern float Flow_LPM;
+
+extern int alert_change;
+
+// ***********************************************************************************************
+// This function sets the height correction factor, in accordance with the altimeter sensor value
+// ***********************************************************************************************
+void update_height_correction_factor(float altimeter_pressure)
+{
+	int i = 0;
+
+	while(i < 26)
+	{
+		if(altimeter_pressure >= alt_pressure_values[i])
+		{
+			break;
+		}
+
+		i = i + 1;
+	}
+
+	//out of bounds of the measured altimeter pressure values.
+	if(i == 0)
+	{
+		curr_altitude = height_values[i];
+	}
+	else if(i == 26)
+	{
+		curr_altitude = height_values[i-1];
+	}
+	else //calculating linear interpolation between the two known altimeter pressure values closest too our current altimeter pressure. (y = y1 + (x-x1) * (y2-y1)/(x2-x1))
+	{
+		curr_altitude = height_values[i-1] + (altimeter_pressure - alt_pressure_values[i-1]) * (height_values[i] - height_values[i-1]) / (alt_pressure_values[i] - alt_pressure_values[i-1]);
+	}
+
+	//calculating linear interpolation between the two extreme values of the height correction factor as a function of the current height. (y = y1 + (x-x1) * (y2-y1)/(x2-x1))
+	curr_height_correction_factor = height_correction_factor[0] + (curr_altitude + 1000) * (height_correction_factor[6] - height_correction_factor[0]) / (6000);
+}
+
+// ********************************************************************************************
+// This function sets the o2 correction factor, in accordance with the selected o2 percentage.
+// ********************************************************************************************
+void update_o2_correction_factor(int o2_percentage)
+{
+	switch(o2_percentage)
+	{
+	case 21:
+			curr_o2_correction_factor = o2_correction_factor[0];
+			break;
+
+	case 30:
+			curr_o2_correction_factor = o2_correction_factor[1];
+			break;
+
+	case 40:
+			curr_o2_correction_factor = o2_correction_factor[2];
+			break;
+
+	case 50:
+			curr_o2_correction_factor = o2_correction_factor[3];
+			break;
+
+	case 60:
+			curr_o2_correction_factor = o2_correction_factor[4];
+			break;
+
+	case 70:
+			curr_o2_correction_factor = o2_correction_factor[5];
+			break;
+
+	case 80:
+			curr_o2_correction_factor = o2_correction_factor[6];
+			break;
+
+	case 90:
+			curr_o2_correction_factor = o2_correction_factor[7];
+			break;
+
+	case 100:
+			curr_o2_correction_factor = o2_correction_factor[8];
+			break;
+	}
+}
+
+// *******************************************************************************
+// This function sets the defualt alert values according to weight,
+// assuming that the weight has been chosen
+// *******************************************************************************
+void set_default_alert_values()
+{
+	if(!weight_chosen)
+	{
+		return;
+	}
+
+	switch(weight_table_index)
+	{
+	case 0: // 5 Kg
+		alert_param_pressure_limit     = 25;
+		alert_param_pressure_alert     = 21;
+		alert_param_resp_rate_high     = 45;
+		alert_param_resp_rate_low      = 12;
+		alert_param_minute_volume_high = 145;
+		alert_param_minute_volume_low  = 55;
+		break;
+
+	case 1: // 10 Kg
+		alert_param_pressure_limit     = 28;
+		alert_param_pressure_alert     = 23;
+		alert_param_resp_rate_high 	   = 40;
+		alert_param_resp_rate_low      = 10;
+		alert_param_minute_volume_high = 140;
+		alert_param_minute_volume_low  = 35;
+		break;
+
+	case 2: // 15 Kg
+		alert_param_pressure_limit     = 30;
+		alert_param_pressure_alert     = 25;
+		alert_param_resp_rate_high     = 35;
+		alert_param_resp_rate_low      = 10;
+		alert_param_minute_volume_high = 140;
+		alert_param_minute_volume_low  = 25;
+		break;
+
+	case 3: // 20 Kg
+		alert_param_pressure_limit     = 35;
+		alert_param_pressure_alert     = 30;
+		alert_param_resp_rate_high     = 30;
+		alert_param_resp_rate_low      = 10;
+		alert_param_minute_volume_high = 140;
+		alert_param_minute_volume_low  = 50;
+		break;
+
+	case 4: // 30 Kg
+		alert_param_pressure_limit     = 40;
+		alert_param_pressure_alert     = 33;
+		alert_param_resp_rate_high     = 30;
+		alert_param_resp_rate_low      = 8;
+		alert_param_minute_volume_high = 140;
+		alert_param_minute_volume_low  = 35;
+		break;
+
+	case 5: // 40 Kg
+		alert_param_pressure_limit 	   = 42;
+		alert_param_pressure_alert 	   = 35;
+		alert_param_resp_rate_high 	   = 30;
+		alert_param_resp_rate_low  	   = 6;
+		alert_param_minute_volume_high = 140;
+		alert_param_minute_volume_low  = 45;
+		break;
+
+	case 6: // 50 Kg
+		alert_param_pressure_limit     = 47;
+		alert_param_pressure_alert     = 40;
+		alert_param_resp_rate_high     = 30;
+		alert_param_resp_rate_low      = 6;
+		alert_param_minute_volume_high = 140;
+		alert_param_minute_volume_low  = 40;
+		break;
+
+	case 7: // 60 Kg
+		alert_param_pressure_limit     = 50;
+		alert_param_pressure_alert     = 40;
+		alert_param_resp_rate_high     = 25;
+		alert_param_resp_rate_low      = 6;
+		alert_param_minute_volume_high = 140;
+		alert_param_minute_volume_low  = 55;
+		break;
+
+	case 8: // 70 Kg
+		alert_param_pressure_limit     = 50;
+		alert_param_pressure_alert     = 40;
+		alert_param_resp_rate_high     = 25;
+		alert_param_resp_rate_low      = 6;
+		alert_param_minute_volume_high = 145;
+		alert_param_minute_volume_low  = 50;
+		break;
+	}
+
+	alert_param_leak = 100;
+	alert_param_inv_i_e = true;
+	alert_param_low_tidal_volume = 85;
+	alert_param_insp_pressure_low = param_selected_peep + 5;
+}
+
+// *******************************************************************************
+// This function handles the reset of patient parameters.
+// it always continues to the screen DISCONNECT PATIENT
+// *******************************************************************************
+void handle_new_patient(int was_reset_by_wdog)
+{
+	breath_counter = 0;
+	self_test = 0;
+
+	// date and time
+	//int date = ((g_date_year % 100) * 365 + g_date_month * 31 + g_date_day);
+	//int time = g_time_hour * 60 + g_time_minute;
+	//usprintf(log_filename,"%04x%04x.txt", date, time);
+
+	is_add_alert_apnea = false;
+
+	get_new_log_file_name(log_filename);
+
+	param_selected_peep = 5.0f;
+
+	// reset patient parameters.
+	if(was_reset_by_wdog)
+	{
+		log_message("Recovered from a crash.");
+
+		get_working_params();
+
+		if(is_ventilating)
+		{
+			set_default_vent_params();
+			if(vent_mode == VENT_MODE_VC_SIMV_PS)
+			{
+				set_blower_duty((float)starting_blower_speed_simv[weight_table_index]);
+			}
+			else
+			{
+				set_blower_duty((float)starting_blower_speed_cpap[weight_table_index]);
+			}
+			screen = SCREEN_RUN;
+		}
+		else
+		{
+			weight_chosen = false;
+			weight_table_index = -1;
+			prev_weight_table_index = -1;
+			vent_mode = VENT_MODE_NONE;
+			screen = SCREEN_DISCONNECT;
+			reset_vent = true;
+		}
+
+		add_active_alert(ALERT_SYSTEM_CRASH);
+	}
+	else
+	{
+		if(is_ventilating)
+		{
+			is_ventilating = false;
+		}
+
+		log_message("New patient.");
+		weight_chosen = false;
+		weight_table_index = -1;
+		prev_weight_table_index = -1;
+		vent_mode = VENT_MODE_NONE;
+		screen = SCREEN_DISCONNECT;
+		reset_vent = true;
+	}
+
+	set_timestamp (log_filename,            /* Pointer to the file name */
+		           g_date_year,
+		           g_date_month,
+		           g_date_day,
+		           g_time_hour,
+		           g_time_minute,
+		           g_time_sec);
+}
+
+
+// *******************************************************************************
+// This function handles the printing of the disconnect screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_disconnect()
+{
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_DISCONNECT)
+	{
+		prev_screen = SCREEN_DISCONNECT;
+
+		isCurrentlyPainting = 1;
+
+		fillScreen(ST7735_BLACK);
+		print_string("disconnect", 50 , 1, 3);
+		print_string("disconnect", 30 , 40, 0);
+		print_string("patient and", 30 , 55, 0);
+		print_string("press ok", 30 , 70, 0);
+
+		LCD_draw_batt();
+		isCurrentlyPainting = 0;
+		wait_for_release = true;
+		wait_for_3_sec = true;
+		redraw_buttons = 1;
+		rotate_cw = 0;
+		rotate_ccw = 0;
+
+		stack_index = 0;
+		menu_stack[stack_index] = SCREEN_DISCONNECT;
+
+		if(!systemUp)
+		{
+			systemUp = 1;
+		}
+	}
+
+	// see if the knob was rotated, if so , change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(selected_button_disconnect_screen == 1) selected_button_disconnect_screen = 0;
+		else selected_button_disconnect_screen = 1;
+		redraw_buttons = 1;
+
+		rotate_cw = 0;
+		rotate_ccw = 0;
+	}
+
+	// redraw buttons if needeed
+	if(redraw_buttons)
+	{
+		if(selected_button_disconnect_screen == 0)
+		{
+			print_string("ok ", 20 , 110, 1);
+			print_string("menu", 100 , 110, 0);
+		}
+		else
+		{
+			print_string("ok ", 20 , 110, 0);
+			print_string("menu", 100 , 110, 1);
+		}
+
+		redraw_buttons = 0;
+	}
+
+	if(!wait_for_3_sec)
+	{
+		strcpy (warning_line1, "quick start");
+		strcpy (warning_line2, "ventilation");
+		screen_after_warning_ok = SCREEN_QUICK_START;
+		screen_after_warning_cancel = screen;
+		screen = SCREEN_WARNING;
+	}
+
+	// if button was pressed continue
+	if(!wait_for_release)
+	{
+		// wait for sensor calibration
+		while(!sensors_calibrated){}
+
+	    if(selected_button_disconnect_screen == 1)
+	    {
+			screen = SCREEN_MENU;
+			stack_index++;
+	    }
+	    else
+	    {
+		    if(self_test == 0)
+		    {
+#ifdef DONT_DO_TEST
+		    	self_test = 1;
+#else
+		    	screen = SCREEN_FLOW_TEST;
+#endif /* DONT_DO_TEST */
+		    }
+		    else if(weight_table_index == -1 || !weight_chosen)
+		    {
+		    	screen = SCREEN_WEIGHT;
+		    }
+		    else if(vent_mode == VENT_MODE_NONE)
+		    {
+		    	screen = SCREEN_MODE;
+		    	selected_button_menu = 0;
+		    }
+		    else if(invasive_mode == INVASIVE_MODE_NONE)
+		    {
+		    	screen = SCREEN_INVASIVE_MODE;
+		    }
+		    else
+		    {
+		    	screen = SCREEN_CONNECT;
+		    }
+	    }
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the main menu screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_menu()
+{
+	int is_patient_params_defined = true;
+	int start_vent_disabled = false;
+
+	if(weight_table_index == -1 || vent_mode == VENT_MODE_NONE)
+		is_patient_params_defined = false;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_MENU)
+	{
+		//return_screen = prev_screen;
+		prev_screen = SCREEN_MENU;
+		fillScreen(ST7735_BLACK);
+
+	    //strcpy(audio_filename, "alert02.wav");
+	    //play_audio();
+
+		//selected_button_menu = 0;
+		prev_selected_button_menu = -1;
+
+		print_string("menu", 50 , 1, 3);
+
+
+		if(!is_patient_params_defined && !is_ventilating)
+		{
+			print_string("start vent", 15 , 24, TEXT_HIGHLITE_DISABLED);
+			if(selected_button_menu == 0) selected_button_menu = 1;
+		}
+		else
+		{
+			if(is_ventilating)
+			{
+				print_string("stop vent", 15 , 24, 0);
+			}
+			else
+			{
+				print_string("start vent", 15 , 24, TEXT_HIGHLITE_NORMAL);
+			}
+		}
+
+		print_string("new patient", 15 , 41, 0);
+		print_string("vent. params", 15 , 58, 0);
+		print_string("alert settings", 15 , 75, 0);
+		print_string("adv settings", 15 , 92, 0);
+		print_string("back", 120 , 114, 0);
+
+		LCD_draw_batt();
+
+		menu_stack[stack_index] = SCREEN_MENU;
+
+		wait_for_ok = true;
+	}
+
+	if((recalibrate_sensors > 0 || !sensors_calibrated) && !is_ventilating)
+	{
+		start_vent_disabled = true;
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 6)
+			{
+				if(is_patient_params_defined || is_ventilating || vent_mode == VENT_MODE_GUESS_WEIGHT)  selected_button_menu = 0;
+				else selected_button_menu = 1;
+			}
+			rotate_cw = 0;
+		}
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 5;
+			if(selected_button_menu == 0 && !is_patient_params_defined && !is_ventilating && vent_mode != VENT_MODE_GUESS_WEIGHT) selected_button_menu = 5;
+			rotate_ccw = 0;
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(!is_ventilating)
+		{
+			if(selected_button_menu == 0) print_string("start vent", 15 , 24, 1);
+			if(prev_selected_button_menu == 0) print_string("start vent", 15 , 24, 0);
+		}
+		else
+		{
+			if(selected_button_menu == 0)
+			{
+				fillRect(14, 23,  120, 12, ST7735_BLACK);
+				print_string("stop vent", 15 , 24, 1);
+			}
+			if(prev_selected_button_menu == 0)
+			{
+				fillRect(14, 23,  120, 12, ST7735_BLACK);
+				print_string("stop vent", 15 , 24, 0);
+			}
+		}
+
+		if(selected_button_menu == 1) print_string("new patient", 15 , 41, 1);
+		if(prev_selected_button_menu == 1) print_string("new patient", 15 , 41, 0);
+
+		if(selected_button_menu == 2) print_string("vent. params", 15 , 58, 1);
+		if(prev_selected_button_menu == 2) print_string("vent. params", 15 , 58, 0);
+
+		if(selected_button_menu == 3) print_string("alert settings", 15 , 75, 1);
+		if(prev_selected_button_menu == 3) print_string("alert settings", 15 , 75, 0);
+
+		if(selected_button_menu == 4) print_string("adv settings", 15 , 92, 1);
+		if(prev_selected_button_menu == 4) 	print_string("adv settings", 15 , 92, 0);
+
+		if(selected_button_menu == 5) print_string("back", 120 , 114, 1);
+		if(prev_selected_button_menu == 5) print_string("back", 120 , 114, 0);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 0)
+		{
+			//allow us to start vent even if recalibration hasn't finished due to stop vent
+			if(updated_baselines && start_vent_disabled)
+			{
+				Pressure_baseline = prev_pressure_baseline;
+				Flow_baseline = prev_flow_baseline;
+				updated_baselines = 0;
+				sensors_calibrated = true;
+				start_vent_disabled = false;
+			}
+
+			if(!start_vent_disabled)
+			{
+				prev_selected_button_menu = -1;
+
+				is_ventilating = 1 - is_ventilating;
+
+				if(is_ventilating)
+				{
+					if(vent_mode == VENT_MODE_GUESS_WEIGHT)
+					{
+						start_backup_ventilation();
+					}
+					else
+					{
+						if(vent_mode == VENT_MODE_VC_SIMV_PS)
+						{
+							set_blower_duty((float)starting_blower_speed_simv[weight_table_index]);
+						}
+						else
+						{
+							set_blower_duty((float)starting_blower_speed_cpap[weight_table_index]);
+						}
+						positive_volume = 0.0f;
+						negative_volume = 0.0f;
+						last_positive_volume = 0.0f;
+						last_negative_volume = 0.0f;
+					}
+					screen = SCREEN_RUN;
+				}
+				else
+				{
+					reset_all_alert_counters();
+
+					set_blower_duty(0.0f);
+					clear_all_patient_alerts();
+					first_breaths = 3;
+
+					reset_SIMV_vent = true;
+					reset_CPAP_vent = true;
+
+					//update the wh file on the SD card.
+					itoa(900000 - working_hours_minute_counter, working_minutes_left, 10);
+					save_working_hours_amount(working_minutes_left);
+
+					prev_pressure_baseline = Pressure_baseline;
+					prev_flow_baseline = Flow_baseline;
+					updated_baselines = 1;
+
+					// Lets blower stop for 2 seconds and then recalibrate sensors.
+					recalibrate_sensors = TIMER1_TICKS_PER_SECOND * 2;
+				}
+
+				save_working_params();
+			}
+
+			//screen = SCREEN_GRAPH;
+
+			wait_for_ok = true;
+		}
+		else if(selected_button_menu == 1)
+		{
+			if(is_ventilating == false)
+			{
+				strcpy (warning_line1, "change to");
+				strcpy (warning_line2, "a new patient");
+				screen_after_warning_ok = SCREEN_NEW_PATIENT;
+				screen_after_warning_cancel = screen;
+				screen = SCREEN_WARNING;
+			}
+			else
+			{
+				strcpy (warning_line1, "must stop");
+				strcpy (warning_line2, "vent. first");
+				screen_after_warning_ok = screen;
+				screen_after_warning_cancel = SCREEN_NONE;
+				screen = SCREEN_WARNING;
+			}
+		}
+		else if(selected_button_menu == 2)
+		{
+			stack_index++;
+			screen = SCREEN_VENT_PARAMS1;
+			selected_button_menu = 0;
+		}
+		else if(selected_button_menu == 3)
+		{
+			stack_index++;
+
+			if(weight_chosen)
+			{
+
+				screen = SCREEN_ALERTS1;
+			}
+			else
+			{
+				menu_stack[stack_index] = SCREEN_ALERTS1;
+				stack_index++;
+
+				screen = SCREEN_WEIGHT;
+				weight_table_index = -1;
+			}
+		}
+		else if(selected_button_menu == 4)
+		{
+			stack_index++;
+			screen = SCREEN_ADVANCED;
+			selected_button_menu = 0;
+		}
+		else if(selected_button_menu == 5)
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+
+			while(screen == -1 && stack_index > 0)
+			{
+				stack_index--;
+				screen = menu_stack[stack_index];
+			}
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the ventilation parameters screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_vent_params1()
+{
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_VENT_PARAMS1)
+	{
+		//return_screen = prev_screen;
+		prev_screen = SCREEN_VENT_PARAMS1;
+		fillScreen(ST7735_BLACK);
+
+		//selected_button_menu = 0;
+		prev_selected_button_menu = -1;
+
+		print_string("params ( / )", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+
+		drawNumber_f12(1, ST7735_BLACK, ST7735_WHITE, 112, 1, 1);
+		drawNumber_f12(2, ST7735_BLACK, ST7735_WHITE, 125, 1, 1);
+
+		print_string("patient weight", 15 , 24, TEXT_HIGHLITE_NORMAL);
+		print_string("vent. mode", 15 , 41, TEXT_HIGHLITE_NORMAL);
+		print_string("o enrichment", 15 , 58, TEXT_HIGHLITE_NORMAL); drawString("2",  25, 61,  ST7735_WHITE, ST7735_BLACK, 1);
+		print_string("trigger sens.", 15 , 75, TEXT_HIGHLITE_NORMAL);
+		print_string("iv/niv mode", 15 , 92, TEXT_HIGHLITE_NORMAL);
+		print_string("more", 5 , 114, TEXT_HIGHLITE_NORMAL);
+		print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		LCD_draw_batt();
+
+		menu_stack[stack_index] = SCREEN_VENT_PARAMS1;
+
+		wait_for_ok = true;
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 7) selected_button_menu = 0;
+			rotate_cw = 0;
+		}
+
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 6;
+			rotate_ccw = 0;
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) print_string("patient weight", 15 , 24, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 0) print_string("patient weight", 15 , 24, TEXT_HIGHLITE_NORMAL);
+
+		if(selected_button_menu == 1) print_string("vent. mode", 15 , 41, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 1) print_string("vent. mode", 15 , 41, TEXT_HIGHLITE_NORMAL);
+
+		if(selected_button_menu == 2)
+		{
+			print_string("o enrichment", 15 , 58, TEXT_HIGHLITE_SELECTED);
+			drawString("2",  25, 61,  ST7735_BLUE, ST7735_CYAN, 1);
+		}
+		if(prev_selected_button_menu == 2)
+		{
+			print_string("o enrichment", 15 , 58, TEXT_HIGHLITE_NORMAL);
+			drawString("2",  25, 61,  ST7735_WHITE, ST7735_BLACK, 1);
+		}
+
+		if(selected_button_menu == 3) print_string("trigger sens.", 15 , 75, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 3) print_string("trigger sens.", 15 , 75, TEXT_HIGHLITE_NORMAL);
+
+		if(selected_button_menu == 4) print_string("iv/niv mode", 15 , 92, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 4) print_string("iv/niv mode", 15 , 92, TEXT_HIGHLITE_NORMAL);
+
+		if(selected_button_menu == 5) print_string("more", 5 , 114, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 5) print_string("more", 5 , 114, TEXT_HIGHLITE_NORMAL);
+
+		if(selected_button_menu == 6) print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 6) print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 0)
+		{
+			stack_index++;
+			screen = SCREEN_WEIGHT;
+			selected_button_menu = 0;
+		}
+		else if(selected_button_menu == 1)
+		{
+			stack_index++;
+			screen = SCREEN_MODE;
+			selected_button_menu = 0;
+		}
+		else if(selected_button_menu == 2)
+		{
+			stack_index++;
+			screen = SCREEN_SELECT_O2;
+			selected_button_menu = 0;
+		}
+		else if(selected_button_menu == 3)
+		{
+			stack_index++;
+			screen = SCREEN_TRIGGER_SENS;
+			selected_button_menu = 0;
+		}
+		else if(selected_button_menu == 4)
+		{
+			stack_index++;
+			screen = SCREEN_INVASIVE_MODE;
+			selected_button_menu = 0;
+		}
+		else if(selected_button_menu == 5)
+		{
+			stack_index++;
+			screen = SCREEN_VENT_PARAMS2;
+			selected_button_menu = 0;
+		}
+		else if(selected_button_menu == 6)
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 2;
+
+			while(screen == -1 && stack_index > 0)
+			{
+				stack_index--;
+				screen = menu_stack[stack_index];
+			}
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the ventilation parameters screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_vent_params2()
+{
+	static int editing_field = -1;
+	static int temp_pressure_support = 0;
+	static float temp_peep_value = 0.0f;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_VENT_PARAMS2)
+	{
+		//return_screen = prev_screen;
+		prev_screen = SCREEN_VENT_PARAMS2;
+		fillScreen(ST7735_BLACK);
+
+		//selected_button_menu = 0;
+		prev_selected_button_menu = -1;
+
+		temp_pressure_support = param_pressure_support;
+		temp_peep_value = param_selected_peep;
+		//sprintf(string_peep_val, "%f", temp_peep_value);
+
+		print_string("params ( / )", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+
+		drawNumber_f12(2, ST7735_BLACK, ST7735_WHITE, 112, 1, 1);
+		drawNumber_f12(2, ST7735_BLACK, ST7735_WHITE, 125, 1, 1);
+
+		print_string("press. support:", 5 , 24, TEXT_HIGHLITE_NORMAL);
+		drawNumber_f12(temp_pressure_support, ST7735_BLUE, ST7735_CYAN, 55 , 44, 2);
+		drawString("cmH2O",  88, 47,  ST7735_WHITE, ST7735_BLACK, 1);
+
+		print_string("peep value:", 5 , 66, TEXT_HIGHLITE_NORMAL);
+
+		if(temp_peep_value == 5)
+		{
+			print_string("5.0", 55 , 86, TEXT_HIGHLITE_NORMAL);
+		}
+		else if(temp_peep_value == 7.5)
+		{
+			print_string("7.5", 55 , 86, TEXT_HIGHLITE_NORMAL);
+		}
+		else if(temp_peep_value == 10)
+		{
+			print_string("10.0", 55 , 86, TEXT_HIGHLITE_NORMAL);
+		}
+
+		drawString("cmH2O",  97, 89,  ST7735_WHITE, ST7735_BLACK, 1);
+
+		print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		LCD_draw_batt();
+
+		menu_stack[stack_index] = SCREEN_VENT_PARAMS2;
+
+		wait_for_ok = true;
+	}
+
+	// see if the knob was rotated, while in edit mode
+	if((rotate_ccw || rotate_cw) && editing_field != -1)
+	{
+		int value_change = 0;
+		if(rotate_cw) value_change = 1;
+		if(rotate_ccw) value_change = -1;
+
+		rotate_cw = 0;
+		rotate_ccw = 0;
+
+		//changing the pressure support setting.
+		if(editing_field == 0)
+		{
+			temp_pressure_support = temp_pressure_support + value_change;
+
+			//make sure we stay within the 5-50 numbers range.
+			if(temp_pressure_support == 51)
+			{
+				temp_pressure_support = 50;
+			}
+			else if(temp_pressure_support == 4)
+			{
+				temp_pressure_support = 5;
+			}
+
+			drawNumber_f12(temp_pressure_support, ST7735_WHITE, ST7735_RED, 55 , 44, 2);
+		}
+		else if(editing_field == 1) //changing the peep value setting.
+		{
+			temp_peep_value = temp_peep_value + (2.5 * value_change);
+
+			//make sure we have only the following values: 5, 7.5 and 10
+			if(temp_peep_value == 12.5)
+			{
+				temp_peep_value = 10;
+			}
+			else if(temp_peep_value == 2.5)
+			{
+				temp_peep_value = 5;
+			}
+
+			if(temp_peep_value == 5)
+			{
+				fillRect(76, 84,  10, 14, ST7735_BLACK);
+				print_string("5.0", 55 , 86, TEXT_HIGHLITE_ALERT);
+			}
+			else if(temp_peep_value == 7.5)
+			{
+				fillRect(76, 84,  10, 14, ST7735_BLACK);
+				print_string("7.5", 55 , 86, TEXT_HIGHLITE_ALERT);
+			}
+			else if(temp_peep_value == 10)
+			{
+				print_string("10.0", 55 , 86, TEXT_HIGHLITE_ALERT);
+			}
+		}
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if((rotate_ccw || rotate_cw)  && editing_field == -1)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 3) selected_button_menu = 0;
+			rotate_cw = 0;
+		}
+
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 2;
+			rotate_ccw = 0;
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) drawNumber_f12(temp_pressure_support, ST7735_BLUE, ST7735_CYAN, 55 , 44, 2);
+		if(prev_selected_button_menu == 0) drawNumber_f12(temp_pressure_support, ST7735_WHITE, ST7735_BLACK, 55 , 44, 2);
+
+		if(selected_button_menu == 1)
+		{
+			if(temp_peep_value == 5)
+			{
+				print_string("5.0", 55 , 86, TEXT_HIGHLITE_SELECTED);
+			}
+			else if(temp_peep_value == 7.5)
+			{
+				print_string("7.5", 55 , 86, TEXT_HIGHLITE_SELECTED);
+			}
+			else if(temp_peep_value == 10)
+			{
+				print_string("10.0", 55 , 86, TEXT_HIGHLITE_SELECTED);
+			}
+		}
+
+		if(prev_selected_button_menu == 1)
+		{
+			if(temp_peep_value == 5)
+			{
+				print_string("5.0", 55 , 86, TEXT_HIGHLITE_NORMAL);
+			}
+			else if(temp_peep_value == 7.5)
+			{
+				print_string("7.5", 55 , 86, TEXT_HIGHLITE_NORMAL);
+			}
+			else if(temp_peep_value == 10)
+			{
+				print_string("10.0", 55 , 86, TEXT_HIGHLITE_NORMAL);
+			}
+		}
+
+		if(selected_button_menu == 2) print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 2) print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 2) // back button
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 0;
+
+			while(screen == -1 && stack_index > 0)
+			{
+				stack_index--;
+				screen = menu_stack[stack_index];
+			}
+		}
+		else
+		{
+			// if not editing a field, enter edit mode
+			if(editing_field == -1)
+			{
+				editing_field = selected_button_menu;
+
+				if(editing_field == 0) drawNumber_f12(temp_pressure_support, ST7735_WHITE, ST7735_RED, 55 , 44, 2);
+
+				if(editing_field == 1)
+				{
+					if(temp_peep_value == 5)
+					{
+						print_string("5.0", 55 , 86, TEXT_HIGHLITE_ALERT);
+					}
+					else if(temp_peep_value == 7.5)
+					{
+						print_string("7.5", 55 , 86, TEXT_HIGHLITE_ALERT);
+					}
+					else if(temp_peep_value == 10)
+					{
+						print_string("10.0", 55 , 86, TEXT_HIGHLITE_ALERT);
+					}
+				}
+			}
+			// if already editing, exit edit mode
+			else
+			{
+				if(editing_field == 0)
+				{
+					drawNumber_f12(temp_pressure_support, ST7735_BLUE, ST7735_CYAN, 55 , 44, 2);
+					param_pressure_support = temp_pressure_support;
+				}
+
+				if(editing_field == 1)
+				{
+					if(temp_peep_value == 5)
+					{
+						print_string("5.0", 55 , 86, TEXT_HIGHLITE_SELECTED);
+					}
+					else if(temp_peep_value == 7.5)
+					{
+						print_string("7.5", 55 , 86, TEXT_HIGHLITE_SELECTED);
+					}
+					else if(temp_peep_value == 10)
+					{
+						print_string("10.0", 55 , 86, TEXT_HIGHLITE_SELECTED);
+					}
+					param_selected_peep = temp_peep_value;
+					alert_param_insp_pressure_low = param_selected_peep + 2;
+				}
+				editing_field = -1;
+			}
+
+			wait_for_ok = true;
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the alert options(1/3) screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_alerts1()
+{
+	static int editing_field = -1;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_ALERTS1)
+	{
+		//return_screen = prev_screen;
+		prev_screen = SCREEN_ALERTS1;
+		fillScreen(ST7735_BLACK);
+
+		selected_button_menu = 0;
+		prev_selected_button_menu = -1;
+
+		print_string("alerts( / )", 50 , 1, 3);
+		drawNumber_f12(1, ST7735_BLACK, ST7735_WHITE, 100, 1, 1);
+		drawNumber_f12(2, ST7735_BLACK, ST7735_WHITE, 115, 1, 1);
+
+		print_string("  <rr<  ", 15 , 24, TEXT_HIGHLITE_NORMAL); drawString("BPM",  90, 27,  ST7735_WHITE, ST7735_BLACK, 1);
+		drawNumber_f12(alert_param_resp_rate_low, ST7735_WHITE, ST7735_BLACK, 7 , 24, 2);
+		drawNumber_f12(alert_param_resp_rate_high, ST7735_WHITE, ST7735_BLACK, 62 , 24, 2);
+
+		print_string("pressure", 15 , 41, TEXT_HIGHLITE_NORMAL);
+		print_string("  limit  ", 15 , 58, TEXT_HIGHLITE_NORMAL);
+		drawString("cmH2O",  110, 61,  ST7735_WHITE, ST7735_BLACK, 1);
+		print_string("  alert  ", 15 , 75, TEXT_HIGHLITE_NORMAL);
+		drawString("cmH2O",  110, 78,  ST7735_WHITE, ST7735_BLACK, 1);
+
+		drawNumber_f12(alert_param_pressure_limit, ST7735_WHITE, ST7735_BLACK, 80 , 58, 2);
+		drawNumber_f12(alert_param_pressure_alert, ST7735_WHITE, ST7735_BLACK, 80 , 75, 2);
+
+		print_string("inv i:e    ", 15 , 92, TEXT_HIGHLITE_NORMAL);
+
+		if(alert_param_inv_i_e == true)
+		{
+			print_string("on ", 70 , 92, TEXT_HIGHLITE_NORMAL);
+		}
+		else
+		{
+			print_string("off", 70 , 92, TEXT_HIGHLITE_NORMAL);
+		}
+
+		print_string("more", 15 , 114, TEXT_HIGHLITE_NORMAL);
+		print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		LCD_draw_batt();
+
+		menu_stack[stack_index] = SCREEN_ALERTS1;
+
+		wait_for_ok = true;
+	}
+
+	if(current_screen_warning_field != no_confirmation_choice) //if we've just returned to this screen, after a warning screen for editing either the pressure limit or the inv i:e settings.
+	{
+		switch(current_screen_warning_field)
+		{
+		case first_selected: // we've returned from a warning about changes in the pressure limit settings
+			selected_button_menu = 2;
+			break;
+
+		case second_selected: // we've returned from a warning about changes in the inv i:e settings
+			selected_button_menu = 4;
+			break;
+		}
+
+		//we want to go straight to the relevant place in the code and continue from where we left off
+		//so, we need to determine the correct values for the below parameters.
+		rotate_ccw = 0;
+		rotate_cw  = 0;
+
+		editing_field = -1;
+		prev_selected_button_menu = selected_button_menu;
+		wait_for_ok = false;
+		current_screen_warning_field = no_confirmation_choice; //reset the screen warning field.
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if((rotate_ccw || rotate_cw) && editing_field == -1)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 7) selected_button_menu = 0;
+			rotate_cw = 0;
+		}
+
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 6;
+			rotate_ccw = 0;
+		}
+	}
+
+	// see if the knob was rotated, while in edit mode
+	if((rotate_ccw || rotate_cw) && editing_field != -1)
+	{
+		int value_change = 0;
+		if(rotate_cw) value_change = 1;
+		if(rotate_ccw) value_change = -1;
+
+		rotate_cw = 0;
+		rotate_ccw = 0;
+
+		//changing low resperatory rate
+		if(editing_field == 0)
+		{
+			alert_param_resp_rate_low = alert_param_resp_rate_low + value_change;
+
+			//make sure we stay within the 1-55 numbers range and that we don't exceed the high resp rate number.
+			if(alert_param_resp_rate_low == 56 || alert_param_resp_rate_low > alert_param_resp_rate_high)
+			{
+				alert_param_resp_rate_low = 1;
+			}
+			else if(alert_param_resp_rate_low == 0)
+			{
+				if(alert_param_resp_rate_high > 55)
+				{
+					alert_param_resp_rate_low = 55;
+				}
+				else
+				{
+					alert_param_resp_rate_low = alert_param_resp_rate_high -1;
+				}
+			}
+
+			drawNumber_f12(alert_param_resp_rate_low, ST7735_WHITE, ST7735_RED, 7 , 24, 2);
+		}
+
+		//changing high resperatory rate
+		if(editing_field == 1)
+		{
+			alert_param_resp_rate_high = alert_param_resp_rate_high + value_change;
+
+			//make sure we stay within the 4-60 number range and that we don't reduce lower than low resp rate.
+			if(alert_param_resp_rate_high == 61)
+			{
+				if(alert_param_resp_rate_low >3)
+				{
+					alert_param_resp_rate_high = alert_param_resp_rate_low;
+				}
+				else
+				{
+					alert_param_resp_rate_high = 4;
+				}
+			}
+			else if(alert_param_resp_rate_high == 3 || alert_param_resp_rate_high < alert_param_resp_rate_low)
+			{
+				alert_param_resp_rate_high = 60;
+			}
+
+			drawNumber_f12(alert_param_resp_rate_high, ST7735_WHITE, ST7735_RED, 62 , 24, 2);
+		}
+
+		//changing pressure limit
+		if(editing_field == 2)
+		{
+			alert_param_pressure_limit = alert_param_pressure_limit + value_change;
+
+			//make sure we stay within the 10-60 numbers range and that we don't go below the pressure alert value.
+			if(alert_param_pressure_limit == 61)
+			{
+				if(alert_param_pressure_alert < 11)
+				{
+					alert_param_pressure_limit = 10;
+				}
+				else
+				{
+					alert_param_pressure_limit = alert_param_pressure_alert + 1;
+				}
+			}
+			else if(alert_param_pressure_limit == 9 || alert_param_pressure_limit < alert_param_pressure_alert)
+			{
+				alert_param_pressure_limit = 60;
+			}
+
+			drawNumber_f12(alert_param_pressure_limit, ST7735_WHITE, ST7735_RED, 80 , 58, 2);
+		}
+
+		//changing pressure alert
+		if(editing_field == 3)
+		{
+			alert_param_pressure_alert = alert_param_pressure_alert + value_change;
+
+			//make sure we stay within the 10-55 numbers range and that we don't go above the pressure limit value.
+			if(alert_param_pressure_alert == 56 || alert_param_pressure_alert > alert_param_pressure_limit)
+			{
+				alert_param_pressure_alert = 10;
+			}
+			else if(alert_param_pressure_alert == 9)
+			{
+				if(alert_param_pressure_limit < 55)
+				{
+					alert_param_pressure_alert = alert_param_pressure_limit -1;
+				}
+				else
+				{
+					alert_param_pressure_alert = 55;
+				}
+			}
+
+			drawNumber_f12(alert_param_pressure_alert, ST7735_WHITE, ST7735_RED, 80 , 75, 2);
+		}
+
+		//changing invert i:e alert param
+		if(editing_field == 4)
+		{
+			//make sure we only have on and off options.
+			if(alert_param_inv_i_e == true)
+			{
+				alert_param_inv_i_e = false;
+				print_string("off", 70 , 92, TEXT_HIGHLITE_ALERT);
+			}
+			else
+			{
+				alert_param_inv_i_e = true;
+				print_string("on ", 70 , 92, TEXT_HIGHLITE_ALERT);
+			}
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) drawNumber_f12(alert_param_resp_rate_low, ST7735_BLUE, ST7735_CYAN, 7 , 24, 2);
+		if(prev_selected_button_menu == 0) drawNumber_f12(alert_param_resp_rate_low, ST7735_WHITE, ST7735_BLACK, 7 , 24, 2);
+
+		if(selected_button_menu == 1) drawNumber_f12(alert_param_resp_rate_high, ST7735_BLUE, ST7735_CYAN, 62 , 24, 2);
+		if(prev_selected_button_menu == 1) drawNumber_f12(alert_param_resp_rate_high, ST7735_WHITE, ST7735_BLACK, 62 , 24, 2);
+
+		if(selected_button_menu == 2) drawNumber_f12(alert_param_pressure_limit, ST7735_BLUE, ST7735_CYAN, 80 , 58, 2);
+		if(prev_selected_button_menu == 2) drawNumber_f12(alert_param_pressure_limit, ST7735_WHITE, ST7735_BLACK, 80 , 58, 2);
+
+		if(selected_button_menu == 3) drawNumber_f12(alert_param_pressure_alert, ST7735_BLUE, ST7735_CYAN, 80 , 75, 2);
+		if(prev_selected_button_menu == 3) drawNumber_f12(alert_param_pressure_alert, ST7735_WHITE, ST7735_BLACK, 80 , 75, 2);
+
+		if(selected_button_menu == 4)
+		{
+			if(alert_param_inv_i_e == true)
+			{
+				print_string("on ", 70 , 92, TEXT_HIGHLITE_SELECTED);
+			}
+			else
+			{
+				print_string("off", 70 , 92, TEXT_HIGHLITE_SELECTED);
+			}
+		}
+		if(prev_selected_button_menu == 4)
+		{
+			if(alert_param_inv_i_e == true)
+			{
+				print_string("on ", 70 , 92, TEXT_HIGHLITE_NORMAL);
+			}
+			else
+			{
+				print_string("off", 70 , 92, TEXT_HIGHLITE_NORMAL);
+			}
+		}
+
+		if(selected_button_menu == 5) print_string("more", 15 , 114, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 5) 	print_string("more", 15 , 114, TEXT_HIGHLITE_NORMAL);
+
+		if(selected_button_menu == 6) print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 6) print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 5)
+		{
+			stack_index++;
+			screen = SCREEN_ALERTS2;
+		}
+		// Go back to main menu
+		else if(selected_button_menu == 6)
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 3;
+		}
+		else
+		{
+			// if not editing a field, enter edit mode
+			if(editing_field == -1)
+			{
+				editing_field = selected_button_menu;
+
+				if(editing_field == 0) drawNumber_f12(alert_param_resp_rate_low, ST7735_WHITE, ST7735_RED, 7 , 24, 2);
+				if(editing_field == 1) drawNumber_f12(alert_param_resp_rate_high, ST7735_WHITE, ST7735_RED, 62 , 24, 2);
+
+				if(editing_field == 2) //pressure limit
+				{
+					switch(warning_chosen_option)
+					{
+					case no_warning: //warning hasn't been given yet.
+						strcpy (warning_line1, "this action");
+						strcpy (warning_line2, "is dangerous");
+						screen_after_warning_ok = screen;
+						screen_after_warning_cancel = screen;
+						screen = SCREEN_WARNING;
+						current_screen_warning_field = first_selected;
+						break;
+
+					case ok_selected:
+						drawNumber_f12(alert_param_pressure_limit, ST7735_WHITE, ST7735_RED, 80 , 58, 2);
+						break;
+
+					default: //cancel_selected
+						drawNumber_f12(alert_param_pressure_limit, ST7735_BLUE, ST7735_CYAN, 80 , 58, 2);
+						editing_field = -1; //not in editing mode anymore.
+						break;
+					}
+
+					warning_chosen_option = no_warning; //reset the warning chosen option.
+				}
+
+				if(editing_field == 3) drawNumber_f12(alert_param_pressure_alert, ST7735_WHITE, ST7735_RED, 80 , 75, 2);
+
+				if(editing_field == 4) //inv i:e
+				{
+					switch(warning_chosen_option)
+					{
+					case no_warning: //warning hasn't been given yet.
+						strcpy (warning_line1, "this action");
+						strcpy (warning_line2, "is dangerous");
+						screen_after_warning_ok = screen;
+						screen_after_warning_cancel = screen;
+						screen = SCREEN_WARNING;
+						current_screen_warning_field = second_selected;
+						break;
+
+					case ok_selected:
+						if(alert_param_inv_i_e == false)
+						{
+							print_string("off", 70 , 92, TEXT_HIGHLITE_ALERT);
+						}
+						else
+						{
+							print_string("on ", 70 , 92, TEXT_HIGHLITE_ALERT);
+						}
+						break;
+
+					default: //cancel_selected
+						if(alert_param_inv_i_e == false)
+						{
+							print_string("off", 70 , 92, TEXT_HIGHLITE_SELECTED);
+						}
+						else
+						{
+							print_string("on ", 70 , 92, TEXT_HIGHLITE_SELECTED);
+						}
+
+						editing_field = -1; //not in editing mode anymore.
+						break;
+					}
+
+					warning_chosen_option = no_warning; //reset the warning chosen option.
+				}
+
+				wait_for_ok = true;
+			}
+			// if editing, exit edit mode
+			else
+			{
+				if(editing_field == 0) drawNumber_f12(alert_param_resp_rate_low, ST7735_BLUE, ST7735_CYAN, 7 , 24, 2);
+				if(editing_field == 1) drawNumber_f12(alert_param_resp_rate_high, ST7735_BLUE, ST7735_CYAN, 62 , 24, 2);
+				if(editing_field == 2) drawNumber_f12(alert_param_pressure_limit, ST7735_BLUE, ST7735_CYAN, 80 , 58, 2);
+				if(editing_field == 3) drawNumber_f12(alert_param_pressure_alert, ST7735_BLUE, ST7735_CYAN, 80 , 75, 2);
+				if(editing_field == 4)
+				{
+					if(alert_param_inv_i_e == false) print_string("off", 70 , 92, TEXT_HIGHLITE_SELECTED);
+					else print_string("on ", 70 , 92, TEXT_HIGHLITE_SELECTED);
+				}
+
+				editing_field = -1;
+				wait_for_ok = true;
+			}
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the alert options(2/3) screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_alerts2()
+{
+	static int editing_field = -1;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_ALERTS2)
+	{
+		menu_stack[stack_index] = SCREEN_ALERTS2;
+		prev_screen = SCREEN_ALERTS2;
+		fillScreen(ST7735_BLACK);
+
+		selected_button_menu = 0;
+		prev_selected_button_menu = -1;
+
+		print_string("alerts( / )", 50 , 1, 3);
+		drawNumber_f12(2, ST7735_BLACK, ST7735_WHITE, 100, 1, 1);
+		drawNumber_f12(2, ST7735_BLACK, ST7735_WHITE, 115, 1, 1);
+
+		print_string("low tv    %", 15 , 24, TEXT_HIGHLITE_NORMAL); drawString("e",  73, 27,  ST7735_WHITE, ST7735_BLACK, 1);
+
+		if(invasive_mode == NON_INVASIVE_MODE)
+		{
+			print_string("leak    %", 15 , 41, TEXT_HIGHLITE_DISABLED);
+			drawNumber_f12(alert_param_leak, ST7735_GRAY_DARK, ST7735_BLACK, 55 , 41, 3);
+		}
+		else
+		{
+			print_string("leak    %", 15 , 41, TEXT_HIGHLITE_NORMAL);
+			drawNumber_f12(alert_param_leak, ST7735_WHITE, ST7735_BLACK, 55 , 41, 3);
+		}
+		print_string("apnea t.   ", 15 , 58, TEXT_HIGHLITE_NORMAL); drawString("S",  120, 61,  ST7735_WHITE, ST7735_BLACK, 1);
+		print_string("   %<mv<   %", 15 , 75, TEXT_HIGHLITE_NORMAL); drawString("LPM",  130, 78,  ST7735_WHITE, ST7735_BLACK, 1);
+
+		if(alert_param_low_tidal_volume == -1) //we are at off option
+		{
+			print_string("off", 91 , 24, TEXT_HIGHLITE_NORMAL);
+		}
+		else
+		{
+			drawNumber_f12(alert_param_low_tidal_volume, ST7735_WHITE, ST7735_BLACK, 83 , 24, 2);
+		}
+
+
+		drawNumber_f12(alert_param_apnea, ST7735_WHITE, ST7735_BLACK, 82 , 58, 3);
+		drawNumber_f12(alert_param_minute_volume_low, ST7735_WHITE, ST7735_BLACK, 7 , 75, 3);
+		drawNumber_f12(alert_param_minute_volume_high, ST7735_WHITE, ST7735_BLACK, 82 , 75, 3);
+
+		print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		LCD_draw_batt();
+
+		wait_for_ok = true;
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if((rotate_ccw || rotate_cw) && editing_field == -1)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 6) selected_button_menu = 0;
+			if(selected_button_menu == 1 && invasive_mode == NON_INVASIVE_MODE) selected_button_menu = 2;
+			rotate_cw = 0;
+		}
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 5;
+			if(selected_button_menu == 1 && invasive_mode == NON_INVASIVE_MODE) selected_button_menu = 0;
+			rotate_ccw = 0;
+		}
+	}
+
+	// see if the knob was rotated, while in edit mode
+	if((rotate_ccw || rotate_cw) && editing_field != -1)
+	{
+		int value_change = 0;
+		if(rotate_cw) value_change = 1;
+		if(rotate_ccw) value_change = -1;
+
+		rotate_cw = 0;
+		rotate_ccw = 0;
+
+		//changing low tidal volume alert param
+		if(editing_field == 0)
+		{
+			//make sure the options are between 15-85 percent range or off
+			alert_param_low_tidal_volume = alert_param_low_tidal_volume + (value_change * 5);
+
+			//make sure we stay within the 0-100 percentage range.
+			if(alert_param_low_tidal_volume == 10 || alert_param_low_tidal_volume == 90)
+			{
+				alert_param_low_tidal_volume = -1;
+			}
+			else if(alert_param_low_tidal_volume == 4) //we are at off option and turned the knob clockwise
+			{
+				alert_param_low_tidal_volume = 15;
+			}
+			else if(alert_param_low_tidal_volume == -6) //we are at off option and turned the knob counter-clockwise
+			{
+				alert_param_low_tidal_volume = 85;
+			}
+
+			if(alert_param_low_tidal_volume == -1) //we are at off option
+			{
+				print_string("off", 91 , 24, TEXT_HIGHLITE_ALERT);
+			}
+			else
+			{
+				print_string("%", 109 , 24, TEXT_HIGHLITE_NORMAL);
+				drawNumber_f12(alert_param_low_tidal_volume, ST7735_WHITE, ST7735_RED, 83 , 24, 2);
+			}
+		}
+
+		//changing leak alert param
+		if(editing_field == 1)
+		{
+			alert_param_leak = alert_param_leak + (value_change * 5);
+
+			//make sure we stay within the 0-100 percentage range.
+			if(alert_param_leak == -5)
+			{
+				alert_param_leak = 100;
+			}
+			else if(alert_param_leak == 105)
+			{
+				alert_param_leak = 0;
+			}
+
+			drawNumber_f12(alert_param_leak, ST7735_WHITE, ST7735_RED, 55 , 41, 3);
+		}
+
+		//changing apnea alert param
+		if(editing_field == 2)
+		{
+			alert_param_apnea = alert_param_apnea + value_change;
+
+			//make sure we stay within the 5-120 seconds range.
+			if(alert_param_apnea == 4)
+			{
+				alert_param_apnea = 120;
+			}
+			else if(alert_param_apnea == 121)
+			{
+				alert_param_apnea = 5;
+			}
+
+			drawNumber_f12(alert_param_apnea, ST7735_WHITE, ST7735_RED, 82 , 58, 3);
+		}
+		//changing low minute volume percentage
+		if(editing_field == 3)
+		{
+			alert_param_minute_volume_low = alert_param_minute_volume_low + (value_change * 5);
+
+			//make sure we stay within the 50-95 percent range and that we don't exceed the high minute volume percentage.
+			if(alert_param_minute_volume_low == 100)
+			{
+				alert_param_minute_volume_low = 20;
+			}
+			else if(alert_param_minute_volume_low == 15)
+			{
+				alert_param_minute_volume_low = 95;
+			}
+
+			drawNumber_f12(alert_param_minute_volume_low, ST7735_WHITE, ST7735_RED, 7 , 75, 3);
+		}
+
+		//changing high minute volume
+		if(editing_field == 4)
+		{
+			alert_param_minute_volume_high = alert_param_minute_volume_high + (value_change * 5);
+
+			//make sure we stay within the 105 - 200 number range and that we don't reduce lower than low resp rate.
+			if(alert_param_minute_volume_high == 100)
+			{
+				alert_param_minute_volume_high = 200;
+			}
+			else if(alert_param_minute_volume_high == 205)
+			{
+				alert_param_minute_volume_high = 105;
+			}
+
+			drawNumber_f12(alert_param_minute_volume_high, ST7735_WHITE, ST7735_RED, 82 , 75, 3);
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0)
+		{
+			if(alert_param_low_tidal_volume == -1) //we are at off option
+			{
+				print_string("off", 91 , 24, TEXT_HIGHLITE_SELECTED);
+			}
+			else
+			{
+				print_string("%", 109 , 24, TEXT_HIGHLITE_NORMAL);
+				drawNumber_f12(alert_param_low_tidal_volume, ST7735_BLUE, ST7735_CYAN, 83 , 24, 2);
+
+			}
+		}
+		if(prev_selected_button_menu == 0)
+		{
+			if(alert_param_low_tidal_volume == -1) //we are at off option
+			{
+				print_string("off", 91 , 24, TEXT_HIGHLITE_NORMAL);
+			}
+			else
+			{
+				print_string("%", 109 , 24, TEXT_HIGHLITE_NORMAL);
+				drawNumber_f12(alert_param_low_tidal_volume, ST7735_WHITE, ST7735_BLACK, 83 , 24, 2);
+			}
+		}
+
+		if(selected_button_menu == 1) drawNumber_f12(alert_param_leak, ST7735_BLUE, ST7735_CYAN, 55 , 41, 3);
+		if(prev_selected_button_menu == 1) drawNumber_f12(alert_param_leak, ST7735_WHITE, ST7735_BLACK, 55 , 41, 3);
+
+		if(selected_button_menu == 2) drawNumber_f12(alert_param_apnea, ST7735_BLUE, ST7735_CYAN, 82 , 58, 3);
+		if(prev_selected_button_menu == 2) drawNumber_f12(alert_param_apnea, ST7735_WHITE, ST7735_BLACK, 82 , 58, 3);
+
+		if(selected_button_menu == 3) drawNumber_f12(alert_param_minute_volume_low, ST7735_BLUE, ST7735_CYAN, 7 , 75, 3);
+		if(prev_selected_button_menu == 3) drawNumber_f12(alert_param_minute_volume_low, ST7735_WHITE, ST7735_BLACK, 7 , 75, 3);
+
+		if(selected_button_menu == 4) drawNumber_f12(alert_param_minute_volume_high, ST7735_BLUE, ST7735_CYAN, 82 , 75, 3);
+		if(prev_selected_button_menu == 4) drawNumber_f12(alert_param_minute_volume_high, ST7735_WHITE, ST7735_BLACK, 82 , 75, 3);
+
+		if(selected_button_menu == 5) print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 5) print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 5)
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+		}
+		else
+		{
+			// if not editing a field, enter edit mode
+			if(editing_field == -1)
+			{
+				editing_field = selected_button_menu;
+
+				if(editing_field == 0)
+				{
+					if(alert_param_low_tidal_volume == -1) //we are at off option
+					{
+						print_string("off", 91 , 24, TEXT_HIGHLITE_ALERT);
+					}
+					else
+					{
+						print_string("low tv    %", 15 , 24, TEXT_HIGHLITE_NORMAL); drawString("e",  73, 27,  ST7735_WHITE, ST7735_BLACK, 1);
+						drawNumber_f12(alert_param_low_tidal_volume, ST7735_WHITE, ST7735_RED, 83 , 24, 2);
+					}
+				}
+
+				if(editing_field == 1) drawNumber_f12(alert_param_leak, ST7735_WHITE, ST7735_RED, 55 , 41, 3);
+				if(editing_field == 2) drawNumber_f12(alert_param_apnea, ST7735_WHITE, ST7735_RED, 82 , 58, 3);
+				if(editing_field == 3) drawNumber_f12(alert_param_minute_volume_low, ST7735_WHITE, ST7735_RED, 7 , 75, 3);
+				if(editing_field == 4) drawNumber_f12(alert_param_minute_volume_high, ST7735_WHITE, ST7735_RED, 82 , 75, 3);
+				wait_for_ok = true;
+			}
+			else // if editing, exit edit mode
+			{
+				if(editing_field == 0)
+				{
+					if(alert_param_low_tidal_volume == -1) //we are at off option
+					{
+						print_string("off", 91 , 24, TEXT_HIGHLITE_SELECTED);
+					}
+					else
+					{
+						print_string("low tv    %", 15 , 24, TEXT_HIGHLITE_NORMAL); drawString("e",  73, 27,  ST7735_WHITE, ST7735_BLACK, 1);
+						drawNumber_f12(alert_param_low_tidal_volume, ST7735_BLUE, ST7735_CYAN, 83 , 24, 2);
+					}
+				}
+
+				if(editing_field == 1) drawNumber_f12(alert_param_leak, ST7735_BLUE, ST7735_CYAN, 55 , 41, 3);
+				if(editing_field == 2) drawNumber_f12(alert_param_apnea, ST7735_BLUE, ST7735_CYAN, 82 , 58, 3);
+				if(editing_field == 3) drawNumber_f12(alert_param_minute_volume_low, ST7735_BLUE, ST7735_CYAN, 7 , 75, 3);
+				if(editing_field == 4) drawNumber_f12(alert_param_minute_volume_high, ST7735_BLUE, ST7735_CYAN, 82 , 75, 3);
+
+				editing_field = -1;
+				wait_for_ok = true;
+			}
+		}
+	}
+}
+
+// *******************************************************************************
+// This function sets up all the default parameters for the ventilation once
+// the user selects both weight and ventilation mode.
+// *******************************************************************************
+void set_default_vent_params()
+{
+	if(weight_table_index == -1 || vent_mode == VENT_MODE_NONE || invasive_mode == INVASIVE_MODE_NONE)
+	{
+		return;
+	}
+
+	// Setup all the default parameters for SIMV VC PS ventilation mode.
+	if(vent_mode == VENT_MODE_VC_SIMV_PS || vent_mode == VENT_MODE_CPAP_BACKUP || vent_mode == VENT_MODE_BACKUP)
+	{
+		/*
+		 * TODO
+		 *
+			int   table_ps[9]        =    {20,   20,   20,   20,   20,  20,   20,   20,   20  };
+			int   table_volume_limit[9] = {70,  140,  210,  280,  420, 560,  700, 840, 980};
+			int   starting_blower_speed_simv[9]	=	{65,    75,   75,   75,   80,  80,   80,   85,   85  };
+			int   starting_blower_speed_cpap[9]	=	{55,    65,   55,   65,   70,  70,   70,   75,   75  };
+		*/
+		curr_set_br = table_bpm[weight_table_index];
+		curr_set_vt = table_tidal_volume[weight_table_index];
+		curr_set_insp_time = table_insp_time[weight_table_index];
+		param_tidal_volume_limit = table_volume_limit[weight_table_index];
+		alert_param_pressure_limit = table_cpap_pressure_limit_all[weight_table_index];
+	}
+	// Setup all the default parameters for CPAP ventilation mode.
+	else if(vent_mode == VENT_MODE_CPAP)
+	{
+		param_pressure_support = table_cpap_pressure_support[weight_table_index];
+		alert_param_apnea = table_cpap_apnea[weight_table_index];
+		trigger_param_pressure = -1 * table_cpap_trigger_sens[weight_table_index];
+
+		if(invasive_mode == INVASIVE_MODE)
+		{
+			alert_param_pressure_alert = table_cpap_max_pressure_invasive[weight_table_index];
+			alert_param_pressure_limit = table_cpap_pressure_limit_invasive[weight_table_index];
+			param_tidal_volume_limit = table_cpap_tidal_volume_limit_invasive[weight_table_index];
+		}
+		else
+		{
+			alert_param_pressure_alert = table_cpap_max_pressure_noninvasive[weight_table_index];
+			alert_param_pressure_limit = table_cpap_pressure_limit_all[weight_table_index];
+			param_tidal_volume_limit = table_cpap_tidal_volume_limit_noninvasive[weight_table_index];
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the weight selection screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_weight()
+{
+
+	static int temp_weight_table_index = -1;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_WEIGHT)
+	{
+		prev_screen = SCREEN_WEIGHT;
+
+		fillScreen(ST7735_BLACK);
+		print_string("weight", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+
+		print_string("select", 10 , 40, TEXT_HIGHLITE_NORMAL);
+		print_string("patient", 10 , 55, TEXT_HIGHLITE_NORMAL);
+		print_string("weight", 10 , 70, TEXT_HIGHLITE_NORMAL);
+
+		isCurrentlyPainting = 1;
+
+		temp_weight_table_index = weight_table_index;
+
+		if(temp_weight_table_index == -1)
+		{
+			if(is_pediatric_patient)
+			{
+				temp_weight_table_index = 2;
+			}
+			else
+			{
+				temp_weight_table_index = 6;
+			}
+		}
+
+		if(is_pediatric_patient)
+		{
+			drawNumber_f12(table_weight[0], ST7735_WHITE, ST7735_BLACK, 80, 40,  1); drawString("kg", 106, 43,  ST7735_WHITE, ST7735_BLACK, 1);
+			drawNumber_f12(table_weight[1], ST7735_WHITE, ST7735_BLACK, 80, 60,  2); drawString("kg", 106, 63,  ST7735_WHITE, ST7735_BLACK, 1);
+			drawNumber_f12(table_weight[2], ST7735_WHITE, ST7735_BLACK, 80, 80,  2); drawString("kg", 106, 83,  ST7735_WHITE, ST7735_BLACK, 1);
+		}
+		else
+		{
+			drawNumber_f12(table_weight[2], ST7735_WHITE, ST7735_BLACK, 70, 30,  2); drawString("kg", 96, 33,  ST7735_WHITE, ST7735_BLACK, 1);
+			drawNumber_f12(table_weight[3], ST7735_WHITE, ST7735_BLACK, 70, 50,  2); drawString("kg", 96, 53,  ST7735_WHITE, ST7735_BLACK, 1);
+			drawNumber_f12(table_weight[4], ST7735_WHITE, ST7735_BLACK, 70, 70, 2); drawString("kg", 96, 73, ST7735_WHITE, ST7735_BLACK, 1);
+			drawNumber_f12(table_weight[5], ST7735_WHITE, ST7735_BLACK, 70, 90,  2); drawString("kg", 96, 93,  ST7735_WHITE, ST7735_BLACK, 1);
+
+			drawNumber_f12(table_weight[6], ST7735_WHITE, ST7735_BLACK, 120, 30,  2); drawString("kg", 146, 33,  ST7735_WHITE, ST7735_BLACK, 1);
+			drawNumber_f12(table_weight[7], ST7735_WHITE, ST7735_BLACK, 120, 50,  2); drawString("kg", 146, 53,  ST7735_WHITE, ST7735_BLACK, 1);
+			drawNumber_f12(table_weight[8], ST7735_WHITE, ST7735_BLACK, 120, 70,  2); drawString("+", 146, 73,  ST7735_WHITE, ST7735_BLACK, 1);
+		}
+
+		print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		LCD_draw_batt();
+		isCurrentlyPainting = 0;
+
+		wait_for_ok = true;
+		prev_weight_table_index = -1;
+	}
+	else
+	{
+		// see if the knob was rotated, if so, change selected button
+		if(rotate_ccw)
+		{
+			temp_weight_table_index--;
+			if(is_pediatric_patient)
+			{
+				if(temp_weight_table_index < TABLE_MIN) temp_weight_table_index = 3;
+			}
+			else
+			{
+				if(temp_weight_table_index < TABLE_MIN) temp_weight_table_index = 7;
+			}
+			rotate_ccw = 0;
+		}
+		if(rotate_cw)
+		{
+			temp_weight_table_index++;
+			if(is_pediatric_patient)
+			{
+				if(temp_weight_table_index > 3) temp_weight_table_index = 0;
+			}
+			else
+			{
+				if(temp_weight_table_index > 7) temp_weight_table_index = 0;
+			}
+			rotate_cw = 0;
+		}
+
+		// if the selected button has changed, reprint it
+		if(prev_weight_table_index != temp_weight_table_index)
+		{
+			if(is_pediatric_patient)
+			{
+				if(temp_weight_table_index == 0)	drawNumber_f12(table_weight[0], ST7735_DARK_BLUE, ST7735_CYAN, 80, 40,  1);
+				if(temp_weight_table_index == 1)	drawNumber_f12(table_weight[1], ST7735_DARK_BLUE, ST7735_CYAN, 80, 60,  2);
+				if(temp_weight_table_index == 2)	drawNumber_f12(table_weight[2], ST7735_DARK_BLUE, ST7735_CYAN, 80, 80,  2);
+				if(temp_weight_table_index == 3)    print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+
+				if(prev_weight_table_index == 0)	drawNumber_f12(table_weight[0], ST7735_WHITE, ST7735_BLACK, 80, 40,  1);
+				if(prev_weight_table_index == 1)	drawNumber_f12(table_weight[1], ST7735_WHITE, ST7735_BLACK, 80, 60,  2);
+				if(prev_weight_table_index == 2)	drawNumber_f12(table_weight[2], ST7735_WHITE, ST7735_BLACK, 80, 80,  2);
+				if(prev_weight_table_index == 3) 	print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+			}
+			else
+			{
+				if(temp_weight_table_index == 0)	drawNumber_f12(table_weight[2], ST7735_DARK_BLUE, ST7735_CYAN, 70, 30,  2);
+				if(temp_weight_table_index == 1)	drawNumber_f12(table_weight[3], ST7735_DARK_BLUE, ST7735_CYAN, 70, 50,  2);
+				if(temp_weight_table_index == 2)	drawNumber_f12(table_weight[4], ST7735_DARK_BLUE, ST7735_CYAN, 70, 70,  2);
+				if(temp_weight_table_index == 3)	drawNumber_f12(table_weight[5], ST7735_DARK_BLUE, ST7735_CYAN, 70, 90,  2);
+				if(temp_weight_table_index == 4)	drawNumber_f12(table_weight[6], ST7735_DARK_BLUE, ST7735_CYAN, 120, 30,  2);
+				if(temp_weight_table_index == 5)	drawNumber_f12(table_weight[7], ST7735_DARK_BLUE, ST7735_CYAN, 120, 50,  2);
+				if(temp_weight_table_index == 6)	drawNumber_f12(table_weight[8], ST7735_DARK_BLUE, ST7735_CYAN, 120, 70,  2);
+				if(temp_weight_table_index == 7)    print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+
+				if(prev_weight_table_index == 0)	drawNumber_f12(table_weight[2], ST7735_WHITE, ST7735_BLACK, 70, 30,  2);
+				if(prev_weight_table_index == 1)	drawNumber_f12(table_weight[3], ST7735_WHITE, ST7735_BLACK, 70, 50,  2);
+				if(prev_weight_table_index == 2)	drawNumber_f12(table_weight[4], ST7735_WHITE, ST7735_BLACK, 70, 70,  2);
+				if(prev_weight_table_index == 3)	drawNumber_f12(table_weight[5], ST7735_WHITE, ST7735_BLACK, 70, 90,  2);
+				if(prev_weight_table_index == 4)	drawNumber_f12(table_weight[6], ST7735_WHITE, ST7735_BLACK, 120, 30,  2);
+				if(prev_weight_table_index == 5)	drawNumber_f12(table_weight[7], ST7735_WHITE, ST7735_BLACK, 120, 50,  2);
+				if(prev_weight_table_index == 6)	drawNumber_f12(table_weight[8], ST7735_WHITE, ST7735_BLACK, 120, 70,  2);
+				if(prev_weight_table_index == 7) 	print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+			}
+
+			prev_weight_table_index = temp_weight_table_index;
+		}
+
+		// the knob was pushed
+		if(!wait_for_ok)
+		{
+			if((is_pediatric_patient && temp_weight_table_index == 3) || (!is_pediatric_patient && temp_weight_table_index == 7)) // back - do nothing
+			{
+			}
+			else // not back - set weight
+			{
+				if(is_pediatric_patient)
+				{
+					weight_table_index = temp_weight_table_index;
+				}
+				else
+				{
+					weight_table_index = temp_weight_table_index + 2;
+				}
+
+				set_default_vent_params();
+
+				//raise flag, so that we know that patient weight was chosen.
+				weight_chosen = true;
+				set_default_alert_values();
+			}
+
+			// If we are in top level of menu stack, continue to ventilation mode screen
+			if(stack_index == 0)
+			{
+				if((is_pediatric_patient && temp_weight_table_index == 3) || (!is_pediatric_patient && temp_weight_table_index == 7))
+				{
+					screen = SCREEN_DISCONNECT;
+				}
+				else
+				{
+					if(is_pediatric_patient)
+					{
+						weight_table_index = temp_weight_table_index;
+					}
+					else
+					{
+						weight_table_index = temp_weight_table_index + 2;
+					}
+					screen = SCREEN_MODE;
+					selected_button_menu = 0;
+				}
+			}
+			// Else go back up the menu stack
+			else
+			{
+				stack_index--;
+				screen = menu_stack[stack_index];
+
+				if(is_pediatric_patient)
+				{
+					weight_table_index = temp_weight_table_index;
+				}
+				else
+				{
+					weight_table_index = temp_weight_table_index + 2;
+				}
+
+				if(screen == SCREEN_MENU)
+				{
+					selected_button_menu = 3;
+				}
+				else if(screen == SCREEN_ALERTS1 && !weight_chosen) // if we are trying to reach the alert settings but haven't chosen a weight, we need to go back to the menu screen
+				{
+					stack_index--;
+					screen = menu_stack[stack_index];
+					selected_button_menu = 3;
+				}
+			}
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the ventilation mode selection screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_mode()
+{
+	static int temp_vent_mode = 0;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_MODE)
+	{
+		prev_screen = SCREEN_MODE;
+		menu_stack[stack_index] = SCREEN_MODE;
+
+		fillScreen(ST7735_BLACK);
+		print_string("vent. mode", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+		print_string("ventilation mode", 10 , 25, TEXT_HIGHLITE_NORMAL);
+		print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		LCD_draw_batt();
+		wait_for_ok = true;
+
+		prev_mode_index = -1;
+
+		if(vent_mode == VENT_MODE_NONE) temp_vent_mode = VENT_MODE_VC_SIMV_PS;
+	}
+	else
+	{
+		// see if the knob was rotated, if so, change selected button
+		if(rotate_ccw)
+		{
+			prev_mode_index = temp_vent_mode;
+			temp_vent_mode--;
+			if(temp_vent_mode == VENT_MODE_NONE) temp_vent_mode = 2;
+			rotate_ccw = 0;
+		}
+		if(rotate_cw)
+		{
+			prev_mode_index = temp_vent_mode;
+			temp_vent_mode++;
+			if(temp_vent_mode == 3) temp_vent_mode = VENT_MODE_VC_SIMV_PS;
+			rotate_cw = 0;
+		}
+
+		// if the selected button has changed, reprint it
+		if(prev_mode_index != temp_vent_mode)
+		{
+			if(temp_vent_mode == VENT_MODE_VC_SIMV_PS)
+			{
+				print_string("simv vc ps", 20, 50, TEXT_HIGHLITE_SELECTED);
+				print_string("cpap ps", 20, 70, TEXT_HIGHLITE_NORMAL);
+				print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+			}
+			else if(temp_vent_mode == VENT_MODE_CPAP)
+			{
+				print_string("simv vc ps", 20, 50, TEXT_HIGHLITE_NORMAL);
+				print_string("cpap ps", 20, 70, TEXT_HIGHLITE_SELECTED);
+				print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+			}
+			else if(temp_vent_mode == 2) //back
+			{
+				print_string("simv vc ps", 20, 50, TEXT_HIGHLITE_NORMAL);
+				print_string("cpap ps", 20, 70, TEXT_HIGHLITE_NORMAL);
+				print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+			}
+
+			prev_mode_index = temp_vent_mode;
+		}
+
+		// the knob was pushed
+		if(!wait_for_ok)
+		{
+			if(temp_vent_mode != 2) //not back
+			{
+				vent_mode = temp_vent_mode;
+
+				if(vent_mode == VENT_MODE_VC_SIMV_PS)
+				{
+					if(is_alert_active(ALERT_APNEA))
+					{
+						remove_active_alert(ALERT_APNEA);
+					}
+				}
+
+				set_default_vent_params();
+			}
+
+			// If we are in top level of menu stack, continue to invasive mode selection
+			if(stack_index == 0)
+			{
+				if(temp_vent_mode != 2) //not back
+				{
+					screen = SCREEN_INVASIVE_MODE;
+					selected_button_menu = 0;
+				}
+				else
+				{
+					screen = SCREEN_WEIGHT;
+				}
+			}
+			// Else go back up the menu stack
+			else
+			{
+				stack_index--;
+				screen = menu_stack[stack_index];
+				selected_button_menu = 1;
+			}
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the connect patient screen
+// *******************************************************************************
+void handle_screen_connect()
+{
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_CONNECT)
+	{
+		prev_screen = SCREEN_CONNECT;
+		menu_stack[stack_index] = SCREEN_CONNECT;
+
+		isCurrentlyPainting = 1;
+
+		fillScreen(ST7735_BLACK);
+		print_string("connect", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+		print_string("connect patient", 10 , 40, TEXT_HIGHLITE_NORMAL);
+		print_string("and press ok", 10 , 55, TEXT_HIGHLITE_NORMAL);
+
+		print_string("ok ", 20 , 110, TEXT_HIGHLITE_SELECTED);
+		print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		LCD_draw_batt();
+		isCurrentlyPainting = 0;
+
+		wait_for_ok = true;
+		prev_selected_button_menu = -1;
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(!selected_button_menu)
+		{
+			selected_button_menu = 1;
+		}
+		else
+		{
+			selected_button_menu = 0;
+		}
+
+		rotate_cw = 0;
+		rotate_ccw = 0;
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) print_string("ok ", 20 , 110, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 0) print_string("ok ", 20 , 110, TEXT_HIGHLITE_NORMAL);
+
+		if(selected_button_menu == 1) print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 1) print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		//screen = SCREEN_GRAPH;
+
+		if(!selected_button_menu)
+		{
+			screen = SCREEN_RUN;
+
+#ifndef TEST_FLOW
+			is_ventilating = true;
+			TIDAL_VOLUME = 0.0f;
+			positive_volume = 0.0f;
+			negative_volume = 0.0f;
+			last_positive_volume = 0.0f;
+			last_negative_volume = 0.0f;
+
+			save_working_params();
+
+			if(vent_mode == VENT_MODE_VC_SIMV_PS)
+			{
+				set_blower_duty((float)starting_blower_speed_simv[weight_table_index]);
+			}
+			else
+			{
+				set_blower_duty((float)starting_blower_speed_cpap[weight_table_index]);
+			}
+#endif // TEST_FLOW
+		}
+		else
+		{
+			screen = SCREEN_INVASIVE_MODE;
+			selected_button_menu = 0;
+		}
+	}
+}
+
+extern int PIP_to_print;
+extern int new_PIP;
+extern int update_pressure_bar;
+extern int new_TIDAL_VOLUME;
+extern int new_BR;
+extern int new_MV;
+extern int BR_to_print;
+extern int new_peep;
+extern double measured_peep;
+extern int measured_insp_time;
+extern int measured_exp_time;
+
+extern double Pressure_cmH2O;
+
+int prev_set_br;
+int prev_set_pip;
+int prev_set_vt;
+
+int is_backup_mode = false;
+int selected_button_run_screen = 0;
+int run_menu_active = false;
+int run_menu_active_timer = -1;
+
+extern int print_flow;
+extern int print_flow_ready;
+
+extern float suction_flow;
+
+// *******************************************************************************
+// This function handles the printing of the run screen
+// *******************************************************************************
+void handle_screen_run()
+{
+	static int editing_field = -1;
+	static bool changing_field_enabled = false;
+	static int trigger_icon_drawn = false;
+	static int temp_set_vt;
+
+	//if(suction_flow > 0.0f)
+	//{
+		//fillScreen(ST7735_RED);
+		//drawNumber_f24((int)suction_flow, ST7735_WHITE, ST7735_BLACK, 60, 40, 2);
+	//}
+
+	// Print the screen once we enter this screen
+	if(redraw_screen || prev_screen != SCREEN_RUN)
+	{
+		redraw_screen = false;
+
+		stack_index = 0;
+		menu_stack[stack_index] = SCREEN_RUN;
+
+		isCurrentlyPainting = 1;
+
+		if(alert_was_on_screen)
+		{
+			fillRect(13, 23,  124, 82, ST7735_BLACK);
+			alert_was_on_screen = false;
+		}
+		else
+		{
+			fillRect(0, 0,  160, 128, ST7735_BLACK);
+		}
+		prev_screen = SCREEN_RUN;
+
+		// Graph bar
+		drawRect(145, 13, 15, 102, ST7735_WHITE);
+		drawFastHLine(142, 13, 3, ST7735_WHITE);
+		drawFastHLine(142, 33, 3, ST7735_WHITE);
+		drawFastHLine(142, 53, 3, ST7735_WHITE);
+		drawFastHLine(142, 73, 3, ST7735_WHITE);
+		drawFastHLine(142, 93, 3, ST7735_WHITE);
+		drawFastHLine(142, 114, 3, ST7735_WHITE);
+
+		drawString("50",  130, 15,  ST7735_WHITE, ST7735_BLACK, 1);
+		drawString("40",  130, 30,  ST7735_WHITE, ST7735_BLACK, 1);
+		drawString("30",  130, 50,  ST7735_WHITE, ST7735_BLACK, 1);
+		drawString("20",  130, 70,  ST7735_WHITE, ST7735_BLACK, 1);
+		drawString("10",  130, 90,  ST7735_WHITE, ST7735_BLACK, 1);
+		drawString(" 0",  130, 105,  ST7735_WHITE, ST7735_BLACK, 1);
+
+		LCD_draw_batt();
+		LCD_draw_mode(vent_mode);
+
+		fillRect(50, 1, 10, 10, ST7735_BLACK);
+		trigger_icon_drawn = false;
+
+		isCurrentlyPainting = 0;
+
+		print_string("bpm", 10, 25, TEXT_HIGHLITE_NORMAL);
+		//editing_field = -1;
+		//changing_field_enabled = false;
+		if(vent_mode != VENT_MODE_CPAP)
+		{
+			if(changing_field_enabled && editing_field == 2)
+			{
+				drawNumber_f24(curr_set_br, ST7735_WHITE, ST7735_RED, 60, 40, 2);
+			}
+			else
+			{
+				drawNumber_f24(curr_set_br, ST7735_WHITE, ST7735_BLACK, 60, 40, 2);
+			}
+		}
+
+		print_string("m.v", 10, 50, TEXT_HIGHLITE_NORMAL);
+		print_string("vt", 10, 75, TEXT_HIGHLITE_NORMAL);
+		if(changing_field_enabled && editing_field == 3)
+		{
+			drawNumber_f24(temp_set_vt, ST7735_WHITE, ST7735_RED, 100, 90, 4);
+		}
+		else
+		{
+			drawNumber_f24(curr_set_vt, ST7735_WHITE, ST7735_BLACK, 100, 90, 4);
+		}
+		drawString("E",  30, 80,  ST7735_WHITE, ST7735_BLACK, 1);
+
+
+		print_string("peep", 0, 100, TEXT_HIGHLITE_NORMAL);
+		print_string("i:e", 70, 100, TEXT_HIGHLITE_NORMAL);
+
+		//if there aren't any active alerts background is normal
+		if(!num_of_active_alerts)
+		{
+			print_string("alerts", 1 , 117, TEXT_HIGHLITE_NORMAL);
+			LCD_draw_Alerts_Num(TEXT_HIGHLITE_NORMAL);
+			alert_change = 0;
+		}
+		else //alerts is highlited
+		{
+			print_string("alerts", 1 , 117, TEXT_HIGHLITE_ALERT);
+			LCD_draw_Alerts_Num(TEXT_HIGHLITE_ALERT);
+			alert_change = 0;
+		}
+
+		print_string("menu", 120 , 117, TEXT_HIGHLITE_NORMAL);
+
+		new_TIDAL_VOLUME = true;
+		new_BR = true;
+		new_PIP = true;
+		new_MV = true;
+		new_peep = true;
+
+		if(is_return_from_alerts)
+		{
+			run_menu_active = true;
+			is_return_from_alerts = false;
+			print_string("alerts", 1 , 117, TEXT_HIGHLITE_SELECTED);
+			LCD_draw_Alerts_Num(TEXT_HIGHLITE_SELECTED);
+			alert_change = 0;
+		}
+		else
+		{
+			run_menu_active = false;
+		}
+
+		if(editing_field > -1)
+		{
+			run_menu_active = true;
+		}
+		//editing_field = -1;
+		//changing_field_enabled = false;
+
+		if(start_counter == -1 && !self_test_warning)
+		{
+			start_counter = 0;
+		}
+
+		wait_for_ok = true;
+	}
+
+	// if we haven't gone through the "flow and pressure test" yet and haven't warned about it and we've already been 30 seconds in the run screen.
+	if(!self_test && !self_test_warning && start_counter >= 30)
+	{
+		strcpy (warning_line1, "pat. circuit");
+		strcpy (warning_line2, "test required");
+		screen_after_warning_ok = SCREEN_NEW_PATIENT;
+		screen_after_warning_cancel = SCREEN_RUN;
+		screen = SCREEN_WARNING;
+
+		self_test_warning = 1;
+		start_counter = -1;
+	}
+
+	// button pressed, enter menu mode
+	if(!run_menu_active && !wait_for_ok)
+	{
+		selected_button_run_screen = 0;
+		run_menu_active = 1;
+		run_menu_active_timer = 2500;
+		wait_for_ok = true;
+
+		print_string("alerts", 1 , 117, TEXT_HIGHLITE_SELECTED);
+		LCD_draw_Alerts_Num(TEXT_HIGHLITE_SELECTED);
+		alert_change = 0;
+
+		print_string("menu", 120 , 117, TEXT_HIGHLITE_NORMAL);
+
+		if(vent_mode != VENT_MODE_CPAP)
+		{
+			drawNumber_f24(curr_set_br, ST7735_WHITE, ST7735_BLACK, 60, 40, 2);
+		}
+	}
+
+	// timer passed, deactivate menu mode
+	if(run_menu_active_timer == 0 && !changing_field_enabled)
+	{
+		run_menu_active_timer = -1;
+		run_menu_active = false;
+		selected_button_run_screen = 0;
+
+		//if there aren't any active alerts background is normal
+		if(!num_of_active_alerts)
+		{
+			print_string("alerts", 1 , 117, TEXT_HIGHLITE_NORMAL);
+			LCD_draw_Alerts_Num(TEXT_HIGHLITE_NORMAL);
+			alert_change = 0;
+		}
+		else //alerts is highlited
+		{
+			print_string("alerts", 1 , 117, TEXT_HIGHLITE_ALERT);
+			LCD_draw_Alerts_Num(TEXT_HIGHLITE_ALERT);
+			alert_change = 0;
+		}
+
+		print_string("menu", 120 , 117, TEXT_HIGHLITE_NORMAL);
+
+		if(vent_mode != VENT_MODE_CPAP)
+		{
+			drawNumber_f24(curr_set_br, ST7735_WHITE, ST7735_BLACK, 60, 40, 2);
+		}
+		LCD_draw_TV();
+	}
+
+	// pressed button while menu is active
+	if(run_menu_active && !wait_for_ok)
+	{
+		if(selected_button_run_screen == 1)
+		{
+			prev_set_br = curr_set_br;
+			prev_set_vt = curr_set_vt;
+
+			selected_button_menu = 0;
+			screen = SCREEN_MENU;
+			stack_index++;
+
+			run_menu_active_timer = -1;
+			selected_button_run_screen = 0;
+			run_menu_active = 0;
+		}
+		else if(selected_button_run_screen == 2) //bpm selected
+		{
+			//if there aren't any active alerts background is normal
+			if(!num_of_active_alerts)
+			{
+				print_string("alerts", 1 , 117, TEXT_HIGHLITE_NORMAL);
+				LCD_draw_Alerts_Num(TEXT_HIGHLITE_NORMAL);
+				alert_change = 0;
+			}
+			else //alerts is highlited
+			{
+				print_string("alerts", 1 , 117, TEXT_HIGHLITE_ALERT);
+				LCD_draw_Alerts_Num(TEXT_HIGHLITE_ALERT);
+				alert_change = 0;
+			}
+
+			print_string("menu", 120 , 117, TEXT_HIGHLITE_NORMAL);
+
+			if(!changing_field_enabled) // we want to enable changing the field's value, without the timer stopping us
+			{
+				drawNumber_f24(curr_set_br, ST7735_WHITE, ST7735_RED, 60, 40, 2);
+				editing_field = 2;
+				changing_field_enabled = true;
+			}
+			else // we want to disable changing the field's value and restart the timer
+			{
+				drawNumber_f24(curr_set_br, ST7735_BLUE, ST7735_CYAN, 60, 40, 2);
+				editing_field = -1;
+				changing_field_enabled = false;
+				run_menu_active_timer = 2500;
+				curr_set_insp_time = (60.0f / (float)curr_set_br) / 3.0f;
+
+				char message[40];
+				usprintf(message,"Breath rate modified to %d.", curr_set_br);
+				log_message(message);
+			}
+		}
+		else if(selected_button_run_screen == 3) //vt selected
+		{
+			//if there aren't any active alerts background is normal
+			if(!num_of_active_alerts)
+			{
+				print_string("alerts", 1 , 117, TEXT_HIGHLITE_NORMAL);
+				LCD_draw_Alerts_Num(TEXT_HIGHLITE_NORMAL);
+				alert_change = 0;
+			}
+			else //alerts is highlited
+			{
+				print_string("alerts", 1 , 117, TEXT_HIGHLITE_ALERT);
+				LCD_draw_Alerts_Num(TEXT_HIGHLITE_ALERT);
+				alert_change = 0;
+			}
+
+			print_string("menu", 120 , 117, TEXT_HIGHLITE_NORMAL);
+
+			if(!changing_field_enabled) // we want to enable changing the field's value, without the timer stopping us
+			{
+				drawNumber_f24(curr_set_vt, ST7735_WHITE, ST7735_RED, 100, 90, 4);
+				editing_field = 3;
+				changing_field_enabled = true;
+				temp_set_vt = curr_set_vt;
+			}
+			else // we want to disable changing the field's value and restart the timer
+			{
+				int set_vt_diff = curr_set_vt - temp_set_vt;
+
+				if(set_vt_diff > 0)
+				{
+					blower_intensity = blower_intensity - ((set_vt_diff / 50) * 0.5f);
+				}
+
+
+				curr_set_vt = temp_set_vt;
+				drawNumber_f24(curr_set_vt, ST7735_BLUE, ST7735_CYAN, 100, 90, 4);
+				editing_field = -1;
+				changing_field_enabled = false;
+				run_menu_active_timer = 2500;
+
+				char message[40];
+				usprintf(message,"Tidal volume modified to %d.", curr_set_vt);
+				log_message(message);
+			}
+		}
+		else if(!selected_button_run_screen)
+		{
+			screen = SCREEN_ACTIVE_ALERTS;
+		}
+
+		wait_for_ok = true;
+	}
+
+	// see if the knob was rotated if so, change selected button
+	// in menu mode, and knob rotated, change selected button and restart timer
+	if(run_menu_active && (rotate_ccw || rotate_cw))
+	{
+		// restart inactivity timer for another 5 seconds
+		run_menu_active_timer = 2500;
+
+		if(editing_field == -1)
+		{
+			//if we're leaving the vt change option we need to redraw the vt value in accordance with what we currently have, and not the one we're currently setting.
+			if(selected_button_run_screen == 3)
+			{
+				LCD_draw_TV();
+			}
+
+			if(rotate_ccw && rotate_cw)
+			{
+				rotate_ccw = 0;
+				rotate_cw = 0;
+			}
+
+			// rotate the button selection
+			if(rotate_ccw)
+			{
+				selected_button_run_screen--;
+
+				if(vent_mode == VENT_MODE_CPAP)
+				{
+					if(selected_button_run_screen == -1) selected_button_run_screen = 1;
+				}
+				else
+				{
+					if(selected_button_run_screen == -1) selected_button_run_screen = 3;
+				}
+
+				rotate_ccw = 0;
+			}
+			if(rotate_cw)
+			{
+				selected_button_run_screen++;
+
+				if(vent_mode == VENT_MODE_CPAP)
+				{
+					if(selected_button_run_screen == 2) selected_button_run_screen = 0;
+				}
+				else
+				{
+					if(selected_button_run_screen == 4) selected_button_run_screen = 0;
+				}
+
+				rotate_cw = 0;
+			}
+
+			// if the selected button has changed, reprint it
+			if(selected_button_run_screen == 0)
+			{
+				print_string("alerts", 1 , 117, TEXT_HIGHLITE_SELECTED);
+				LCD_draw_Alerts_Num(TEXT_HIGHLITE_SELECTED);
+				alert_change = 0;
+
+				print_string("menu", 120 , 117, 0);
+
+				if(vent_mode != VENT_MODE_CPAP)
+				{
+					drawNumber_f24(curr_set_br, ST7735_WHITE, ST7735_BLACK, 60, 40, 2);
+				}
+			}
+			else if(selected_button_run_screen == 1) //menu
+			{
+				//if there aren't any active alerts background is normal
+				if(!num_of_active_alerts)
+				{
+					print_string("alerts", 1 , 117, TEXT_HIGHLITE_NORMAL);
+					LCD_draw_Alerts_Num(TEXT_HIGHLITE_NORMAL);
+					alert_change = 0;
+				}
+				else //alerts is highlited
+				{
+					print_string("alerts", 1 , 117, TEXT_HIGHLITE_ALERT);
+					LCD_draw_Alerts_Num(TEXT_HIGHLITE_ALERT);
+					alert_change = 0;
+				}
+
+				print_string("menu", 120 , 117, TEXT_HIGHLITE_SELECTED);
+				if(vent_mode != VENT_MODE_CPAP)
+				{
+					drawNumber_f24(curr_set_br, ST7735_WHITE, ST7735_BLACK, 60, 40, 2);
+				}
+			}
+			else if(selected_button_run_screen == 2) //bpm slected
+			{
+				//if there aren't any active alerts background is normal
+				if(!num_of_active_alerts)
+				{
+					print_string("alerts", 1 , 117, TEXT_HIGHLITE_NORMAL);
+					LCD_draw_Alerts_Num(TEXT_HIGHLITE_NORMAL);
+					alert_change = 0;
+				}
+				else //alerts is highlited
+				{
+					print_string("alerts", 1 , 117, TEXT_HIGHLITE_ALERT);
+					LCD_draw_Alerts_Num(TEXT_HIGHLITE_ALERT);
+					alert_change = 0;
+				}
+
+				print_string("menu", 120 , 117, TEXT_HIGHLITE_NORMAL);
+				drawNumber_f24(curr_set_br, ST7735_BLUE, ST7735_CYAN, 60, 40, 2);
+			}
+			else if(selected_button_run_screen == 3) //vt selected
+			{
+				//if there aren't any active alerts background is normal
+				if(!num_of_active_alerts)
+				{
+					print_string("alerts", 1 , 117, TEXT_HIGHLITE_NORMAL);
+					LCD_draw_Alerts_Num(TEXT_HIGHLITE_NORMAL);
+					alert_change = 0;
+				}
+				else //alerts is highlited
+				{
+					print_string("alerts", 1 , 117, TEXT_HIGHLITE_ALERT);
+					LCD_draw_Alerts_Num(TEXT_HIGHLITE_ALERT);
+					alert_change = 0;
+				}
+
+				print_string("menu", 120 , 117, TEXT_HIGHLITE_NORMAL);
+				drawNumber_f24(curr_set_br, ST7735_WHITE, ST7735_BLACK, 60, 40, 2);
+				drawNumber_f24(curr_set_vt, ST7735_BLUE, ST7735_CYAN, 100, 90, 4);
+			}
+		}
+		else // see if the knob was rotated, while in edit mode
+		{
+			int value_change = 0;
+			if(rotate_cw) value_change = 1;
+			if(rotate_ccw) value_change = -1;
+
+			rotate_cw = 0;
+			rotate_ccw = 0;
+
+			if(editing_field == 2) //BPM
+			{
+				curr_set_br = curr_set_br + value_change;
+
+				//make sure we stay within the 1-60 numbers range.
+				if(curr_set_br == 0)
+				{
+					curr_set_br = 1;
+				}
+				else if(curr_set_br == 61)
+				{
+					curr_set_br = 60;
+				}
+
+				drawNumber_f24(curr_set_br, ST7735_WHITE, ST7735_RED, 60, 40, 2);
+			}
+			if(editing_field == 3) //VT
+			{
+				//knob change jumps with intervals of 5 for a value lower than 100.
+				if(temp_set_vt < 100 || (temp_set_vt == 100 && value_change == -1))
+				{
+					temp_set_vt = temp_set_vt + (value_change * 5);
+				}
+				//knob change jumps with intervals of 10 for a value higher than 100 and smaller than 1000.
+				else if(temp_set_vt < 1000 || (temp_set_vt == 1000 && value_change == -1))
+				{
+					temp_set_vt = temp_set_vt + (value_change * 10);
+				}
+				//knob change jumps with intervals of 25 for a value higher than 1000.
+				else
+				{
+					temp_set_vt = temp_set_vt + (value_change * 25);
+				}
+
+				//make sure we stay within the 50 - 1800 numbers range.
+				if(temp_set_vt < 50)
+				{
+					temp_set_vt = 50;
+				}
+				else if(temp_set_vt > 1800)
+				{
+					temp_set_vt = 1800;
+				}
+
+				drawNumber_f24(temp_set_vt, ST7735_WHITE, ST7735_RED, 100, 90, 4);
+			}
+		}
+	}
+
+	if(trigger_detected_flag)
+	{
+		if(trigger_icon_drawn == false)
+		{
+			fillRect(50, 1, 10, 10, ST7735_RED);
+			fillRect(51, 2, 8, 2, ST7735_WHITE);
+			fillRect(54, 2, 2, 8, ST7735_WHITE);
+			trigger_icon_drawn = true;
+		}
+	}
+	else
+	{
+		if(trigger_icon_drawn == true)
+		{
+			fillRect(50, 1, 10, 10, ST7735_BLACK);
+			trigger_icon_drawn = false;
+		}
+	}
+
+	if(update_pressure_bar)
+	{
+		LCD_draw_bar(Pressure_cmH2O);
+		update_pressure_bar = 0;
+	}
+
+	//if(new_PIP)
+	//{
+		//LCD_draw_PIP();
+		//new_PIP = false;
+	//}
+
+	if(new_TIDAL_VOLUME || new_BR)
+	{
+		LCD_draw_MV(BR_to_print);
+	}
+
+	//redraw only if we have a change in the tidal volume and we're not changing the vt settings at the moment.
+	if(new_TIDAL_VOLUME && selected_button_run_screen != 3)
+	{
+		LCD_draw_TV();
+		new_TIDAL_VOLUME = false;
+	}
+
+	if(new_BR)
+	{
+		LCD_draw_BR(BR_to_print);
+		LCD_draw_IE();
+		new_BR = false;
+	}
+
+	if(new_peep)
+	{
+		LCD_draw_PEEP();
+		new_peep = false;
+	}
+
+	if(alert_change)
+	{
+		//if there aren't any active alerts background is normal
+		if(!num_of_active_alerts)
+		{
+			print_string("alerts", 1 , 117, TEXT_HIGHLITE_NORMAL);
+			LCD_draw_Alerts_Num(TEXT_HIGHLITE_NORMAL);
+			alert_change = 0;
+		}
+		else //alerts is highlited
+		{
+			print_string("alerts", 1 , 117, TEXT_HIGHLITE_ALERT);
+			LCD_draw_Alerts_Num(TEXT_HIGHLITE_ALERT);
+			alert_change = 0;
+		}
+	}
+}
+
+extern int graph_line_color;
+extern int graph_line_draw;
+extern int graph_line_value;
+extern int inhale_trigger;
+extern int Flow;
+
+
+// *******************************************************************************
+// This function handles the printing of the graph screen
+// *******************************************************************************
+void handle_screen_graph()
+{
+	static int curr_x = 0;
+
+	if(prev_screen != SCREEN_GRAPH)
+	{
+		prev_screen = SCREEN_GRAPH;
+		fillScreen(ST7735_RED);
+	}
+
+	if(new_TIDAL_VOLUME)
+	{
+		LCD_draw_TV();
+		new_TIDAL_VOLUME = false;
+	}
+
+	if(graph_line_draw)
+	{
+		drawNumber_f12(graph_line_value, ST7735_CYAN, ST7735_RED, 50, 110, 4);
+
+		if(graph_line_value >= 0)
+		{
+			if(graph_line_value > 64) graph_line_value = 64;
+			drawFastVLine(curr_x, 64 - graph_line_value, graph_line_value, graph_line_color);
+		}
+		else
+		{
+			if(graph_line_value < -64) graph_line_value = -64;
+			drawFastVLine(curr_x, 64, -graph_line_value, graph_line_color);
+		}
+
+		if(inhale_trigger)
+		{
+			drawFastVLine((curr_x) % 160, 0 , 128, ST7735_YELLOW);
+			inhale_trigger = false;
+		}
+
+		drawFastVLine((curr_x + 1) % 160, 0 , 128, ST7735_RED);
+		drawFastVLine((curr_x + 2) % 160, 0 , 128, ST7735_RED);
+		curr_x = (curr_x + 1) % 160;
+		graph_line_draw = false;
+
+		//drawNumber_f12(graph_line_value, ST7735_CYAN, ST7735_RED, 50, 50, 4);
+		//drawNumber_f12((int)Flow, ST7735_BLACK, ST7735_CYAN, 10, 10, 5);
+	}
+}
+
+// *******************************************************************************
+// This function restets the brightness and volume back to the default settings
+// *******************************************************************************
+void set_default_brightness_and_volume()
+{
+	param_brightness = 4;
+	param_alert_volume = 4;
+
+	LcdSetBrightness(param_brightness);
+	set_volume(param_alert_volume);
+}
+
+// *******************************************************************************
+// This function handles the option to reset to default settings
+// *******************************************************************************
+void handle_set_default()
+{
+	warning_chosen_option = no_warning;
+	set_default_vent_params();
+	set_default_alert_values();
+	set_default_brightness_and_volume();
+	log_message("settings reset to default");
+	screen = SCREEN_ADVANCED;
+}
+
+// *******************************************************************************
+// This function handles the option to quick start ventilation in backup mode.
+// *******************************************************************************
+void handle_quick_start()
+{
+	start_backup_ventilation();
+	screen = SCREEN_RUN;
+}
+
+// *******************************************************************************
+// This function handles the printing of the advanced options screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_advanced()
+{
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_ADVANCED)
+	{
+		menu_stack[stack_index] = SCREEN_ADVANCED;
+		prev_screen = SCREEN_ADVANCED;
+		fillScreen(ST7735_BLACK);
+
+		//selected_button_menu = 0;
+		prev_selected_button_menu = -1;
+
+		LCD_draw_batt();
+
+		print_string("adv settings", 50 , 1, 3);
+		print_string("default settings", 15 , 24, 0);
+		print_string("brightness", 15 , 41, 0);
+		print_string("alert vol.", 15 , 58, 0);
+		print_string("tech mode", 15 , 75, 0);
+		print_string("back", 120 , 114, 0);
+
+		wait_for_ok = true;
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 5) selected_button_menu = 0;
+			rotate_cw = 0;
+		}
+
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 4;
+			rotate_ccw = 0;
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) print_string("default settings", 15 , 24, 1);
+		if(prev_selected_button_menu == 0) print_string("default settings", 15 , 24, 0);
+
+		if(selected_button_menu == 1) print_string("brightness", 15 , 41, 1);
+		if(prev_selected_button_menu == 1) print_string("brightness", 15 , 41, 0);
+
+		if(selected_button_menu == 2) print_string("alert vol.", 15 , 58, 1);
+		if(prev_selected_button_menu == 2) print_string("alert vol.", 15 , 58, 0);
+
+		if(selected_button_menu == 3) print_string("tech mode",  15 , 75, 1);
+		if(prev_selected_button_menu == 3) print_string("tech mode",  15 , 75, 0);
+
+		if(selected_button_menu == 4) print_string("back", 120 , 114, 1);
+		if(prev_selected_button_menu == 4) print_string("back", 120 , 114, 0);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed, change screen by selection
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 0)
+		{
+			strcpy (warning_line1, "set default");
+			strcpy (warning_line2, "settings");
+			screen_after_warning_ok = SCREEN_SET_DEFAULT;
+			screen_after_warning_cancel = screen;
+			screen = SCREEN_WARNING;
+		}
+
+		if(selected_button_menu == 1)
+		{
+			stack_index++;
+			strcpy (warning_line1, "this action");
+			strcpy (warning_line2, "is dangerous");
+			screen_after_warning_ok = SCREEN_BRIGHTNESS;
+			screen_after_warning_cancel = screen;
+			screen = SCREEN_WARNING;
+		}
+		if(selected_button_menu == 2)
+		{
+			stack_index++;
+			strcpy (warning_line1, "this action");
+			strcpy (warning_line2, "is dangerous");
+			screen_after_warning_ok = SCREEN_ALERT_VOLUME;
+			screen_after_warning_cancel = screen;
+			screen = SCREEN_WARNING;
+		}
+		if(selected_button_menu == 3)
+		{
+			stack_index++;
+			//screen = SCREEN_ENTER_PASSWORD;
+			//next_screen_after_password = SCREEN_TECH_MODE1;
+
+			if(is_ventilating == false)
+			{
+				screen = SCREEN_TECH_MODE1;
+				selected_button_menu = 0;
+			}
+			else
+			{
+				strcpy (warning_line1, "must stop");
+				strcpy (warning_line2, "vent. first");
+				screen_after_warning_ok = screen;
+				screen_after_warning_cancel = SCREEN_NONE;
+				screen = SCREEN_WARNING;
+			}
+		}
+		if(selected_button_menu == 4)
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 4;
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the trigger sensitivity screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_trigger_sens()
+{
+	static int editing_field = -1;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_TRIGGER_SENS)
+	{
+		menu_stack[stack_index] = SCREEN_TRIGGER_SENS;
+		prev_screen = SCREEN_TRIGGER_SENS;
+		fillScreen(ST7735_BLACK);
+
+		selected_button_menu = 0;
+		prev_selected_button_menu = -1;
+
+		LCD_draw_batt();
+
+		print_string("trigger sens.", 50 , 1, 3);
+		print_string("flow:", 15 , 24, TEXT_HIGHLITE_NORMAL);  drawString("LPM",  120, 27,  ST7735_WHITE, ST7735_BLACK, 1);
+		print_string("press.:", 15 , 41, TEXT_HIGHLITE_NORMAL); drawString("cmH2O",  120, 44,  ST7735_WHITE, ST7735_BLACK, 1);
+		print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		drawNumber_f12(trigger_param_flow, ST7735_WHITE, ST7735_BLACK, 80, 24, 2);
+		if(trigger_param_pressure != -99) //trigger param flow value is not off.
+		{
+			drawNumber_f12_signed(trigger_param_pressure, ST7735_WHITE, ST7735_BLACK, 80, 41, 2, true);
+		}
+		else //trigger param flow value is off.
+		{
+			print_string("off", 89 , 42, TEXT_HIGHLITE_NORMAL);
+		}
+		wait_for_ok = true;
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if((rotate_ccw || rotate_cw) && editing_field == -1)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 3) selected_button_menu = 0;
+			rotate_cw = 0;
+		}
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 2;
+			rotate_ccw = 0;
+		}
+	}
+
+	// see if the knob was rotated, while in edit mode
+	if((rotate_ccw || rotate_cw) && editing_field != -1)
+	{
+		int value_change = 0;
+		if(rotate_cw) value_change = 1;
+		if(rotate_ccw) value_change = -1;
+
+		rotate_cw = 0;
+		rotate_ccw = 0;
+
+		bool changing_from_off_position = false;
+
+		//changing trigger param flow.
+		if(editing_field == 0)
+		{
+			//make sure we stay within the 3 - 10 numbers range, or off.
+			trigger_param_flow = trigger_param_flow + value_change;
+
+			if(trigger_param_flow == 11 || trigger_param_flow == 2) //out of range, so go to off.
+			{
+				trigger_param_flow = -1; //value just to indicate that we are at off
+			}
+			else if(trigger_param_flow == 0) //we are at off option and turned the knob clockwise
+			{
+				changing_from_off_position = true;
+				trigger_param_flow = 3;
+			}
+			else if(trigger_param_flow == -2) //we are at off option and turned the knob counter-clockwise
+			{
+				changing_from_off_position = true;
+				trigger_param_flow = 10;
+			}
+
+			if(trigger_param_flow == -1) //we are at off option
+			{
+				print_string("off", 89 , 25, TEXT_HIGHLITE_ALERT);
+			}
+			else
+			{
+				if(changing_from_off_position)
+				{
+					fillRect(87, 24, 30, 12, ST7735_BLACK);
+					changing_from_off_position = false;
+				}
+
+				drawNumber_f12(trigger_param_flow, ST7735_WHITE, ST7735_RED, 80 , 24, 2);
+			}
+		}
+		else if(editing_field == 1) ////changing trigger param pressure.
+		{
+			//make sure we stay within the (-2) - (-10) numbers range, or off.
+			trigger_param_pressure = trigger_param_pressure + value_change;
+
+			if(trigger_param_pressure == -1 || trigger_param_pressure == -11) //out of range, so go to off.
+			{
+				trigger_param_pressure = -99; //value just to indicate that we are at off
+			}
+			else if(trigger_param_pressure == -98) //we are at off option and turned the knob clockwise
+			{
+				changing_from_off_position = true;
+				trigger_param_pressure = -10;
+			}
+			else if(trigger_param_pressure == -100) //we are at off option and turned the knob counter-clockwise
+			{
+				changing_from_off_position = true;
+				trigger_param_pressure = -2;
+			}
+
+			if(trigger_param_pressure == -99) //we are at off option
+			{
+				fillRect(78, 41, 40, 12, ST7735_BLACK);
+				print_string("off", 89 , 42, TEXT_HIGHLITE_ALERT);
+			}
+			else
+			{
+				if(changing_from_off_position)
+				{
+					fillRect(80, 41, 38, 12, ST7735_BLACK);
+					changing_from_off_position = false;
+				}
+
+				drawNumber_f12_signed(trigger_param_pressure, ST7735_WHITE, ST7735_RED, 80 , 41, 2,1);
+			}
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0)
+		{
+			if(trigger_param_flow != -1) //trigger param flow value is not off.
+			{
+				drawNumber_f12(trigger_param_flow, ST7735_BLUE, ST7735_CYAN, 80, 24, 2);
+			}
+			else //trigger param flow value is off.
+			{
+				print_string("off", 89 , 25, TEXT_HIGHLITE_SELECTED);
+			}
+		}
+
+		if(prev_selected_button_menu == 0)
+		{
+			if(trigger_param_flow != -1) //trigger param flow value is not off.
+			{
+				drawNumber_f12(trigger_param_flow, ST7735_WHITE, ST7735_BLACK, 80, 24, 2);
+			}
+			else //trigger param flow value is off.
+			{
+				print_string("off", 89 , 25, TEXT_HIGHLITE_NORMAL);
+			}
+		}
+
+		if(selected_button_menu == 1)
+		{
+			if(trigger_param_pressure != -99) //trigger param flow value is not off.
+			{
+				drawNumber_f12_signed(trigger_param_pressure, ST7735_BLUE, ST7735_CYAN, 80, 41, 2, true);
+			}
+			else //trigger param flow value is off.
+			{
+				print_string("off", 89 , 42, TEXT_HIGHLITE_SELECTED);
+			}
+		}
+
+		if(prev_selected_button_menu == 1)
+		{
+			if(trigger_param_pressure != -99) //trigger param flow value is not off.
+			{
+				drawNumber_f12_signed(trigger_param_pressure, ST7735_WHITE, ST7735_BLACK, 80, 41, 2, true);
+			}
+			else //trigger param flow value is off.
+			{
+				print_string("off", 89 , 42, TEXT_HIGHLITE_NORMAL);
+			}
+		}
+
+		if(selected_button_menu == 2) print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 2) print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 2)
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 3;
+		}
+		else
+		{
+			// if not editing a field, enter edit mode
+			if(editing_field == -1)
+			{
+				editing_field = selected_button_menu;
+
+				if(editing_field == 0)
+				{
+					if(trigger_param_flow != -1) //trigger param flow value is not off.
+					{
+						drawNumber_f12(trigger_param_flow, ST7735_WHITE, ST7735_RED, 80 , 24, 2);
+					}
+					else //trigger param flow value is off.
+					{
+						print_string("off", 89 , 25, TEXT_HIGHLITE_ALERT);
+					}
+				}
+				else if(editing_field == 1)
+				{
+					if(trigger_param_pressure != -99) //trigger param pressure value is not off.
+					{
+						drawNumber_f12_signed(trigger_param_pressure, ST7735_WHITE, ST7735_RED, 80 , 41, 2, true);
+					}
+					else //trigger param pressure value is off.
+					{
+						print_string("off", 89 , 42, TEXT_HIGHLITE_ALERT);
+					}
+				}
+
+				wait_for_ok = true;
+			}
+			else // if editing, exit edit mode
+			{
+				if(editing_field == 0)
+				{
+					if(trigger_param_flow != -1) //trigger param flow value is not off.
+					{
+						drawNumber_f12(trigger_param_flow, ST7735_BLUE, ST7735_CYAN, 80 , 24, 2);
+					}
+					else //trigger param flow value is off.
+					{
+						print_string("off", 89 , 25, TEXT_HIGHLITE_SELECTED);
+					}
+				}
+				else if(editing_field == 1)
+				{
+					if(trigger_param_pressure != -99) //trigger param pressure value is not off.
+					{
+						drawNumber_f12_signed(trigger_param_pressure, ST7735_BLUE, ST7735_CYAN, 80 , 41, 2, true);
+					}
+					else //trigger param pressure value is off.
+					{
+						print_string("off", 89 , 42, TEXT_HIGHLITE_SELECTED);
+					}
+				}
+
+				editing_field = -1;
+				wait_for_ok = true;
+			}
+		}
+	}
+}
+
+// *****************************************************************************************************************
+// This function gets the values of the check points for the flow and pressure test of the patient circuit.
+// *****************************************************************************************************************
+void get_check_points_values()
+{
+	if((seconds_counter >= (int) (7 * TIMER1_TICKS_PER_SECOND)) && (test_state == 0))
+	{
+		self_test_flow = average_adc_data_for_flow - Flow_baseline + ZERO_PRESSURE;
+		temp_check_of_flow1 = ((float)get_flow(self_test_flow) / 100);
+		temp_check_of_rpm1 = g_blower_cycles_per_minute;
+		temp_check_pressure1 = Pressure_cmH2O;
+		test_state = 1;
+	}
+	else if((seconds_counter >= (int) (8 * TIMER1_TICKS_PER_SECOND)) && (test_state == 1))
+	{
+		self_test_flow = average_adc_data_for_flow - Flow_baseline + ZERO_PRESSURE;
+		temp_check_of_flow2 = ((float)get_flow(self_test_flow) / 100);
+		temp_check_of_rpm2 = g_blower_cycles_per_minute;
+		temp_check_pressure2 = Pressure_cmH2O;
+		test_state = 2;
+	}
+	else if((seconds_counter >= (int) (9 * TIMER1_TICKS_PER_SECOND)) && (test_state == 2))
+	{
+		self_test_flow = average_adc_data_for_flow - Flow_baseline + ZERO_PRESSURE;
+		temp_check_of_flow3 = ((float)get_flow(self_test_flow) / 100);
+		temp_check_of_rpm3 = g_blower_cycles_per_minute;
+		temp_check_pressure3 = Pressure_cmH2O;
+		test_state = 3;
+	}
+}
+
+void run_flow_and_pressure_test()
+{
+	static int prev_time_sec = -1;
+
+	while(!sensors_calibrated)
+	{
+	}
+
+	if(seconds_counter < (int) (10 * TIMER1_TICKS_PER_SECOND))
+	{
+		if(!progress_bar)
+		{
+			fillRect(22 + progress_bar, 57, 8, 16, ST7735_CYAN);
+			progress_bar = 10;
+		}
+
+		if(prev_time_sec != g_time_sec && progress_bar != 110)
+		{
+			fillRect(22 + progress_bar, 57, 8, 16, ST7735_CYAN);
+			progress_bar += 10;
+			prev_time_sec = g_time_sec;
+		}
+
+		get_check_points_values();
+	}
+	else
+	{
+		flow_test_on = 0;
+		set_blower_duty(0);
+		turn_insp_sol_off();
+		prev_time_sec = g_time_sec;
+
+		average_flow = (float)((temp_check_of_flow1 + temp_check_of_flow2 + temp_check_of_flow3) / 3);
+		average_g_blower_cycle_per_minutes = (temp_check_of_rpm1 + temp_check_of_rpm2 + temp_check_of_rpm3) / 3;
+		average_pressure = (float)((temp_check_pressure1 + temp_check_pressure2 + temp_check_pressure3) / 3);
+
+		//calculate the percentage difference of the current average blower cycles per minute as opposed to the expected blower cycle per minute.
+		rpm_percentage_difference = (float) average_g_blower_cycle_per_minutes / (float) expected_blower_cycle_per_minute;
+
+		//change the expected flow according to the same percentage difference that we found in the rpm of the blower cycles.
+		expected_flow = expected_flow * rpm_percentage_difference;
+		expected_flow_ped = expected_flow_ped * rpm_percentage_difference;
+
+		//change the expected pressure according to the same percentage difference that we found in the rpm of the blower cycles.
+		expected_pressure = expected_pressure * rpm_percentage_difference;
+
+		//remove the progress bar.
+		fillRect(20, 55, 112, 20, ST7735_BLACK);
+
+		//remove the "cancel" button.
+		fillRect(50, 110, 100, 25, ST7735_BLACK);
+	}
+}
+
+// ************************************************************************************
+// This function handles the test of the flow and the pressure for the patient circuit
+// ************************************************************************************
+void handle_screen_test_flow_and_pressure()
+{
+	static int testing_due_to_start = 0;
+	static int flow_passed = 0;
+	static int pressure_passed = 0;
+
+	if(reset_vent)
+	{
+		testing_due_to_start = 0;
+		flow_passed = 0;
+		pressure_passed = 0;
+		reset_vent = false;
+	}
+
+	//a check to see if we arrived in this screen through the choice of the user or due to starting the ventway.
+	if(prev_screen == SCREEN_DISCONNECT)
+	{
+		testing_due_to_start = 1;
+	}
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_FLOW_TEST)
+	{
+		menu_stack[stack_index] = SCREEN_FLOW_TEST;
+		prev_screen = SCREEN_FLOW_TEST;
+		fillScreen(ST7735_BLACK);
+
+		prev_selected_button_menu = -1;
+
+		LCD_draw_batt();
+
+		print_string("self test", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+
+		//we don't to allow a cancel option if the test started automatically from the start.
+		if(!testing_due_to_start)
+		{
+			print_string("pat. circuit test", 10 , 25, TEXT_HIGHLITE_WARNING);
+			print_string("cancel", 55 , 114, TEXT_HIGHLITE_SELECTED);
+		}
+		else
+		{
+			print_string("pat. circuit test", 10 , 25, TEXT_HIGHLITE_NORMAL);
+		}
+
+		drawRect(20, 55, 112, 20, ST7735_WHITE);
+
+		flow_test_on = 1;
+
+		start_insp();
+		set_blower_duty(94.2);
+
+		self_test_flow = 0;
+
+		temp_check_of_rpm1 = 0;
+		temp_check_of_rpm2 = 0;
+		temp_check_of_rpm3 = 0;
+
+		average_g_blower_cycle_per_minutes = 0;
+		rpm_percentage_difference = 0.0f;
+		expected_blower_cycle_per_minute = 36500;
+
+		temp_check_of_flow1 = 0.0f;
+		temp_check_of_flow2 = 0.0f;
+		temp_check_of_flow3 = 0.0f;
+		average_flow = 0.0f;
+		expected_flow = 114.0f;
+		expected_flow_ped = 130.0f;
+
+		temp_check_pressure1 = 0;
+		temp_check_pressure2 = 0;
+		temp_check_pressure3 = 0;
+		average_pressure = 0.0f;
+		expected_pressure = 6.0f;
+
+		test_state = 0;
+
+		progress_bar = 0;
+
+		wait_for_ok = true;
+	}
+
+	//while we are still running the test and we didn't get a cancel or we are in the start of the ventway (we can't cancel the test when we arrived from the start point)
+	while((flow_test_on && wait_for_ok) || testing_due_to_start)
+	{
+		run_flow_and_pressure_test();
+
+		if(!flow_test_on)
+		{
+			//remove the "pat. circuit test" text.
+			fillRect(5, 23, 155, 35, ST7735_BLACK);
+
+			//we don't to allow a cancel option if the test started automatically from the start.
+			if(!testing_due_to_start)
+			{
+				print_string("test results", 30 , 20, TEXT_HIGHLITE_NORMAL);
+				print_string("flow test:", 10 , 50, TEXT_HIGHLITE_NORMAL);
+				print_string("pres. test:", 10 , 70, TEXT_HIGHLITE_NORMAL);
+
+				//add the "done" button.
+				print_string("done", 60 , 114, TEXT_HIGHLITE_SELECTED);
+			}
+
+			//average flow is +/- 25 percent of the new expected flow, so we're ok.
+			if((average_flow < (expected_flow * 1.05)) && (average_flow > (expected_flow * 0.95)) && (average_g_blower_cycle_per_minutes > 0))
+			{
+				flow_passed = 1;
+				is_pediatric_patient = false;
+
+				if(!testing_due_to_start)
+				{
+					print_string("passed", 105 , 50, TEXT_HIGHLITE_NORMAL);
+				}
+			}
+			else if((average_flow < (expected_flow_ped * 1.05)) && (average_flow > (expected_flow_ped * 0.95)) && (average_g_blower_cycle_per_minutes > 0))
+			{
+				flow_passed = 1;
+				is_pediatric_patient = true;
+
+				if(!testing_due_to_start)
+				{
+					print_string("passed", 105 , 50, TEXT_HIGHLITE_NORMAL);
+				}
+			}
+			else if(!testing_due_to_start) //average flow is not good
+			{
+				print_string("failed", 105 , 50, TEXT_HIGHLITE_ALERT);
+			}
+
+			//average pressure is +/- 4 of the new expected pressure, so we're ok.
+			if((average_pressure < (expected_pressure + 4)) && (average_pressure > (expected_pressure - 4)) && (average_g_blower_cycle_per_minutes > 0))
+			{
+				pressure_passed = 1;
+
+				if(!testing_due_to_start)
+				{
+					print_string("passed", 105 , 70, TEXT_HIGHLITE_NORMAL);
+				}
+			}
+			else if(!testing_due_to_start)
+			{
+				print_string("failed", 105 , 70, TEXT_HIGHLITE_ALERT);
+			}
+
+
+			if(flow_passed)
+			{
+				log_message("flow test passed.");
+			}
+			else
+			{
+				log_message("flow test failed.");
+			}
+			if(pressure_passed)
+			{
+				log_message("pressure test passed.");
+			}
+			else
+			{
+				log_message("pressure test failed.");
+			}
+
+
+			//if this is the test that was run due to the start of the ventway and we failed one of the tests.
+			if(testing_due_to_start && (!flow_passed || !pressure_passed))
+			{
+				fillScreen(ST7735_BLACK);
+				strcpy (warning_line1, "pat. circuit");
+				strcpy (warning_line2, "test failed");
+				screen_after_warning_cancel = SCREEN_NONE;
+				screen_after_warning_ok = SCREEN_DISCONNECT;
+				screen = SCREEN_WARNING;
+			}
+			else if(testing_due_to_start) //this is the test that was run due to the start of the ventway and we passed both tests, we want to go on to the weight screen.
+			{
+				screen = SCREEN_WEIGHT;
+				weight_table_index = -1;
+				menu_stack[stack_index] = SCREEN_WEIGHT;
+				ignore_trigger = TIMER1_TICKS_PER_SECOND;  // ignore triggers for one second.
+				self_test = 1;
+			}
+			break;
+		}
+	}
+
+	if(!testing_due_to_start)
+	{
+		if(flow_test_on)
+		{
+			//remove the progress bar.
+			fillRect(20, 55, 112, 20, ST7735_BLACK);
+
+			//remove the "cancel" button.
+			fillRect(50, 110, 100, 25, ST7735_BLACK);
+		}
+
+		// the knob was pushed
+		if(!wait_for_ok)
+		{
+			if(selected_button_menu == 0)
+			{
+				stack_index--;
+				screen = menu_stack[stack_index];
+				selected_button_menu = 0;
+				seconds_counter = 0;
+				set_blower_duty(0);
+				turn_insp_sol_off();
+				test_state = 0;
+				testing_due_to_start = 0;
+				flow_test_on = 0;
+
+				if(flow_passed && pressure_passed)
+				{
+					self_test = 1;
+				}
+			}
+		}
+	}
+
+	//testing is done, so reinitialize relevant variables.
+	if(!flow_test_on)
+	{
+		seconds_counter = 0;
+		testing_due_to_start = 0;
+		test_state = 0;
+	}
+}
+
+// ***************************************************************************************
+// This function gets the ventilator pressure values at a specific blower rpm for the vvt
+// ***************************************************************************************
+bool get_vvt_pressure_value(double *pressureVal, unsigned int *pressureVoltage, int test_phase)
+{
+	static int temp_counter = 0;
+	bool done = 0;
+	int stabilityVal = 1;
+
+	if(test_phase == 2)
+	{
+		stabilityVal = 2;
+	}
+
+	//get original pressure value
+	if(*pressureVal == 0)
+	{
+		temp_counter = seconds_counter / TIMER1_TICKS_PER_SECOND;
+		*pressureVal = Pressure_cmH2O;
+	}
+	else if((Pressure_cmH2O > *pressureVal + stabilityVal) || (Pressure_cmH2O < *pressureVal - stabilityVal)) //if the change in the pressure value is significant, update the first value.
+	{
+		*pressureVal = Pressure_cmH2O;
+		*pressureVoltage = Pressure;
+		temp_counter = seconds_counter / TIMER1_TICKS_PER_SECOND;
+	}
+	else if((seconds_counter / TIMER1_TICKS_PER_SECOND) >= (temp_counter  + 2)) // if the pressure value hasn't changed in at least two seconds, then we have our value and can move to the next phase.
+	{
+		done = 1;
+	}
+
+	return done;
+}
+
+// *********************************************************************************************
+// This function calculates the new voltage to pressure co-efficient
+//**********************************************************************************************
+void calculate_voltageToPressureCoefficient(double firstPressureVal, unsigned int firstPressureVoltage,
+											double secondPressureVal, unsigned int secondPressureVoltage)
+{
+	double voltage1, voltage2;
+	double calcValue1, calcValue2;
+
+	voltage1 = (double)(firstPressureVoltage - Pressure_baseline);
+	calcValue1 = (double) (voltage1 / firstPressureVal);
+
+	voltage2 = (double)(secondPressureVoltage - Pressure_baseline);
+	calcValue2 = (double) (voltage2 / secondPressureVal);
+
+	voltageToPressureCoefficient = (double) (calcValue1 + calcValue2) / 2;
+}
+
+// *******************************************************************************
+// This function handles the ventilator verification test screen of the ventway.
+// *******************************************************************************
+void handle_screen_vvt()
+{
+	static double firstPressureVal = 0;
+	static unsigned int firstPressureVoltage = 0;
+	static double firstTrueVal = 0;
+
+	static double secondPressureVal = 0;
+	static unsigned int secondPressureVoltage = 0;
+	static double secondTrueVal = 0;
+
+	static double temp_pressure = 0;
+	static unsigned int tempPressureVoltage = 0;
+	static int temp_val = 0;
+
+	static int  manoMeterWarning = 0;
+	static int instructionFlag = 0;
+	int done = 0;
+
+	if(reset_vent)
+	{
+		firstPressureVal = 0;
+		firstPressureVoltage = 0;
+		firstTrueVal = 0;
+
+		secondPressureVal = 0;
+		secondPressureVoltage = 0;
+		secondTrueVal = 0;
+
+		temp_pressure = 0;
+		tempPressureVoltage = 0;
+		temp_val = 0;
+
+		manoMeterWarning = 0;
+		instructionFlag = 0;
+		done = 0;
+		reset_vent = false;
+	}
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_VVT)
+	{
+		menu_stack[stack_index] = SCREEN_VVT;
+		prev_screen = SCREEN_VVT;
+		fillScreen(ST7735_BLACK);
+
+		LCD_draw_batt();
+
+		print_string("vv test", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+		print_string("vv testing", 40 , 25, TEXT_HIGHLITE_WARNING);
+		print_string("pressure 1:", 5 , 65, TEXT_HIGHLITE_NORMAL);
+		print_string("pressure 2:", 5 , 85, TEXT_HIGHLITE_NORMAL);
+
+		//add the "cancel" button.
+		print_string("cancel", 60 , 114, TEXT_HIGHLITE_SELECTED);
+
+		wait_for_ok = true;
+
+		if(!manoMeterWarning)
+		{
+			strcpy (warning_line1, "attach to");
+			strcpy (warning_line2, "manometer and");
+			strcpy (warning_line3, "block exit");
+			screen_after_warning_ok = SCREEN_VVT;
+			screen_after_warning_cancel = SCREEN_NONE;
+			screen = SCREEN_WARNING;
+			manoMeterWarning = 1;
+			log_message("vvt manometer warning given");
+			done = 1;
+		}
+		else
+		{
+			done = 0;
+		}
+
+		if(!done)
+		{
+			test_phase = 0;
+			seconds_counter = 0;
+			flow_test_on = 1;
+
+			start_insp();
+			set_blower_duty(85);
+		}
+	}
+
+	while(wait_for_ok && !done)
+	{
+		if(!test_phase || test_phase == 2)
+		{
+			if(get_vvt_pressure_value(&temp_pressure, &tempPressureVoltage, test_phase))
+			{
+				if(temp_pressure < 5)
+				{
+					strcpy (warning_line1, "test failed!");
+					strcpy (warning_line2, "exit open.");
+
+					turn_insp_sol_off();
+					turn_exp_sol_off();
+					set_blower_duty(0);
+
+					seconds_counter = 0;
+					flow_test_on = 0;
+					test_phase = 0;
+					manoMeterWarning = 0;
+
+					stack_index--;
+					selected_button_menu = 2;
+
+					screen_after_warning_ok = menu_stack[stack_index];
+					screen_after_warning_cancel = SCREEN_NONE;
+					screen = SCREEN_WARNING;
+
+					log_message("vvt failed.");
+				}
+
+				if(!test_phase)
+				{
+					firstPressureVal = temp_pressure;
+					firstPressureVoltage = tempPressureVoltage;
+					drawNumber_f12(firstPressureVal, ST7735_WHITE, ST7735_RED, 110 , 65, 2);
+
+					temp_val = firstPressureVal;
+				}
+				else
+				{
+					secondPressureVal = temp_pressure;
+					secondPressureVoltage = tempPressureVoltage;
+					drawNumber_f12(secondPressureVal, ST7735_WHITE, ST7735_RED, 110 , 85, 2);
+
+					temp_val = secondPressureVal;
+				}
+
+				test_phase++;
+
+				print_string("cancel", 60 , 114, TEXT_HIGHLITE_DISABLED);
+				break;
+			}
+
+			if((seconds_counter % 500) == 0)
+			{
+				if(!instructionFlag)
+				{
+					print_string("please wait", 5 , 45, TEXT_HIGHLITE_ALERT);
+					instructionFlag = 1;
+				}
+				else
+				{
+					fillRect(3, 43,  120, 14, ST7735_BLACK);
+					instructionFlag = 0;
+				}
+			}
+		}
+		else if(test_phase == 1 || test_phase == 3)
+		{
+			if((seconds_counter % 500) == 0)
+			{
+				if(!instructionFlag)
+				{
+					print_string("insert value", 5 , 45, TEXT_HIGHLITE_ALERT);
+					instructionFlag = 1;
+				}
+				else
+				{
+					fillRect(3, 43,  120, 14, ST7735_BLACK);
+					instructionFlag = 0;
+				}
+			}
+			break;
+		}
+	}
+
+	// see if the knob was rotated, while in edit mode
+	if((rotate_ccw || rotate_cw) && (test_phase == 1 || test_phase == 3) && !done)
+	{
+		int value_change = 0;
+		if(rotate_cw) value_change = 1;
+		if(rotate_ccw) value_change = -1;
+
+		rotate_cw = 0;
+		rotate_ccw = 0;
+
+		temp_val = temp_val + value_change;
+
+		//make sure we stay within the 1-65 numbers range and that we don't exceed the high resp rate number.
+		if(temp_val == 66)
+		{
+			if(test_phase == 1)
+			{
+				temp_val = 0;
+			}
+			else
+			{
+				temp_val = firstTrueVal + 1;
+			}
+		}
+		else if((test_phase == 1 && temp_val == -1) || (test_phase == 3 && temp_val == firstTrueVal))
+		{
+			temp_val = 65;
+		}
+
+		if(test_phase == 1)
+		{
+			drawNumber_f12(temp_val, ST7735_WHITE, ST7735_RED, 110 , 65, 2);
+		}
+		else // test phase is three
+		{
+			drawNumber_f12(temp_val, ST7735_WHITE, ST7735_RED, 110 , 85, 2);
+		}
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok && !done)
+	{
+		if(test_phase != 1 && test_phase != 3)
+		{
+			turn_insp_sol_off();
+			turn_exp_sol_off();
+			set_blower_duty(0);
+
+			seconds_counter = 0;
+			flow_test_on = 0;
+			test_phase = 0;
+			manoMeterWarning = 0;
+
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 2;
+		}
+		else if(test_phase == 1)
+		{
+			firstTrueVal = temp_val;
+			drawNumber_f12(firstTrueVal, ST7735_WHITE, ST7735_BLACK, 110 , 65, 2);
+			print_string("cancel", 60 , 114, TEXT_HIGHLITE_SELECTED);
+
+			//update blower rpm cycle to second point.
+			set_blower_duty(95);
+			test_phase = 2;
+			delay_ms(1000);
+			seconds_counter = 0;
+		}
+		else // we are at phase three
+		{
+			secondTrueVal = temp_val;
+			drawNumber_f12(secondTrueVal, ST7735_WHITE, ST7735_BLACK, 110 , 85, 2);
+
+			//calculate the new voltageToPressureCoefficient.
+			calculate_voltageToPressureCoefficient(firstTrueVal, firstPressureVoltage, secondTrueVal, secondPressureVoltage);
+
+			turn_insp_sol_off();
+			turn_exp_sol_off();
+			set_blower_duty(0);
+
+			test_phase = 4;
+
+			fillRect(3, 43,  120, 14, ST7735_BLACK); //remove instructions
+			fillRect(57, 111,  120, 14, ST7735_BLACK); //remove "cancel" button
+
+			print_string("calibrating done", 15, 114, TEXT_HIGHLITE_SELECTED);
+			log_message("vvt calibration done.");
+		}
+
+		wait_for_ok = true;
+	}
+}
+
+// *******************************************************************************
+// This function handles the circuit verification test screen of the ventway.
+// *******************************************************************************
+void handle_screen_cvt()
+{
+	static int prev_time_sec = -1;
+	int decimal_time = 0;
+	static int blockWarning = 0;
+	static int unBlockPhase = 0;
+	int done = 0;
+
+	if(reset_vent)
+	{
+		prev_time_sec = -1;
+		decimal_time = 0;
+		blockWarning = 0;
+		unBlockPhase = 0;
+		done = 0;
+		reset_vent = false;
+	}
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_CVT)
+	{
+		menu_stack[stack_index] = SCREEN_CVT;
+		prev_screen = SCREEN_CVT;
+		fillScreen(ST7735_BLACK);
+
+		LCD_draw_batt();
+
+		print_string("cv test", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+		print_string("cv testing", 40 , 25, TEXT_HIGHLITE_WARNING);
+
+		drawRect(20, 55, 112, 20, ST7735_WHITE);
+
+		wait_for_ok = true;
+
+		if(!blockWarning)
+		{
+			strcpy (warning_line1, "block pat.");
+			strcpy (warning_line2, "circuit now");
+			screen_after_warning_ok = SCREEN_CVT;
+			screen_after_warning_cancel = SCREEN_NONE;
+			screen = SCREEN_WARNING;
+			blockWarning = 1;
+			unBlockPhase = 0;
+			log_message("cvt block warning given");
+			done = 1;
+		}
+
+		//if we aren't going to the first warning and haven't just come back from the second warning
+		if(!done && !unBlockPhase)
+		{
+			test_phase = 0;
+			temp_check_pressure1 = 0;
+			progress_bar = 0;
+
+			seconds_counter = 0;
+			flow_test_on = 1;
+
+			start_insp();
+			set_blower_duty(100);
+
+			//add the "cancel" button.
+			print_string("cancel", 60 , 114, TEXT_HIGHLITE_SELECTED);
+		}
+		else if(unBlockPhase)
+		{
+			flow_test_on = 1;
+
+			int catchUpProgress = 0;
+
+			while(catchUpProgress < progress_bar)
+			{
+				fillRect(22 + catchUpProgress, 57, 8, 16, ST7735_CYAN);
+				catchUpProgress += 10;
+			}
+		}
+	}
+
+	while(!done)
+	{
+		while(seconds_counter <= (int) (10 * TIMER1_TICKS_PER_SECOND) && wait_for_ok)
+		{
+			//passed the first phase of the test
+			if(Pressure_cmH2O >= 40 && !test_phase)
+			{
+				time_to_reach = (float)seconds_counter / (float)500;
+				test_phase = 1;
+
+				strcpy (warning_line1, "unblock pat.");
+				strcpy (warning_line2, "circuit now");
+				screen_after_warning_ok = SCREEN_CVT;
+				screen_after_warning_cancel = SCREEN_NONE;
+				screen = SCREEN_WARNING;
+				log_message("cvt unblock warning given");
+				unBlockPhase = 1;
+				flow_test_on = 0;
+				done = 1;
+				break;
+			}
+
+			//if we've moved on to the second phase and we've passed the first phase.
+			if(test_phase == 1 && Flow_LPM >= 125)
+			{
+				test_phase = 2;
+			}
+
+			if(!progress_bar)
+			{
+				fillRect(22 + progress_bar, 57, 8, 16, ST7735_CYAN);
+				progress_bar = 10;
+			}
+
+			if(prev_time_sec != g_time_sec && progress_bar != 110)
+			{
+				fillRect(22 + progress_bar, 57, 8, 16, ST7735_CYAN);
+				progress_bar += 10;
+				prev_time_sec = g_time_sec;
+			}
+		}
+
+		// the alotted time for the test is done
+		if(seconds_counter >= (int) (10 * TIMER1_TICKS_PER_SECOND) && flow_test_on == 1)
+		{
+			turn_insp_sol_off();
+			turn_exp_sol_off();
+			set_blower_duty(0);
+
+			//remove the progress bar.
+			fillRect(20, 55, 112, 20, ST7735_BLACK);
+
+			print_string("press. check:", 5 , 45, TEXT_HIGHLITE_NORMAL);
+
+			switch(test_phase)
+			{
+			case 0: //failed on first test
+				print_string("fail", 115 , 45, TEXT_HIGHLITE_ALERT);
+				print_string("flow check:", 5 , 65, TEXT_HIGHLITE_NORMAL);
+				print_string("fail", 115 , 65, TEXT_HIGHLITE_ALERT);
+
+				log_message("cvt test failed for both checks");
+				break;
+
+			case 1: //failed on second test
+				print_string("pass", 115 , 45, TEXT_HIGHLITE_NORMAL);
+				print_string("press. time:", 5 , 65, TEXT_HIGHLITE_NORMAL);
+				drawNumber_f12(time_to_reach, ST7735_WHITE, ST7735_BLACK, 105 , 65, 2);
+				print_string(".", 130 , 65, TEXT_HIGHLITE_NORMAL);
+				decimal_time = (int)(time_to_reach * 100) % 100;
+				drawNumber_f12(decimal_time, ST7735_WHITE, ST7735_BLACK, 126 , 65, 2);
+				print_string("s", 152 , 65, TEXT_HIGHLITE_NORMAL);
+				print_string("flow check:", 5 , 85, TEXT_HIGHLITE_NORMAL);
+				print_string("fail", 115 , 85, TEXT_HIGHLITE_ALERT);
+
+				log_message("cvt test passed first check and failed second check");
+				break;
+
+			case 2: //passed both tests
+				print_string("pass", 115 , 45, TEXT_HIGHLITE_NORMAL);
+				print_string("press. time:", 5 , 65, TEXT_HIGHLITE_NORMAL);
+				drawNumber_f12(time_to_reach, ST7735_WHITE, ST7735_BLACK, 105 , 65, 2);
+				print_string(".", 130 , 65, TEXT_HIGHLITE_NORMAL);
+				decimal_time = (int)(time_to_reach * 100) % 100;
+				drawNumber_f12(decimal_time, ST7735_WHITE, ST7735_BLACK, 126 , 65, 2);
+				print_string("s", 152 , 65, TEXT_HIGHLITE_NORMAL);
+				print_string("flow check:", 5 , 85, TEXT_HIGHLITE_NORMAL);
+				print_string("pass", 115 , 85, TEXT_HIGHLITE_NORMAL);
+
+				log_message("cvt test passed both checks");
+				break;
+
+			default:
+				break;
+			}
+
+			//remove the "cancel" button.
+			fillRect(50, 110, 100, 25, ST7735_BLACK);
+
+			//add the "done" button
+			print_string("done", 60 , 114, TEXT_HIGHLITE_SELECTED);
+
+			flow_test_on = 0;
+		}
+
+		// the knob was pushed
+		if(!wait_for_ok)
+		{
+			turn_insp_sol_off();
+			turn_exp_sol_off();
+			set_blower_duty(0);
+			seconds_counter = 0;
+			flow_test_on = 0;
+
+			test_phase = 0;
+			progress_bar = 0;
+			blockWarning = 0;
+			unBlockPhase = 0;
+
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 1;
+			done = 1;
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the self test screen of the ventway.
+// *******************************************************************************
+void handle_screen_self_test()
+{
+	static int disconnectWarning = 0;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_SELF_TEST)
+	{
+		menu_stack[stack_index] = SCREEN_SELF_TEST;
+		prev_screen = SCREEN_SELF_TEST;
+		fillScreen(ST7735_BLACK);
+
+		prev_selected_button_menu = -1;
+
+		LCD_draw_batt();
+
+		print_string("self test", 50 , 1, 3);
+
+		print_string("flow and press.", 15 , 24, TEXT_HIGHLITE_NORMAL);
+		print_string("cvt", 15 , 41, TEXT_HIGHLITE_NORMAL);
+		print_string("vvt", 15 , 58, TEXT_HIGHLITE_NORMAL);
+		print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		wait_for_ok = true;
+
+		//if disconnect warning wasn't given yet.
+		if(!disconnectWarning)
+		{
+			strcpy (warning_line1, "disconnect");
+			strcpy (warning_line2, "patient now");
+			screen_after_warning_ok = SCREEN_SELF_TEST;
+			screen_after_warning_cancel = SCREEN_NONE;
+			screen = SCREEN_WARNING;
+			disconnectWarning = 1;
+			log_message("self test disconnect warning given");
+		}
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 4) selected_button_menu = 0;
+			rotate_cw = 0;
+		}
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 3;
+			rotate_ccw = 0;
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) print_string("flow and press.", 15 , 24, 1);
+		if(prev_selected_button_menu == 0) print_string("flow and press.", 15 , 24, 0);
+
+		if(selected_button_menu == 1) print_string("cvt", 15 , 41, 1);
+		if(prev_selected_button_menu == 1) print_string("cvt", 15 , 41, 0);
+
+		if(selected_button_menu == 2) print_string("vvt", 15 , 58, 1);
+		if(prev_selected_button_menu == 2) print_string("vvt", 15 , 58, 0);
+
+		if(selected_button_menu == 3) print_string("back", 120 , 114, 1);
+		if(prev_selected_button_menu == 3) print_string("back", 120 , 114, 0);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 0)
+		{
+			stack_index++;
+			screen = SCREEN_FLOW_TEST;
+		}
+
+		if(selected_button_menu == 1)
+		{
+			stack_index++;
+			screen = SCREEN_CVT;
+		}
+
+		if(selected_button_menu == 2)
+		{
+			stack_index++;
+			screen = SCREEN_VVT;
+		}
+
+		if(selected_button_menu == 3)
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 3;
+			disconnectWarning = 0;
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the technician mode screen 1
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_tech_mode1()
+{
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_TECH_MODE1)
+	{
+		menu_stack[stack_index] = SCREEN_TECH_MODE1;
+		prev_screen = SCREEN_TECH_MODE1;
+		fillScreen(ST7735_BLACK);
+
+		prev_selected_button_menu = -1;
+
+		if(!tech_mode_flag)
+		{
+			tech_mode_flag = 1;
+		}
+
+		LCD_draw_batt();
+
+		print_string("tech ( / )", 50 , 1, 3);
+		drawNumber_f12(1, ST7735_BLACK, ST7735_WHITE, 90, 1, 1);
+		drawNumber_f12(2, ST7735_BLACK, ST7735_WHITE, 104, 1, 1);
+
+
+		print_string("set time", 15 , 24, 0);
+		print_string("calibration", 15 , 41, 0);
+		print_string("work hours", 15 , 58, 0);
+		print_string("self test", 15 , 75, 0);
+		print_string("show log", 15 , 92, 0);
+		print_string("more", 15 , 114, 0);
+		print_string("back", 120 , 114, 0);
+
+		wait_for_ok = true;
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 7) selected_button_menu = 0;
+			rotate_cw = 0;
+		}
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 6;
+			rotate_ccw = 0;
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) print_string("set time", 15 , 24, 1);
+		if(prev_selected_button_menu == 0) print_string("set time", 15 , 24, 0);
+
+		if(selected_button_menu == 1) print_string("calibration", 15 , 41, 1);
+		if(prev_selected_button_menu == 1) print_string("calibration", 15 , 41, 0);
+
+		if(selected_button_menu == 2) print_string("work hours", 15 , 58, 1);
+		if(prev_selected_button_menu == 2) print_string("work hours", 15 , 58, 0);
+
+		if(selected_button_menu == 3) print_string("self test", 15 , 75, 1);
+		if(prev_selected_button_menu == 3) print_string("self test", 15 , 75, 0);
+
+		if(selected_button_menu == 4) print_string("show log", 15 , 92, 1);
+		if(prev_selected_button_menu == 4) print_string("show log", 15 , 92, 0);
+
+		if(selected_button_menu == 5) print_string("more", 15 , 114, 1);
+		if(prev_selected_button_menu == 5) print_string("more", 15 , 114, 0);
+
+		if(selected_button_menu == 6) print_string("back", 120 , 114, 1);
+		if(prev_selected_button_menu == 6) print_string("back", 120 , 114, 0);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 0)
+		{
+			stack_index++;
+			screen = SCREEN_SET_TIME;
+		}
+		if(selected_button_menu == 1)
+		{
+			if(is_ventilating == false)
+			{
+				screen = SCREEN_ENTER_PASSWORD;
+				next_screen_after_popup = SCREEN_CALIBRATION1;
+				advance_screen_stack_after_popup = true;
+			}
+			else
+			{
+				strcpy (warning_line1, "must stop");
+				strcpy (warning_line2, "vent. first");
+				screen_after_warning_ok = screen;
+				screen_after_warning_cancel = SCREEN_NONE;
+				screen = SCREEN_WARNING;
+			}
+		}
+		if(selected_button_menu == 2)
+		{
+			screen = SCREEN_TOTAL_HOURS;
+		}
+		if(selected_button_menu == 3)
+		{
+			if(is_ventilating == false)
+			{
+				stack_index++;
+				screen = SCREEN_SELF_TEST;
+				selected_button_menu = 0;
+			}
+			else
+			{
+				strcpy (warning_line1, "must stop");
+				strcpy (warning_line2, "vent. first");
+				screen_after_warning_ok = screen;
+				screen_after_warning_cancel = SCREEN_NONE;
+				screen = SCREEN_WARNING;
+			}
+		}
+		if(selected_button_menu == 4)
+		{
+			stack_index++;
+			screen = SCREEN_SHOW_LOG;
+			selected_button_menu = 0;
+		}
+		if(selected_button_menu == 5)
+		{
+			stack_index++;
+			screen = SCREEN_TECH_MODE2;
+			selected_button_menu = 0;
+		}
+		if(selected_button_menu == 6) //back button
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 4;
+			tech_mode_flag = 0;
+		}
+	}
+}
+
+
+// *******************************************************************************
+// This function handles sw version window
+// *******************************************************************************
+void handle_screen_total_hours()
+{
+	// Print the alert volume window on screen
+	if(prev_screen != SCREEN_TOTAL_HOURS)
+	{
+		prev_screen = SCREEN_TOTAL_HOURS;
+
+		isCurrentlyPainting = 1;
+
+		fillRect(13, 23,  124, 82, ST7735_WHITE);
+		fillRect(15, 35,  120, 68, ST7735_BLACK);
+
+		print_string("work hours", 17, 24, 3);
+
+		total_work_hours = working_hours_minute_counter / 60;
+
+		drawNumber_f12(total_work_hours , ST7735_WHITE, ST7735_BLACK, 45, 55, 5);
+
+	    fillRect(50, 82, 50, 20, ST7735_CYAN);
+	    drawRect(50, 82, 50, 20, ST7735_DARK_BLUE);
+	    print_string("ok\0", 65, 87, 1);
+
+	    isCurrentlyPainting = 0;
+
+		wait_for_ok = true;
+	}
+
+	// the knob was rotated
+	if(rotate_cw)
+	{
+		rotate_cw = 0;
+	}
+	if(rotate_ccw)
+	{
+		rotate_ccw = 0;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		screen = menu_stack[stack_index];
+	}
+}
+
+
+// *******************************************************************************
+// This function handles the printing of the technician mode screen 2
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_tech_mode2()
+{
+	static int prev_altitude = 0;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_TECH_MODE2)
+	{
+		menu_stack[stack_index] = SCREEN_TECH_MODE2;
+		prev_screen = SCREEN_TECH_MODE2;
+		fillScreen(ST7735_BLACK);
+
+		prev_selected_button_menu = -1;
+
+		LCD_draw_batt();
+
+		print_string("tech ( / )", 50 , 1, 3);
+		drawNumber_f12(2, ST7735_BLACK, ST7735_WHITE, 90, 1, 1);
+		drawNumber_f12(2, ST7735_BLACK, ST7735_WHITE, 104, 1, 1);
+
+
+		print_string("export log", 15 , 24, 0);
+		print_string("sw version", 15 , 41, 0);
+		print_string("sw update", 15 , 58, 0);
+
+		print_string("altitude:", 15 , 75, 0);
+		drawNumber_f12_signed(average_altitude, ST7735_WHITE, ST7735_BLACK, 92, 75, 4, true);
+		print_string("m", 137, 75, 0);
+
+		prev_altitude = average_altitude;
+
+		print_string("back", 120 , 114, 0);
+
+		wait_for_ok = true;
+	}
+
+	if(prev_altitude > (average_altitude + 50) || prev_altitude < (average_altitude - 50))
+	{
+		drawNumber_f12_signed(average_altitude, ST7735_WHITE, ST7735_BLACK, 92, 75, 4, true);
+		prev_altitude = average_altitude;
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 4) selected_button_menu = 0;
+			rotate_cw = 0;
+		}
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 3;
+			rotate_ccw = 0;
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) print_string("export log", 15 , 24, 1);
+		if(prev_selected_button_menu == 0) print_string("export log", 15 , 24, 0);
+
+		if(selected_button_menu == 1) print_string("sw version", 15 , 41, 1);
+		if(prev_selected_button_menu == 1) print_string("sw version", 15 , 41, 0);
+
+		if(selected_button_menu == 2) print_string("sw update", 15 , 58, 1);
+		if(prev_selected_button_menu == 2) print_string("sw update", 15 , 58, 0);
+
+		if(selected_button_menu == 3) print_string("back", 120 , 114, 1);
+		if(prev_selected_button_menu == 3) print_string("back", 120 , 114, 0);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 0)
+		{
+			screen = SCREEN_EXP_LOG;
+		}
+		if(selected_button_menu == 1)
+		{
+			screen = SCREEN_SW_VER;
+		}
+		if(selected_button_menu == 2)
+		{
+			if(!is_ventilating)
+			{
+				screen = SCREEN_ENTER_PASSWORD;
+				next_screen_after_popup = SCREEN_UPDATE_SW;
+			}
+			else
+			{
+				strcpy (warning_line1, "must stop");
+				strcpy (warning_line2, "vent. first");
+				screen_after_warning_ok = screen;
+				screen_after_warning_cancel = SCREEN_NONE;
+				screen = SCREEN_WARNING;
+			}
+		}
+		if(selected_button_menu == 3)
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 5;
+		}
+	}
+}
+
+#include "log.h"
+
+// *******************************************************************************
+// This function handles log export window
+// *******************************************************************************
+void handle_screen_exp_log()
+{
+	// Print the alert volume window on screen
+	if(prev_screen != SCREEN_EXP_LOG)
+	{
+		prev_screen = SCREEN_EXP_LOG;
+
+		isCurrentlyPainting = 1;
+
+		fillRect(13, 23,  124, 82, ST7735_WHITE);
+		fillRect(15, 35,  120, 68, ST7735_BLACK);
+
+		print_string("export log", 17, 24, 3);
+
+		print_string("waiting for", 25 , 48, 0);
+		print_string("computer", 25 , 65, 0);
+
+	    fillRect(40, 82, 70, 20, ST7735_CYAN);
+	    drawRect(40, 82, 70, 20, ST7735_DARK_BLUE);
+	    print_string("cancel\0", 50, 87, 1);
+
+	    isCurrentlyPainting = 0;
+
+		wait_for_ok = true;
+	}
+
+	if(check_log())
+	{
+	    fillRect(40, 82, 70, 20, ST7735_GRAY);
+	    drawRect(40, 82, 70, 20, ST7735_GRAY_DARK);
+	    print_string("cancel\0", 50, 87, TEXT_HIGHLITE_DISABLED);
+
+		print_string("transferring", 25 , 48, 0);
+		print_string("log file...", 25 , 65, 0);
+
+		delay_ms(1000);
+
+		download_log(log_filename);
+		SendMessage_log("Log transferred.");
+
+		print_string("log         ", 25 , 48, 0);
+		print_string("transferred.", 25 , 65, 0);
+
+		delay_ms(1000);
+
+		screen = menu_stack[stack_index];
+	}
+
+	// the knob was rotated
+	if(rotate_cw)
+	{
+		rotate_cw = 0;
+	}
+	if(rotate_ccw)
+	{
+		rotate_ccw = 0;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		screen = menu_stack[stack_index];
+	}
+}
+
+// *******************************************************************************
+// This function handles the show log window
+// *******************************************************************************
+void handle_screen_show_log()
+{
+	static int line_start[100];
+	static int total_lines = -1;
+	static int current_line = -1;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_SHOW_LOG)
+	{
+		menu_stack[stack_index] = SCREEN_SHOW_LOG;
+		prev_screen = SCREEN_SHOW_LOG;
+		fillScreen(ST7735_BLACK);
+
+		prev_selected_button_menu = -1;
+
+		LCD_draw_batt();
+
+		total_lines = read_log_file_for_print(line_start);
+
+		print_string("system log", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+
+		if(total_lines > 7)
+		{
+			print_string("  scroll >", 5 , 114, TEXT_HIGHLITE_NORMAL);
+		}
+		print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+
+		current_line = total_lines - 1;
+		print_log_file_lines(current_line, total_lines, line_start);
+
+		wait_for_ok = true;
+	}
+
+
+
+	// see if the knob was rotated, if so, change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(total_lines > 7)
+		{
+			print_string("< scroll >", 5 , 114, TEXT_HIGHLITE_NORMAL);
+			if(rotate_cw)
+			{
+				current_line -= 2;
+				if(current_line < 7)
+				{
+					current_line = 7;
+					print_string("< scroll  ", 5 , 114, TEXT_HIGHLITE_NORMAL);
+				}
+			}
+			else if(rotate_ccw)
+			{
+				current_line += 2;
+				if(current_line > total_lines - 1)
+				{
+					current_line = total_lines - 1;
+					print_string("  scroll >", 5 , 114, TEXT_HIGHLITE_NORMAL);
+				}
+			}
+			print_log_file_lines(current_line, total_lines, line_start);
+		}
+		rotate_cw = 0;
+		rotate_ccw = 0;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		stack_index--;
+		screen = menu_stack[stack_index];
+		selected_button_menu = 4;
+	}
+}
+
+// *******************************************************************************
+// This function handles sw version window
+// *******************************************************************************
+void handle_screen_sw_version()
+{
+	// Print the alert volume window on screen
+	if(prev_screen != SCREEN_SW_VER)
+	{
+		prev_screen = SCREEN_SW_VER;
+
+		isCurrentlyPainting = 1;
+
+		fillRect(13, 23,  124, 82, ST7735_WHITE);
+		fillRect(15, 35,  120, 68, ST7735_BLACK);
+
+		print_string("sw version", 17, 24, 3);
+
+		print_string("version", 20, 42, TEXT_HIGHLITE_NORMAL);
+		print_string(version_num, 85, 42, TEXT_HIGHLITE_NORMAL);
+		print_string("build", 20, 62, TEXT_HIGHLITE_NORMAL);
+		drawNumber_f12(build_num , ST7735_WHITE, ST7735_BLACK, 80, 62, 4);
+
+	    fillRect(50, 82, 50, 20, ST7735_CYAN);
+	    drawRect(50, 82, 50, 20, ST7735_DARK_BLUE);
+	    print_string("ok\0", 65, 87, 1);
+
+	    isCurrentlyPainting = 0;
+
+		wait_for_ok = true;
+	}
+
+	// the knob was rotated
+	if(rotate_cw)
+	{
+		rotate_cw = 0;
+	}
+	if(rotate_ccw)
+	{
+		rotate_ccw = 0;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		screen = menu_stack[stack_index];
+	}
+}
+
+#include "driverlib/rom.h"
+
+// *******************************************************************************
+// This function handles update sw version window
+// *******************************************************************************
+void handle_screen_update_sw()
+{
+	// Print the alert volume window on screen
+	if(prev_screen != SCREEN_UPDATE_SW)
+	{
+		prev_screen = SCREEN_UPDATE_SW;
+
+		isCurrentlyPainting = 1;
+
+		fillRect(13, 19,  124, 100, ST7735_WHITE);
+		fillRect(15, 31,  120, 86, ST7735_BLACK);
+
+		print_string("update sw", 17, 20, TEXT_HIGHLITE_HEADLINE);
+		print_string("waiting for", 25 , 44, TEXT_HIGHLITE_NORMAL);
+		print_string("sw update", 25 , 61, TEXT_HIGHLITE_NORMAL);
+		print_string("via usb.", 25 , 78, TEXT_HIGHLITE_NORMAL);
+	    isCurrentlyPainting = 0;
+
+        //ROM_SysTickDisable();
+         //ROM_SysTickIntDisable();
+         //SysCtlPeripheralDisable(SYSCTL_PERIPH_TIMER0);
+         //SysCtlPeripheralDisable(SYSCTL_PERIPH_TIMER1);
+#ifdef ENABLE_WATCHDOG
+         ROM_WatchdogResetDisable(WATCHDOG0_BASE);
+         ROM_IntDisable(INT_WATCHDOG);
+#endif // ENABLE_WATCHDOG
+
+	    loader();
+	}
+
+	// the knob was rotated
+	if(rotate_cw)
+	{
+		rotate_cw = 0;
+	}
+	if(rotate_ccw)
+	{
+		rotate_ccw = 0;
+	}
+}
+
+// *******************************************************************************
+// This function retuns the days in a the month
+// *******************************************************************************
+int days_in_month(int month, int year)
+{
+	if(month == 1 || month == 3 || month == 5 ||
+	   month == 7 || month == 8 || month == 10 || month == 12)
+	{
+		return 31;
+	}
+	else if (month != 2)
+	{
+		return 30;
+	}
+	// If february, look  for a leap year
+	// The year can be evenly divided by 4;
+	// If the year can be evenly divided by 100, it is NOT a leap year, unless;
+	// The year is also evenly divisible by 400. Then it is a leap year.
+	else
+	{
+		if(year % 400 == 0) return 29;
+		else if(year % 100 == 0) return 28;
+		else if(year % 4 == 0) return 29;
+		else return 28;
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the technician mode screen
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_set_time()
+{
+	static int editing_field = -1;
+	static int time_modified = false;
+	static int day_print = 1;
+	static int month_print = 1;
+	static int year_print = 2017;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_SET_TIME)
+	{
+		menu_stack[stack_index] = SCREEN_SET_TIME;
+		prev_screen = SCREEN_SET_TIME;
+		fillScreen(ST7735_BLACK);
+
+		prev_selected_button_menu = -1;
+
+		LCD_draw_batt();
+
+		day_print = g_date_day;
+		month_print = g_date_month;
+		year_print = g_date_year;
+
+		print_string("set time", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+		print_string("date dd/mm/yy", 15 , 24, TEXT_HIGHLITE_NORMAL);
+		print_string("__", 30 , 42, TEXT_HIGHLITE_NORMAL); drawNumber_f12(g_date_day, ST7735_WHITE, ST7735_BLACK, 22, 40, 2);
+		print_string("/", 52 , 41, TEXT_HIGHLITE_NORMAL); print_string("__", 60 , 42, TEXT_HIGHLITE_NORMAL); drawNumber_f12(g_date_month, ST7735_WHITE, ST7735_BLACK, 52, 40, 2);
+		print_string("/", 82 , 41, TEXT_HIGHLITE_NORMAL); print_string("__", 90 , 42, TEXT_HIGHLITE_NORMAL); drawNumber_f12(g_date_year, ST7735_WHITE, ST7735_BLACK, 82, 40, 4);
+
+		print_string("time hh/mm/ss", 15 , 58, TEXT_HIGHLITE_NORMAL);
+		print_string("__", 30 , 77, TEXT_HIGHLITE_NORMAL); drawNumber_f12(g_time_hour, ST7735_WHITE, ST7735_BLACK, 22, 75, 2);
+		print_string(":", 52 , 75, TEXT_HIGHLITE_NORMAL); print_string("__", 60 , 77, TEXT_HIGHLITE_NORMAL); drawNumber_f12(g_time_minute, ST7735_WHITE, ST7735_BLACK, 52, 75, 2);
+		print_string(":", 82 , 75, TEXT_HIGHLITE_NORMAL); print_string("__", 90 , 77, TEXT_HIGHLITE_NORMAL); drawNumber_f12(g_time_sec, ST7735_WHITE, ST7735_BLACK, 82, 75, 2);
+
+		print_string("back", 120 , 114, 0);
+
+		time_modified = false;
+		wait_for_ok = true;
+	}
+
+	// see if the knob was rotated, if so, change selected button
+	if((rotate_ccw || rotate_cw) && editing_field == -1)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 7) selected_button_menu = 0;
+			rotate_cw = 0;
+		}
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 6;
+			rotate_ccw = 0;
+		}
+	}
+
+	// see if the knob was rotated, while in edit mode
+	if((rotate_ccw || rotate_cw) && editing_field != -1)
+	{
+		int value_change = 0;
+		if(rotate_cw) value_change = 1;
+		if(rotate_ccw) value_change = -1;
+
+		rotate_cw = 0;
+		rotate_ccw = 0;
+
+		if(editing_field == 0)
+		{
+			g_date_day = g_date_day + value_change;
+			day_print = g_date_day  % days_in_month(g_date_month, g_date_year);
+
+			if(day_print == 0)
+			{
+				g_date_day = days_in_month(g_date_month, g_date_year);
+				day_print = g_date_day;
+			}
+
+			drawNumber_f12(day_print, ST7735_WHITE, ST7735_RED, 22, 40, 2);
+		}
+		if(editing_field == 1)
+		{
+			g_date_month = g_date_month + value_change;
+			month_print = g_date_month  % 12;
+
+			if(month_print == 0)
+			{
+				g_date_month = 12;
+				month_print = g_date_month;
+			}
+			drawNumber_f12(month_print, ST7735_WHITE, ST7735_RED, 52, 40, 2);
+		}
+		if(editing_field == 2)
+		{
+			g_date_year = g_date_year + value_change;
+
+			if(g_date_year < 2017)
+			{
+				g_date_year = 2017;
+			}
+
+			if(g_date_year == 3000)
+			{
+				g_date_year = 3000;
+			}
+
+			year_print = g_date_year;
+
+			//year_print = g_date_year  % 100;
+			drawNumber_f12(year_print, ST7735_WHITE, ST7735_RED, 82, 40, 4);
+		}
+		if(editing_field == 3)
+		{
+			g_time_hour = (g_time_hour + value_change);
+			if(g_time_hour == -1) g_time_hour = 23;
+			if(g_time_hour == 24) g_time_hour = 0;
+			drawNumber_f12(g_time_hour, ST7735_WHITE, ST7735_RED, 22, 75, 2);
+		}
+		if(editing_field == 4)
+		{
+			g_time_minute = (g_time_minute + value_change);
+			if(g_time_minute == -1) g_time_minute = 59;
+			if(g_time_minute == 60) g_time_minute = 0;
+			drawNumber_f12(g_time_minute, ST7735_WHITE, ST7735_RED, 52, 75, 2);
+		}
+		if(editing_field == 5)
+		{
+			g_time_sec = (g_time_sec + value_change);
+			if(g_time_sec == -1) g_time_sec = 59;
+			if(g_time_sec == 60) g_time_sec = 0;
+			drawNumber_f12(g_time_sec, ST7735_WHITE, ST7735_RED, 82, 75, 2);
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) drawNumber_f12(day_print, ST7735_BLUE, ST7735_CYAN, 22, 40, 2);
+		if(prev_selected_button_menu == 0) drawNumber_f12(day_print, ST7735_WHITE, ST7735_BLACK, 22, 40, 2);
+
+		if(selected_button_menu == 1) drawNumber_f12(month_print, ST7735_BLUE, ST7735_CYAN, 52, 40, 2);
+		if(prev_selected_button_menu == 1) drawNumber_f12(month_print, ST7735_WHITE, ST7735_BLACK, 52, 40, 2);
+
+		if(selected_button_menu == 2) drawNumber_f12(year_print, ST7735_BLUE, ST7735_CYAN, 82, 40, 4);
+		if(prev_selected_button_menu == 2) drawNumber_f12(year_print, ST7735_WHITE, ST7735_BLACK, 82, 40, 4);
+
+		if(selected_button_menu == 3) drawNumber_f12(g_time_hour, ST7735_BLUE, ST7735_CYAN, 22, 75, 2);
+		if(prev_selected_button_menu == 3) drawNumber_f12(g_time_hour, ST7735_WHITE, ST7735_BLACK, 22, 75, 2);
+
+		if(selected_button_menu == 4) drawNumber_f12(g_time_minute, ST7735_BLUE, ST7735_CYAN, 52, 75, 2);
+		if(prev_selected_button_menu == 4) drawNumber_f12(g_time_minute, ST7735_WHITE, ST7735_BLACK, 52, 75, 2);
+
+		if(selected_button_menu == 5) drawNumber_f12(g_time_sec, ST7735_BLUE, ST7735_CYAN, 82, 75, 2);
+		if(prev_selected_button_menu == 5) drawNumber_f12(g_time_sec, ST7735_WHITE, ST7735_BLACK, 82, 75, 2);
+
+		if(selected_button_menu == 6) print_string("back", 120 , 114, 1);
+		if(prev_selected_button_menu == 6) print_string("back", 120 , 114, 0);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 6)
+		{
+			if(time_modified == true)
+			{
+				log_message("Time modified.");
+			}
+
+			RTC_SetTime();
+
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 0;
+		}
+		else
+		{
+			time_modified = true;
+
+			// if not editing a field, enter edit mode
+			if(editing_field == -1)
+			{
+				editing_field = selected_button_menu;
+
+				if(editing_field == 0) drawNumber_f12(day_print, ST7735_WHITE, ST7735_RED, 22, 40, 2);
+				if(editing_field == 1) drawNumber_f12(month_print, ST7735_WHITE, ST7735_RED, 52, 40, 2);
+				if(editing_field == 2) drawNumber_f12(year_print, ST7735_WHITE, ST7735_RED, 82, 40, 4);
+				if(editing_field == 3) drawNumber_f12(g_time_hour, ST7735_WHITE, ST7735_RED, 22, 75, 2);
+				if(editing_field == 4) drawNumber_f12(g_time_minute, ST7735_WHITE, ST7735_RED, 52, 75, 2);
+				if(editing_field == 5) drawNumber_f12(g_time_sec, ST7735_WHITE, ST7735_RED, 82, 75, 2);
+				wait_for_ok = true;
+			}
+			// if editing, exit edit mode
+			else
+			{
+				if(editing_field == 0) drawNumber_f12(day_print, ST7735_BLUE, ST7735_CYAN, 22, 40, 2);
+				if(editing_field == 1) drawNumber_f12(month_print, ST7735_BLUE, ST7735_CYAN, 52, 40, 2);
+				if(editing_field == 2) drawNumber_f12(year_print, ST7735_BLUE, ST7735_CYAN, 82, 40, 4);
+				if(editing_field == 3) drawNumber_f12(g_time_hour, ST7735_BLUE, ST7735_CYAN, 22, 75, 2);
+				if(editing_field == 4) drawNumber_f12(g_time_minute, ST7735_BLUE, ST7735_CYAN, 52, 75, 2);
+				if(editing_field == 5) drawNumber_f12(g_time_sec, ST7735_BLUE, ST7735_CYAN, 82, 75, 2);
+
+				editing_field = -1;
+				wait_for_ok = true;
+			}
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of the volume calibration screen #1
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_calibration1()
+{
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_CALIBRATION1)
+	{
+		menu_stack[stack_index] = SCREEN_CALIBRATION1;
+		prev_screen = SCREEN_CALIBRATION1;
+		fillScreen(ST7735_BLACK);
+
+		selected_button_menu = 0;
+		prev_selected_button_menu = -1;
+
+		LCD_draw_batt();
+
+		print_string("calibration", 50 , 1, TEXT_HIGHLITE_HEADLINE);
+		print_string("volume cal.", 15 , 24, TEXT_HIGHLITE_NORMAL);
+		print_string("connect syringe.", 15 , 41, TEXT_HIGHLITE_NORMAL);
+		print_string("follow tone for", 15 , 58, TEXT_HIGHLITE_NORMAL);
+		print_string("push and pull.", 15 , 75, TEXT_HIGHLITE_NORMAL);
+		print_string("ok", 15 , 105, TEXT_HIGHLITE_SELECTED);
+		print_string("back", 110 , 105, TEXT_HIGHLITE_NORMAL);
+
+		wait_for_ok = true;
+	}
+
+	// see if the knob was rotated, if so , change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+
+			if(selected_button_menu == 2) selected_button_menu = 0;
+			rotate_cw = 0;
+		}
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1) selected_button_menu = 1;
+			rotate_ccw = 0;
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) print_string("ok", 15 , 105, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 0) print_string("ok", 15 , 105, TEXT_HIGHLITE_NORMAL);
+
+		if(selected_button_menu == 1) print_string("back", 110 , 105, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 1) print_string("back", 110 , 105, TEXT_HIGHLITE_NORMAL);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 0) //ok button
+		{
+			stack_index++;
+			screen = SCREEN_CALIBRATION2;
+		}
+		else // back
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 1;
+		}
+	}
+}
+
+extern double TIDAL_VOLUME;
+
+// *******************************************************************************
+// This function handles the printing of the volume calibration screen #2
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_calibration2()
+{
+	static int tidal_volume1 = 0;
+	static int tidal_volume2 = 0;
+	static int tidal_volume3 = 0;
+	static int tidal_volume4 = 0;
+	static float average_measured_volume = 0.0f;
+	float expected_tidal_volume = 2250.0f;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_CALIBRATION2)
+	{
+		menu_stack[stack_index] = SCREEN_CALIBRATION2;
+		prev_screen = SCREEN_CALIBRATION2;
+		fillScreen(ST7735_BLACK);
+
+		prev_selected_button_menu = -1;
+		selected_button_menu = 0;
+
+		LCD_draw_batt();
+
+		print_string("calibration", 50 , 1, 3);
+		print_string("volume cal.", 15 , 24, 0);
+		print_string("cancel", 60 , 105, 1);
+
+		new_TIDAL_VOLUME = 0;
+		negative_volume = 0.0f;
+		wait_for_ok = true;
+
+		play_audio("alert06.wav");
+	}
+
+	// we recieved a new tidal volume measurement, we print it
+	if(new_TIDAL_VOLUME)
+	{
+		new_TIDAL_VOLUME = 0;
+		if(selected_button_menu == 0)
+		{
+			drawNumber_f12(1                , ST7735_WHITE, ST7735_BLACK, 10, 40, 1);
+			drawNumber_f12((int)TIDAL_VOLUME, ST7735_WHITE, ST7735_BLACK, 30, 40, 4);
+			tidal_volume1 = (int)TIDAL_VOLUME;
+		}
+		if(selected_button_menu == 1)
+		{
+			drawNumber_f12(2                , ST7735_WHITE, ST7735_BLACK, 10, 55, 1);
+			drawNumber_f12((int)TIDAL_VOLUME, ST7735_WHITE, ST7735_BLACK, 30, 55, 4);
+			tidal_volume2 = (int)TIDAL_VOLUME;
+		}
+		if(selected_button_menu == 2)
+		{
+			drawNumber_f12(3                , ST7735_WHITE, ST7735_BLACK, 10, 70, 1);
+			drawNumber_f12((int)TIDAL_VOLUME, ST7735_WHITE, ST7735_BLACK, 30, 70, 4);
+			tidal_volume3 = (int)TIDAL_VOLUME;
+		}
+		if(selected_button_menu == 3)
+		{
+			drawNumber_f12(4                , ST7735_WHITE, ST7735_BLACK, 10, 85, 1);
+			drawNumber_f12((int)TIDAL_VOLUME, ST7735_WHITE, ST7735_BLACK, 30, 85, 4);
+			tidal_volume4 = (int)TIDAL_VOLUME;
+
+			selected_button_menu = -1;
+			fillRect(60, 104,  60, 13, ST7735_BLACK);
+			print_string(" ok ", 60 , 105, 1);
+
+			prev_selected_button_menu = 3;
+			wait_for_ok = true;
+		}
+		selected_button_menu++;
+		TIDAL_VOLUME = 0;
+		play_audio("alert06.wav");
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)// && prev_selected_button_menu == 3)
+	{
+		if(tidal_volume4 > 0)
+		{
+			average_measured_volume = (float)(tidal_volume1 + tidal_volume2 + tidal_volume3 + tidal_volume4) / 4.0f;
+
+			// if the calibration average is within 15% difference of the expected tidal volume then we are ok.
+			if((average_measured_volume < (expected_tidal_volume * 1.15)) && (average_measured_volume > (expected_tidal_volume * 0.85)))
+			{
+				curr_calibration_correction_factor = expected_tidal_volume / average_measured_volume;
+
+				strcpy (warning_line1, "system");
+				strcpy (warning_line2, "calibrated");
+				stack_index = stack_index - 2;
+				screen_after_warning_ok = menu_stack[stack_index];
+				screen_after_warning_cancel = SCREEN_NONE;
+				screen = SCREEN_WARNING;
+				selected_button_menu = 1;
+			}
+			else // the average calibration is different from the expected tidal volume by more then 15%, not reasonable, we'll fail the callibration.
+			{
+				strcpy (warning_line1, "calibration");
+				strcpy (warning_line2, "failed!!");
+				strcpy (warning_line3, "please retry");
+				stack_index = stack_index - 2;
+				screen_after_warning_ok = menu_stack[stack_index];
+				screen_after_warning_cancel = SCREEN_NONE;
+				screen = SCREEN_WARNING;
+				selected_button_menu = 1;
+			}
+		}
+		else
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 0;
+		}
+	}
+}
+
+extern int password[3];
+
+// *******************************************************************************
+// This function handles enter password screen
+// *******************************************************************************
+void handle_screen_enter_password()
+{
+	static char entered_password[3]= {0,0,0};
+	static char current_digit = 0;
+
+	// Print the alert volume window on screen
+	if(prev_screen != SCREEN_ENTER_PASSWORD)
+	{
+		prev_screen = SCREEN_ENTER_PASSWORD;
+
+		entered_password[0] = 0;
+		entered_password[1] = 0;
+		entered_password[2] = 0;
+
+		current_digit = 0;
+
+		isCurrentlyPainting = 1;
+
+		fillRect(13, 23,  124, 82, ST7735_WHITE);
+		fillRect(15, 35,  120, 68, ST7735_BLACK);
+
+		print_string("enter key", 17, 24, 3);
+
+		drawNumber_f12(entered_password[0] , ST7735_BLUE, ST7735_CYAN, 45, 50, 1);
+		drawNumber_f12(entered_password[1] , ST7735_BLACK, ST7735_WHITE, 60, 50, 1);
+		drawNumber_f12(entered_password[2] , ST7735_BLACK, ST7735_WHITE, 75, 50, 1);
+
+	    fillRect(50, 82, 50, 20, ST7735_CYAN);
+	    drawRect(50, 82, 50, 20, ST7735_DARK_BLUE);
+	    print_string("ok\0", 65, 87, 1);
+
+	    isCurrentlyPainting = 0;
+
+		wait_for_ok = true;
+	}
+
+	// the knob was rotated
+	if(rotate_cw)
+	{
+		if(entered_password[current_digit] == 9)
+			entered_password[current_digit] = 0;
+		else
+			entered_password[current_digit] = (entered_password[current_digit] + 1);
+
+		drawNumber_f12(entered_password[current_digit] , ST7735_BLUE, ST7735_CYAN, 45 + 15 * current_digit, 50, 1);
+		rotate_cw = 0;
+	}
+	if(rotate_ccw)
+	{
+		if(entered_password[current_digit] == 0)
+			entered_password[current_digit] = 9;
+		else
+			entered_password[current_digit] = (entered_password[current_digit] - 1);
+
+		drawNumber_f12(entered_password[current_digit] , ST7735_BLUE, ST7735_CYAN, 45 + 15 * current_digit, 50, 1);
+		rotate_ccw = 0;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(current_digit < 2)
+		{
+			current_digit++;
+			drawNumber_f12(entered_password[current_digit] , ST7735_BLUE, ST7735_CYAN, 45 + 15 * current_digit, 50, 1);
+			wait_for_ok = true;
+		}
+		else
+		{
+			if(entered_password[0] == password[0] &&
+			   entered_password[1] == password[1] &&
+		       entered_password[2] == password[2])
+			{
+				screen = next_screen_after_popup;
+				if(advance_screen_stack_after_popup)
+				{
+					stack_index++;
+					advance_screen_stack_after_popup = false;
+				}
+			}
+			else
+			{
+				play_audio("alert05.wav");
+
+				fillRect(13, 23,  124, 82, ST7735_WHITE);
+				fillRect(15, 35,  120, 68, ST7735_RED);
+				print_string("enter key", 17, 24, 4);
+
+				print_string("incorrect", 35, 55, 2);
+				print_string("key", 35, 70, 2);
+				delay_ms(2000);
+
+				next_screen_after_popup = SCREEN_NONE;
+				screen = menu_stack[stack_index];
+			}
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the printing of a warning on screen
+// *******************************************************************************
+void handle_screen_warning()
+{
+	static int selected_button_warning = 0;
+	static int prev_selected_button_warning = -1;
+
+	char s_ok[10] = "ok";
+	char s_cancel[10] = "cancel";
+
+	int ok_loc_x = 97;
+
+	if(!strcmp(warning_line2, "test required"))
+	{
+		ok_loc_x = 90;
+		strcpy(s_ok, "test");
+		strcpy(s_cancel, "cont.");
+	}
+
+	// Print the alert on screen
+	if(prev_screen != SCREEN_WARNING)
+	{
+		prev_screen = SCREEN_WARNING;
+
+		isCurrentlyPainting = 1;
+
+		if(warning_line3[0] != '\n')
+		{
+			fillRect(13, 20,  135, 102, ST7735_WHITE);
+			fillRect(15, 31,  130, 88, ST7735_YELLOW);
+		}
+		else
+		{
+			fillRect(13, 23,  124, 82, ST7735_WHITE);
+			fillRect(15, 35,  120, 68, ST7735_YELLOW);
+		}
+
+
+		print_string("warning", 40, 24, TEXT_HIGHLITE_HEADLINE);
+		print_string(warning_line1, 18, 41, TEXT_HIGHLITE_WARNING);
+		print_string(warning_line2, 18, 58, TEXT_HIGHLITE_WARNING);
+		if(warning_line3[0] != '\n')
+		{
+			print_string(warning_line3, 18, 75, TEXT_HIGHLITE_WARNING);
+		}
+
+		// write warning to log file
+		char message[80] = "";
+		strcat(message, "Warning: ");
+		strcat(message, warning_line1);
+		strcat(message, " ");
+		strcat(message, warning_line2);
+
+		if(warning_line3[0] != '\n')
+		{
+			strcat(message, " ");
+			strcat(message, warning_line3);
+		}
+		log_message(message);
+
+	    selected_button_warning = 0;
+	    prev_selected_button_warning = -1;
+
+	    isCurrentlyPainting = 0;
+
+	    // if there is no cancel option, just print okay
+	    if(screen_after_warning_cancel == SCREEN_NONE)
+	    {
+	    	ok_loc_x = 65;
+			if(warning_line3[0] != '\n')
+			{
+				fillRect(50, 95, 50, 20, ST7735_CYAN);
+				drawRect(50, 95, 50, 20, ST7735_DARK_BLUE);
+				print_string(s_ok, ok_loc_x, 100, TEXT_HIGHLITE_SELECTED);
+			}
+			else
+			{
+				fillRect(50, 82, 50, 20, ST7735_CYAN);
+				drawRect(50, 82, 50, 20, ST7735_DARK_BLUE);
+				print_string(s_ok, ok_loc_x, 87, TEXT_HIGHLITE_SELECTED);
+			}
+			selected_button_warning = 1;
+	    }
+		wait_for_ok = true;
+	}
+
+	if(screen_after_warning_cancel != SCREEN_NONE)
+	{
+		// the knob was rotated
+		if(rotate_cw || rotate_ccw)
+		{
+			selected_button_warning = 1 - selected_button_warning;
+			rotate_cw = 0;
+			rotate_ccw = 0;
+		}
+
+		if(prev_selected_button_warning != selected_button_warning)
+		{
+			if(warning_line3[0] != '\n')
+			{
+				if(selected_button_warning == 0)
+				{
+					fillRect(17, 95, 60, 20, ST7735_CYAN);
+					drawRect(17, 95, 60, 20, ST7735_DARK_BLUE);
+					print_string(s_cancel, 21, 100, TEXT_HIGHLITE_SELECTED);
+
+					fillRect(82, 95, 50, 20, ST7735_YELLOW);
+					print_string(s_ok, ok_loc_x, 100, TEXT_HIGHLITE_WARNING);
+				}
+				else
+				{
+					fillRect(17, 95, 60, 20, ST7735_YELLOW);
+					print_string(s_cancel, 21, 100, TEXT_HIGHLITE_WARNING);
+
+					fillRect(82, 95, 50, 20, ST7735_CYAN);
+					drawRect(82, 95, 50, 20, ST7735_DARK_BLUE);
+					print_string(s_ok, ok_loc_x, 100, TEXT_HIGHLITE_SELECTED);
+				}
+			}
+			else
+			{
+				if(selected_button_warning == 0)
+				{
+					fillRect(17, 82, 60, 20, ST7735_CYAN);
+					drawRect(17, 82, 60, 20, ST7735_DARK_BLUE);
+					print_string(s_cancel, 21, 87, TEXT_HIGHLITE_SELECTED);
+
+					fillRect(82, 82, 50, 20, ST7735_YELLOW);
+					print_string(s_ok, ok_loc_x, 87, TEXT_HIGHLITE_WARNING);
+				}
+				else
+				{
+					fillRect(17, 82, 60, 20, ST7735_YELLOW);
+					print_string(s_cancel, 21, 87, TEXT_HIGHLITE_WARNING);
+
+					fillRect(82, 82, 50, 20, ST7735_CYAN);
+					drawRect(82, 82, 50, 20, ST7735_DARK_BLUE);
+					print_string(s_ok, ok_loc_x, 87, TEXT_HIGHLITE_SELECTED);
+				}
+			}
+			prev_selected_button_warning = selected_button_warning;
+		}
+	}
+
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+	    warning_line1[0] = '\n';
+	    warning_line2[0] = '\n';
+	    warning_line3[0] = '\n';
+
+		if(selected_button_warning == 0)
+		{
+			screen = screen_after_warning_cancel;
+			warning_chosen_option = cancel_selected;
+		}
+		else
+		{
+			// if we came from the run screen and going to new patient screen, so that we can run flow and pressure test.
+			if(!self_test && self_test_warning == 1 && start_counter == -1 && screen_after_warning_ok == SCREEN_NEW_PATIENT)
+			{
+				set_blower_duty(0.0f);
+				clear_all_alerts();
+
+				// Lets blower stop for 2 seconds and then recalibrate sensors.
+				recalibrate_sensors = TIMER1_TICKS_PER_SECOND * 2;
+			}
+
+			screen = screen_after_warning_ok;
+			warning_chosen_option = ok_selected;
+		}
+	}
+}
+
+extern int alert_on_screen;
+extern int play_alert02_flag;
+extern int alerts_silence_timer[20];
+
+// *******************************************************************************
+// This function handles the printing of an alert on screen
+// *******************************************************************************
+void handle_screen_alert()
+{
+	// Print the alert on screen
+	if(prev_screen != SCREEN_ALERT)
+	{
+		int alert_index = 0;
+
+		alert_was_on_screen = true;
+
+		prev_screen = SCREEN_ALERT;
+
+		isCurrentlyPainting = 1;
+
+		// find highest priority alert
+		while(alert_index < MAX_ALERT_NUM && alert_status[alert_index] != ALERT_STATUS_ON_SCREEN)
+		{
+			alert_index++;
+		}
+
+		if(alert_index < MAX_ALERT_NUM)
+		{
+			char error_message[50];
+
+			fillRect(13, 23,  124, 82, ST7735_WHITE);
+			fillRect(15, 35,  120, 68, ST7735_RED);
+
+			print_string("alert", 40, 24, TEXT_HIGHLITE_ALERT_HEADLINE);
+
+			get_alert_text(alert_index, true, error_message);
+
+			print_string(error_message, 20, 50, TEXT_HIGHLITE_ALERT);
+			alert_on_screen = alert_index;
+
+		    fillRect(50, 82, 50, 20, ST7735_CYAN);
+		    drawRect(50, 82, 50, 20, ST7735_DARK_BLUE);
+		    print_string("ok\0", 65, 87, TEXT_HIGHLITE_SELECTED);
+		}
+		else
+		{
+			screen = menu_stack[stack_index];
+		}
+
+	    isCurrentlyPainting = 0;
+
+		wait_for_ok = true;
+	}
+
+	if(menu_stack[stack_index] == SCREEN_RUN && update_pressure_bar)
+	{
+		LCD_draw_bar(Pressure_cmH2O);
+		update_pressure_bar = 0;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		//if we have an alert_filter or alert_service we don't want to mute after ok but rather to disable the alert
+		if(alert_on_screen <= ALERT_LAST_MEDIUM_LEVEL && alert_on_screen != ALERT_SYSTEM_CRASH)
+		{
+			// silence alert for 2 minutes.
+			mute_active_alert(alert_on_screen);
+		}
+		else
+		{
+			prev_screen = SCREEN_NONE;
+
+			//deactivate the alert.
+			remove_active_alert(alert_on_screen);
+
+			if(alert_on_screen == ALERT_FILTER)
+			{
+				log_message("Replace filter alert given and acknowledged.");
+			}
+
+			if(alert_on_screen == ALERT_SERVICE)
+			{
+				log_message("Service alert given and acknowledged.");
+			}
+
+			if(alert_on_screen == ALERT_ALTITUDE)
+			{
+				if(curr_altitude > 4500)
+				{
+					log_message("High altitude alert given and acknowledged.");
+				}
+				else
+				{
+					log_message("Low altitude alert given and acknowledged.");
+				}
+			}
+
+			if(alert_on_screen == ALERT_SYSTEM_CRASH)
+			{
+				log_message("System crashed, user was instructed to stop ventilation.");
+			}
+		}
+	}
+}
+
+// *******************************************************************************
+// This function handles the alert volume control
+// *******************************************************************************
+void handle_screen_alert_vol()
+{
+	// Print the alert volume window on screen
+	if(prev_screen != SCREEN_ALERT_VOLUME)
+	{
+		prev_screen = SCREEN_ALERT_VOLUME;
+
+		isCurrentlyPainting = 1;
+
+		fillRect(13, 23,  124, 82, ST7735_WHITE);
+		fillRect(15, 35,  120, 68, ST7735_BLACK);
+
+		print_string("alert volume", 17, 24, 3);
+
+		drawFastHLine(25, 70, 91, ST7735_WHITE);
+		drawFastVLine(25, 60, 10, ST7735_WHITE);
+		drawFastVLine(48, 60, 10, ST7735_WHITE);
+		drawFastVLine(70, 60, 10, ST7735_WHITE);
+		drawFastVLine(92, 60, 10, ST7735_WHITE);
+		drawFastVLine(115, 60, 10, ST7735_WHITE);
+
+	    fillRect(50, 82, 50, 20, ST7735_CYAN);
+	    drawRect(50, 82, 50, 20, ST7735_DARK_BLUE);
+	    print_string("ok\0", 65, 87, 1);
+
+	    isCurrentlyPainting = 0;
+
+		wait_for_ok = true;
+		last_alert_volume = -1;
+	}
+
+	// the knob was rotated
+	if(rotate_cw)
+	{
+		if(param_alert_volume < 4) param_alert_volume++;
+		rotate_cw = 0;
+	}
+	if(rotate_ccw)
+	{
+		if(param_alert_volume > 0) param_alert_volume--;
+		rotate_ccw = 0;
+	}
+
+	// if the level has changed, reprint it
+	if(param_alert_volume != last_alert_volume)
+	{
+		if(param_alert_volume > 0) fillRect(30, 60, 15, 5, ST7735_CYAN);
+		if(param_alert_volume > 1) fillRect(52, 55, 15, 10, ST7735_CYAN);
+		if(param_alert_volume > 2) fillRect(74, 50, 15, 15, ST7735_CYAN);
+		if(param_alert_volume > 3) fillRect(96, 45, 15, 20, ST7735_CYAN);
+
+		if(param_alert_volume < 1) fillRect(30, 60, 15, 5, ST7735_BLACK);
+		if(param_alert_volume < 2) fillRect(52, 55, 15, 10, ST7735_BLACK);
+		if(param_alert_volume < 3) fillRect(74, 50, 15, 15, ST7735_BLACK);
+		if(param_alert_volume < 4) fillRect(96, 45, 15, 20, ST7735_BLACK);
+
+		last_alert_volume = param_alert_volume;
+
+		set_volume(param_alert_volume);
+		play_audio("alert00.wav");
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		char message[40];
+		usprintf(message,"Alert volume set at %d.", param_alert_volume);
+		log_message(message);
+
+		stack_index--;
+		screen = menu_stack[stack_index];
+		selected_button_menu = 2;
+	}
+}
+
+
+// *******************************************************************************
+// This function handles the screen bightness control
+// *******************************************************************************
+void handle_screen_brightness()
+{
+	// Print the screen brightness window on screen
+	if(prev_screen != SCREEN_BRIGHTNESS)
+	{
+		prev_screen = SCREEN_BRIGHTNESS;
+
+		isCurrentlyPainting = 1;
+
+		fillRect(13, 23,  124, 82, ST7735_WHITE);
+		fillRect(15, 35,  120, 68, ST7735_BLACK);
+
+		print_string("brightness", 35, 24, 3);
+
+		drawFastHLine(25, 70, 91, ST7735_WHITE);
+		drawFastVLine(25, 60, 10, ST7735_WHITE);
+		drawFastVLine(48, 60, 10, ST7735_WHITE);
+		drawFastVLine(70, 60, 10, ST7735_WHITE);
+		drawFastVLine(92, 60, 10, ST7735_WHITE);
+		drawFastVLine(115, 60, 10, ST7735_WHITE);
+
+	    fillRect(50, 82, 50, 20, ST7735_CYAN);
+	    drawRect(50, 82, 50, 20, ST7735_DARK_BLUE);
+	    print_string("ok\0", 65, 87, 1);
+
+	    isCurrentlyPainting = 0;
+
+		wait_for_ok = true;
+		last_brightness = -1;
+	}
+
+	// the knob was rotated
+	if(rotate_cw)
+	{
+		if(param_brightness < 4) param_brightness++;
+		rotate_cw = 0;
+	}
+	if(rotate_ccw)
+	{
+		if(param_brightness > 0) param_brightness--;
+		rotate_ccw = 0;
+	}
+
+	// if the level has changed, reprint it
+	if(param_brightness != last_brightness)
+	{
+		if(param_brightness > 0) fillRect(30, 60, 15, 5, ST7735_CYAN);
+		if(param_brightness > 1) fillRect(52, 55, 15, 10, ST7735_CYAN);
+		if(param_brightness > 2) fillRect(74, 50, 15, 15, ST7735_CYAN);
+		if(param_brightness > 3) fillRect(96, 45, 15, 20, ST7735_CYAN);
+
+		if(param_brightness < 1) fillRect(30, 60, 15, 5, ST7735_BLACK);
+		if(param_brightness < 2) fillRect(52, 55, 15, 10, ST7735_BLACK);
+		if(param_brightness < 3) fillRect(74, 50, 15, 15, ST7735_BLACK);
+		if(param_brightness < 4) fillRect(96, 45, 15, 20, ST7735_BLACK);
+
+		last_brightness = param_brightness;
+
+		LcdSetBrightness(param_brightness);
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		char message[40];
+		usprintf(message,"Screen brightness set at %d.", param_brightness);
+		log_message(message);
+
+		stack_index--;
+		screen = menu_stack[stack_index];
+		selected_button_menu = 1;
+	}
+}
+
+
+
+void LCD_draw_BR(int br)
+{
+	if(screen == SCREEN_RUN)
+	{
+		if(vent_mode == VENT_MODE_CPAP)
+		{
+			drawNumber_f24(br, ST7735_WHITE, ST7735_BLACK, 102, 40, 2);
+		}
+		else
+		{
+			drawNumber_f24(br, ST7735_WHITE, ST7735_BLACK, 100, 40, 2);
+
+			drawNumber_f24('(', ST7735_WHITE, ST7735_BLACK, 78, 40, 1);
+			drawNumber_f24(')', ST7735_WHITE, ST7735_BLACK, 118, 40, 1);
+		}
+	}
+}
+
+void LCD_draw_Alerts_Num(int state)
+{
+	switch(state)
+	{
+	case TEXT_HIGHLITE_NORMAL:
+
+		drawNumber_f12('(', ST7735_WHITE, ST7735_BLACK, 54 , 116, 1);
+
+		if(num_of_active_alerts > 9)
+		{
+			drawNumber_f12(num_of_active_alerts, ST7735_WHITE, ST7735_BLACK, 54, 116, 2);
+			drawNumber_f12(')', ST7735_WHITE, ST7735_BLACK, 76, 116, 1);
+		}
+		else
+		{
+			drawNumber_f12(num_of_active_alerts, ST7735_WHITE, ST7735_BLACK, 54, 116, 1);
+			drawNumber_f12(')', ST7735_WHITE, ST7735_BLACK, 68, 116, 1);
+			fillRect(76, 116, 10, 12, ST7735_BLACK);
+		}
+		break;
+
+	case TEXT_HIGHLITE_SELECTED:
+
+		drawNumber_f12('(', ST7735_BLUE, ST7735_CYAN, 54 , 116, 1);
+
+		if(num_of_active_alerts > 9)
+		{
+			drawNumber_f12(num_of_active_alerts, ST7735_BLUE, ST7735_CYAN, 54, 116, 2);
+			drawNumber_f12(')', ST7735_BLUE, ST7735_CYAN, 76, 116, 1);
+		}
+		else
+		{
+			drawNumber_f12(num_of_active_alerts, ST7735_BLUE, ST7735_CYAN, 54, 116, 1);
+			drawNumber_f12(')', ST7735_BLUE, ST7735_CYAN, 68, 116, 1);
+			fillRect(76, 116, 10, 12, ST7735_BLACK);
+		}
+		break;
+
+	case TEXT_HIGHLITE_ALERT:
+
+		drawNumber_f12('(', ST7735_WHITE, ST7735_RED, 54 , 116, 1);
+
+
+		if(num_of_active_alerts > 9)
+		{
+			drawNumber_f12(num_of_active_alerts, ST7735_WHITE, ST7735_RED, 54, 116, 2);
+			drawNumber_f12(')', ST7735_WHITE, ST7735_RED, 76, 116, 1);
+		}
+		else
+		{
+			drawNumber_f12(num_of_active_alerts, ST7735_WHITE, ST7735_RED, 54, 116, 1);
+			drawNumber_f12(')', ST7735_WHITE, ST7735_RED, 68, 116, 1);
+			fillRect(76, 116, 10, 12, ST7735_BLACK);
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void LCD_draw_PIP()
+{
+	if(screen == SCREEN_RUN)
+	{
+		drawNumber_f12(PIP_to_print, ST7735_BLUE, ST7735_YELLOW, 80, 105, 4);
+	}
+}
+
+void LCD_draw_PEEP()
+{
+	static int prev_peep_one_dig = -1;
+	int current_peep_one_dig = 1;
+
+	if(screen == SCREEN_RUN)
+	{
+		int peep_whole = (int)measured_peep;
+		int peep_fracture = (int)((measured_peep - (int)measured_peep) * 10);
+
+		if(peep_whole > 9)
+		{
+			current_peep_one_dig = 0;
+		}
+		else
+		{
+			current_peep_one_dig = 1;
+		}
+
+		if(prev_peep_one_dig != -1 && current_peep_one_dig != prev_peep_one_dig)
+		{
+			fillRect(38, 100, 30, 15, ST7735_BLACK);
+		}
+
+		if(peep_whole > 9)
+		{
+			drawNumber_f12(peep_whole, ST7735_WHITE, ST7735_BLACK, 28, 100, 2);
+			drawRect(53, 109, 2, 2, ST7735_WHITE);
+
+			prev_peep_one_dig = 0;
+		}
+		else
+		{
+			drawNumber_f12(peep_whole, ST7735_WHITE, ST7735_BLACK, 34, 100, 1);
+			drawRect(51, 109, 2, 2, ST7735_WHITE);
+
+			prev_peep_one_dig = 1;
+		}
+
+		drawNumber_f12(peep_fracture, ST7735_WHITE, ST7735_BLACK, 46, 100, 1);
+	}
+}
+
+void LCD_draw_IE()
+{
+	static int prev_measured_insp_time = 0;
+	static int prev_measured_exp_time = 0;
+
+	if(prev_measured_insp_time != measured_insp_time ||
+	   prev_measured_exp_time != measured_exp_time)
+	{
+		if(measured_insp_time <= measured_exp_time)
+		{
+			int exp_whole = (int)(measured_exp_time / measured_insp_time);
+			int exp_fract = (int)((((float)measured_exp_time / (float)measured_insp_time) - exp_whole) * 10);
+
+			if(inverse_ie == true)
+			{
+				fillRect(89, 99, 42, 13, ST7735_BLACK);
+				inverse_ie = false;
+			}
+
+			drawNumber_f12(1, ST7735_WHITE, ST7735_BLACK, 82, 100, 1);
+			drawNumber_f12(exp_whole, ST7735_WHITE, ST7735_BLACK, 98, 100, 1);
+			drawNumber_f12(exp_fract, ST7735_WHITE, ST7735_BLACK, 110, 100, 1);
+
+			// add the symbol ':'
+			drawRect(100, 102, 2, 2, ST7735_WHITE);
+			drawRect(100, 107, 2, 2, ST7735_WHITE);
+
+			// add the symbol '.'
+			drawRect(115, 109, 2, 2, ST7735_WHITE);
+		}
+		else
+		{
+			int exp_whole = (int)(measured_insp_time / measured_exp_time);
+			int exp_fract = (int)((((float)measured_exp_time / (float)measured_insp_time) - exp_whole) * 10);
+
+			if(inverse_ie == false)
+			{
+				fillRect(89, 99, 42, 13, ST7735_BLACK);
+				inverse_ie = true;
+			}
+
+			drawNumber_f12(exp_whole, ST7735_WHITE, ST7735_BLACK, 82, 100, 1);
+			drawNumber_f12(exp_fract, ST7735_WHITE, ST7735_BLACK, 94, 100, 1);
+			drawNumber_f12(1, ST7735_WHITE, ST7735_BLACK, 110, 100, 1);
+
+			// add the symbol ':'
+			drawRect(112, 102, 2, 2, ST7735_WHITE);
+			drawRect(112, 107, 2, 2, ST7735_WHITE);
+
+			// add the symbol '.'
+			drawRect(99, 109, 2, 2, ST7735_WHITE);
+		}
+	}
+}
+
+
+void LCD_draw_TV()
+{
+	if(screen == SCREEN_RUN || screen == SCREEN_GRAPH)
+	{
+		drawNumber_f24((int)TIDAL_VOLUME, ST7735_WHITE, ST7735_BLACK, 100, 90, 4);
+	}
+}
+
+void LCD_draw_MV(int br)
+{
+	if(screen == SCREEN_RUN)
+	{
+		int mv_whole = (int)TIDAL_VOLUME * br / 1000;
+		if(mv_whole > 9)
+		{
+			drawNumber_f24(mv_whole, ST7735_WHITE, ST7735_BLACK, 60, 65, 2);
+		}
+		else
+		{
+			drawNumber_f24(mv_whole, ST7735_WHITE, ST7735_BLACK, 60, 65, 2);
+		}
+
+		drawNumber_f24((int)TIDAL_VOLUME * br / 10 % 100, ST7735_WHITE, ST7735_BLACK, 100, 65, 2);
+
+		drawRect(78, 63, 2, 4, ST7735_WHITE);
+		drawRect(77, 64, 4, 2, ST7735_WHITE);
+	}
+}
+
+extern char clear_pip_from_bar;
+
+void LCD_draw_bar(double value)
+{
+	// screen values 14 - 113
+	if(value < 0) value = 0;
+	if(value > 49) value = 49;
+
+	static int prev_start = 120;
+
+	int bar_size = (int)(value * 2); // 2 pixels per 1 cmH2O
+	int bar_start = 113 - bar_size;
+
+	if(clear_pip_from_bar)
+	{
+		fillRect(147, 14, 11, 100, ST7735_BLACK);
+		clear_pip_from_bar = false;
+	}
+
+	if(prev_start < bar_start)
+	{
+		fillRect(147, prev_start, 11, bar_start - prev_start, ST7735_BLUE);
+	}
+	fillRect(147, bar_start , 11, bar_size, ST7735_GREEN);
+
+	//drawNumber_f24((int)Pressure_cmH2O, ST7735_WHITE, ST7735_BLACK, 100, 90, 4);
+
+	prev_start = bar_start;
+}
+
+// *******************************************************************************
+// This function handles the printing of an alert on screen
+// *******************************************************************************
+void handle_screen_active_alerts()
+{
+	char error_message[50];
+
+	if(test_watchdog)
+	{
+		handle_screen_active_alerts();
+	}
+
+	// Print the alert on screen
+	if(prev_screen != SCREEN_ACTIVE_ALERTS)
+	{
+		prev_screen = SCREEN_ACTIVE_ALERTS;
+
+		isCurrentlyPainting = 1;
+
+		fillRect(3, 8,  144, 114, ST7735_WHITE);
+		fillRect(5, 23,  140, 98, ST7735_RED);
+
+		print_string("active alerts", 15, 10, TEXT_HIGHLITE_ALERT_HEADLINE);
+
+	    fillRect(45, 100, 50, 18, ST7735_CYAN);
+	    print_string("ok\0", 60, 103, 1);
+	    drawRect(45, 100, 50, 18, ST7735_DARK_BLUE);
+
+	    isCurrentlyPainting = 0;
+
+		wait_for_ok = true;
+
+		int i;
+		int num_of_printed_alerts = 0;
+		int alert_print_location = 27;
+
+
+		for(i = 0; i < MAX_ALERT_NUM; i++)
+		{
+			if(alert_status[i] != ALERT_STATUS_NOT_ACTIVE && num_of_printed_alerts < 5)
+			{
+				get_alert_text(i, false, error_message);
+
+				print_string(error_message, 10, alert_print_location, TEXT_HIGHLITE_ALERT);
+				alert_print_location+= 15;
+				num_of_printed_alerts++;
+
+				error_message[0] = '\n';
+			}
+		}
+	}
+
+	if(update_pressure_bar)
+	{
+		LCD_draw_bar(Pressure_cmH2O);
+		update_pressure_bar = 0;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		is_return_from_alerts = true;
+		screen = SCREEN_RUN;
+		run_menu_active_timer = 2500;
+		run_menu_active = true;
+	}
+}
+
+// *******************************************************************************
+// This function handles the O2 enrichment selection screen
+// *******************************************************************************
+void handle_screen_select_o2()
+{
+	static int editing_field = -1;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_SELECT_O2)
+	{
+		menu_stack[stack_index] = SCREEN_SELECT_O2;
+		prev_screen = SCREEN_SELECT_O2;
+		fillScreen(ST7735_BLACK);
+
+		prev_selected_button_menu = -1;
+
+		if(param_o2_percent == 21)
+		{
+			selected_button_menu = 0;
+		}
+		else if(param_o2_percent == 100)
+		{
+			selected_button_menu = 1;
+		}
+		else
+		{
+			selected_button_menu = 2;
+		}
+
+		LCD_draw_batt();
+		print_string("o enrichment", 50 , 1, 3);
+		drawString("2",  60, 4,  ST7735_BLACK, ST7735_WHITE, 1);
+		print_string("no enrichment", 15 , 24, 0);
+		print_string("   % oxygen", 14 , 41, 0); drawNumber_f12(100, ST7735_WHITE, ST7735_BLACK, 4, 41, 3);
+		print_string("other:    %", 15 , 58, 0); drawNumber_f12(param_o2_percent, ST7735_WHITE, ST7735_BLACK, 65, 58, 3);
+		print_string("back", 120 , 114, 0);
+
+		wait_for_ok = true;
+		editing_field = -1;
+	}
+
+	// see if the knob was rotated
+	if(rotate_ccw || rotate_cw)
+	{
+		// if we are not in edit mode change selected button
+		if(editing_field == -1)
+		{
+			if(rotate_cw)
+			{
+				selected_button_menu++;
+				if(selected_button_menu == 4) selected_button_menu = 0;
+				rotate_cw = 0;
+			}
+			if(rotate_ccw)
+			{
+				selected_button_menu--;
+				if(selected_button_menu == -1) selected_button_menu = 3;
+				rotate_ccw = 0;
+			}
+		}
+		// in edit mode change o2 value
+		else
+		{
+			if(rotate_cw)
+			{
+				param_o2_percent = param_o2_percent + 10;
+				rotate_cw = 0;
+
+				if(param_o2_percent == 31)
+				{
+					param_o2_percent = 30;
+				}
+				if(param_o2_percent > 100)
+				{
+					param_o2_percent = 100;
+				}
+			}
+			if(rotate_ccw)
+			{
+				param_o2_percent = param_o2_percent - 10;
+				rotate_ccw = 0;
+
+				if(param_o2_percent < 21)
+				{
+					param_o2_percent = 21;
+				}
+			}
+			drawNumber_f12(param_o2_percent, ST7735_WHITE, ST7735_RED, 65, 58, 3);
+		}
+	}
+
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) print_string("no enrichment", 15 , 24, 1);
+		if(prev_selected_button_menu == 0) print_string("no enrichment", 15 , 24, 0);
+
+		if(selected_button_menu == 1)
+		{
+			//print_string("100% oxygen", 14 , 41, 1);
+			print_string("   % oxygen", 14 , 41, 1);
+			drawNumber_f12(100, ST7735_BLUE, ST7735_CYAN, 4, 41, 3);
+		}
+		if(prev_selected_button_menu == 1)
+		{
+			//print_string("100% oxygen", 14 , 41, 0);
+			print_string("   % oxygen", 14 , 41, 0);
+			drawNumber_f12(100, ST7735_WHITE, ST7735_BLACK, 4, 41, 3);
+		}
+
+		if(selected_button_menu == 2) drawNumber_f12(param_o2_percent, ST7735_DARK_BLUE, ST7735_CYAN, 65, 58, 3);
+		if(prev_selected_button_menu == 2) drawNumber_f12(param_o2_percent, ST7735_WHITE, ST7735_BLACK, 65, 58, 3);
+
+		if(selected_button_menu == 3) print_string("back", 120 , 114, 1);
+		if(prev_selected_button_menu == 3) print_string("back", 120 , 114, 0);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(selected_button_menu == 0)
+		{
+			param_o2_percent = 21;
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 2;
+			update_o2_correction_factor(21);
+		}
+		else if(selected_button_menu == 1)
+		{
+			param_o2_percent = 100;
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 2;
+			update_o2_correction_factor(100);
+		}
+		else if(selected_button_menu == 2)
+		{
+			if(editing_field == -1)
+			{
+				editing_field = 2;
+				drawNumber_f12(param_o2_percent, ST7735_WHITE, ST7735_RED, 65, 58, 3);
+				wait_for_ok = true;
+			}
+			else
+			{
+				editing_field = -1;
+				stack_index--;
+				screen = menu_stack[stack_index];
+				selected_button_menu = 2;
+				update_o2_correction_factor(param_o2_percent);
+			}
+		}
+		else if(selected_button_menu == 3)
+		{
+			stack_index--;
+			screen = menu_stack[stack_index];
+			selected_button_menu = 2;
+		}
+	}
+ }
+
+extern int is_play_sound;
+
+#define wake
+
+// *******************************************************************************
+// This function puts the MCU into hibernation
+// *******************************************************************************
+void start_hibernate()
+#ifdef nohib
+{
+    fillScreen(ST7735_BLACK);
+    GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, 0x00);
+    is_ventilating = false;
+    set_blower_duty(0.0f);
+}
+#else
+#ifdef wake
+{
+    uint32_t ui32Status;
+	fillScreen(ST7735_BLACK);
+	GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, 0x00);
+	is_ventilating = false;
+	set_blower_duty(0.0f);
+	//ROM_IntMasterDisable();
+
+
+	ROM_SysTickDisable();
+	ROM_SysTickIntDisable();
+	SysCtlPeripheralDisable(SYSCTL_PERIPH_TIMER0);
+	SysCtlPeripheralDisable(SYSCTL_PERIPH_TIMER1);
+#ifdef ENABLE_WATCHDOG
+	ROM_WatchdogResetDisable(WATCHDOG0_BASE);
+	ROM_IntDisable(INT_WATCHDOG);
+#endif // ENABLE_WATCHDOG
+	ROM_IntMasterDisable();
+
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_HIBERNATE);
+    // Wait for the Hibernate module to be ready.
+    //
+    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_HIBERNATE))
+    {
+    }
+
+	HibernateEnableExpClk(SysCtlClockGet());
+    SysCtlDelay(64000000);
+	//HibernateClockConfig(HIBERNATE_OSC_LOWDRIVE);	//HibernateGPIORetentionEnable();
+	SysCtlDelay(64000000);
+	ui32Status = HibernateIntStatus(0);
+	HibernateIntClear(ui32Status);
+	HibernateWakeSet(HIBERNATE_WAKE_PIN);
+	HibernateRequest();
+	while(1)
+	{
+	}
+}
+#endif
+#ifndef wake
+{
+    uint32_t ui32Status;
+    fillScreen(ST7735_BLACK);
+    GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, 0x00);
+    is_ventilating = false;
+    set_blower_duty(0.0f);
+    IntDisable(INT_GPIOF);
+    // Enable and configure GPIO port F pin 4 for the on/off switch operation.
+    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_4);
+    GPIOPadConfigSet(GPIO_PORTF_BASE,GPIO_PIN_4,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD);
+    GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_4, 0xff);
+
+
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_HIBERNATE);
+	HibernateEnableExpClk(SysCtlClockGet());
+	SysCtlDelay(64000000);
+	HibernateClockConfig(HIBERNATE_OSC_LOWDRIVE);
+
+	HibernateRTCEnable();
+	HibernateGPIORetentionEnable();
+	HibernateRTCSet(0);
+	HibernateRTCEnable();
+	HibernateRTCSet(0);
+	//
+	// Set the match 0 register for 30 seconds from now.
+	//
+	HibernateRTCMatchSet(0, HibernateRTCGet() + 60);
+	ui32Status = HibernateIntStatus(0);
+	HibernateIntClear(ui32Status);
+	HibernateWakeSet( HIBERNATE_WAKE_RTC);
+	HibernateRequest();
+	while(1)
+	{
+	}
+}
+#endif
+#endif
+void end_hibernate()
+{
+	SysCtlReset();
+}
+
+// *******************************************************************************
+// This function handles the printing of the volume clibration screen #1
+// it also handles the diferent button selection states.
+// *******************************************************************************
+void handle_screen_shutdown()
+{
+
+	static int shutoff_phase = 1;
+
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_SHUTDOWN)
+	{
+		menu_stack[stack_index] = SCREEN_SHUTDOWN;
+		prev_screen = SCREEN_SHUTDOWN;
+
+		fillRect(13, 23,  124, 82, ST7735_WHITE);
+		fillRect(15, 35,  120, 68, ST7735_RED);
+
+
+
+		LCD_draw_batt();
+
+		print_string("shutdown", 35 , 24, TEXT_HIGHLITE_ALERT_HEADLINE);
+		print_string("are you sure", 20 , 40, TEXT_HIGHLITE_ALERT);
+		print_string("you want to", 20 , 56, TEXT_HIGHLITE_ALERT);
+		print_string("shutdown", 20 , 72, TEXT_HIGHLITE_ALERT);
+
+		print_string("cancel", 20 , 88, TEXT_HIGHLITE_ALERT);
+		print_string("ok", 110 , 88, TEXT_HIGHLITE_ALERT);
+		prev_selected_button_menu = -1;
+		selected_button_menu = 0;
+
+		is_play_sound = 0;
+
+		wait_for_ok = true;
+	}
+
+    if(is_play_sound == 0 && shutoff_phase == 2)
+    {
+    	is_play_sound = TIMER1_TICKS_PER_SECOND;
+    	play_audio("alert00.wav");
+    }
+
+	// see if the knob was rotated, if so, change selected button
+	if(rotate_ccw || rotate_cw)
+	{
+		if(rotate_cw)
+		{
+			selected_button_menu++;
+			if(selected_button_menu == 2)
+			{
+				selected_button_menu = 0;
+			}
+			rotate_cw = 0;
+		}
+		if(rotate_ccw)
+		{
+			selected_button_menu--;
+			if(selected_button_menu == -1)
+			{
+				selected_button_menu = 1;
+			}
+			rotate_ccw = 0;
+		}
+	}
+
+	// if the selected button has changed, reprint it
+	if(selected_button_menu != prev_selected_button_menu)
+	{
+		if(selected_button_menu == 0) print_string("cancel", 20 , 88, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 0) print_string("cancel", 20 , 88, TEXT_HIGHLITE_ALERT);
+
+		if(selected_button_menu == 1) print_string("ok", 110 , 88, TEXT_HIGHLITE_SELECTED);
+		if(prev_selected_button_menu == 1) print_string("ok", 110 , 88, TEXT_HIGHLITE_ALERT);
+
+		prev_selected_button_menu = selected_button_menu;
+	}
+
+	// the knob was pushed
+	if(!wait_for_ok)
+	{
+		if(shutoff_phase == 1)
+		{
+			if(selected_button_menu == 0)
+			{
+				screen = next_screen_after_popup;
+			}
+			if(selected_button_menu == 1)
+			{
+				//update the wh file on the SD card.
+				itoa(900000 - working_hours_minute_counter, working_minutes_left, 10);
+				save_working_hours_amount(working_minutes_left);
+
+				shutoff_phase = 2;
+				wait_for_ok = true;
+			}
+		}
+		else if(shutoff_phase == 2)
+		{
+			is_play_sound = -1;
+			start_hibernate();
+			is_hibernating = true;
+		}
+	}
+}
+
+
+// *******************************************************************************
+// This function handles the printing of the ventway logo
+// *******************************************************************************
+void handle_screen_logo(int was_reset_by_wdog)
+{
+	fillScreen(ST7735_WHITE);
+	loadPictureDat("logo.dat", 30, 14, 100, 100);
+
+	delay_ms(1500);
+	if(was_reset_by_wdog)
+	{
+		play_audio("alert05.wav");
+	}
+	else
+	{
+		play_audio("alert04.wav");
+	}
+
+	delay_ms(1500);
+}
+
+// **************************************************************************************
+// This function handles the option to choose if we are working in invasive mode or not.
+// **************************************************************************************
+void handle_screen_invasive_mode()
+{
+	// Print the screen once we enter this screen
+	if(prev_screen != SCREEN_INVASIVE_MODE)
+	{
+		prev_screen = SCREEN_INVASIVE_MODE;
+		menu_stack[stack_index] = SCREEN_INVASIVE_MODE;
+
+		fillScreen(ST7735_BLACK);
+		print_string("iv/niv mode", 50 , 1, 3);
+		print_string("invasive mode", 10 , 25, TEXT_HIGHLITE_NORMAL);
+		print_string("invasive", 20, 50, TEXT_HIGHLITE_NORMAL);
+		print_string("non invasive", 20, 70, TEXT_HIGHLITE_NORMAL);
+		print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+		LCD_draw_batt();
+		wait_for_ok = true;
+
+		prev_selected_button_menu = -1;
+
+		if(invasive_mode == NON_INVASIVE_MODE)
+		{
+			selected_button_menu = 1;
+		}
+		else
+		{
+			selected_button_menu = 0;
+		}
+	}
+	else
+	{
+		// see if the knob was rotated, if so, change selected button
+		if(rotate_cw || rotate_ccw)
+		{
+			if(rotate_ccw)
+			{
+				selected_button_menu--;
+				if(selected_button_menu < 0) selected_button_menu = 2;
+				rotate_ccw = 0;
+			}
+			if(rotate_cw)
+			{
+				selected_button_menu++;
+				if(selected_button_menu > 2) selected_button_menu = 0;
+				rotate_cw = 0;
+			}
+
+			rotate_cw = 0;
+			rotate_ccw = 0;
+		}
+
+		// if the selected button has changed, reprint it
+		if(selected_button_menu != prev_selected_button_menu)
+		{
+			if(selected_button_menu == 0) print_string("invasive", 20, 50, TEXT_HIGHLITE_SELECTED);
+			if(prev_selected_button_menu == 0) print_string("invasive", 20, 50, TEXT_HIGHLITE_NORMAL);
+
+			if(selected_button_menu == 1) print_string("non invasive", 20, 70, TEXT_HIGHLITE_SELECTED);
+			if(prev_selected_button_menu == 1) print_string("non invasive", 20, 70, TEXT_HIGHLITE_NORMAL);
+
+			if(selected_button_menu == 2) print_string("back", 120 , 114, TEXT_HIGHLITE_SELECTED);
+			if(prev_selected_button_menu == 2) print_string("back", 120 , 114, TEXT_HIGHLITE_NORMAL);
+
+			prev_selected_button_menu = selected_button_menu;
+		}
+
+		// the knob was pushed
+		if(!wait_for_ok)
+		{
+			if(!selected_button_menu)
+			{
+				invasive_mode = INVASIVE_MODE;
+			}
+			else if(selected_button_menu == 1)
+			{
+				invasive_mode = NON_INVASIVE_MODE;
+			}
+
+			if(selected_button_menu != 2)
+			{
+				set_default_vent_params();
+			}
+
+			// If we are in top level of menu stack, continue to connect patient screen
+			if(stack_index == 0)
+			{
+				if(selected_button_menu != 2) //not back
+				{
+					screen = SCREEN_CONNECT;
+					selected_button_menu = 0;
+				}
+				else
+				{
+					screen = SCREEN_MODE;
+					selected_button_menu = 0;
+				}
+			}
+			// Else go back up the menu stack
+			else
+			{
+				stack_index--;
+				screen = menu_stack[stack_index];
+				selected_button_menu = 4;
+			}
+		}
+	}
+}

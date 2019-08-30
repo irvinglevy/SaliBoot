@@ -1,0 +1,127 @@
+/*
+ * adc.c
+ *
+ *  Created on: Jul 21, 2016
+ *      Author: Irving
+ */
+
+#include "driverlib.h"
+#include "def.h"
+uint16_t BatteryVoltage;
+uint8_t bat_flag=0;
+unsigned int bat_cntr=0;
+extern uint8_t low_battery_flag;
+
+
+void initADC(void) {
+    //Set P1.0 as Ternary Module Function Output.
+     /*
+
+     * Select Port 1
+     * Set Pin 0 to output Ternary Module Function, (A0, C1, VREF+, VeREF+).
+     */
+     GPIO_setAsPeripheralModuleFunctionInputPin(
+        GPIO_PORT_P1,
+        GPIO_PIN1
+    );
+     //GPIO_setAsOutputPin(
+     //     AUDIO_PORT,
+    //      STBY);
+    // GPIO_setOutputHighOnPin (AUDIO_PORT,STBY);
+     // Initialize ADC10_A with ADC10_A’s built-in oscillator
+     ADC10_A_init (ADC10_A_BASE,
+     ADC10_A_SAMPLEHOLDSOURCE_SC,
+     ADC10_A_CLOCKSOURCE_ADC10OSC,
+     ADC10_A_CLOCKDIVIDER_1);     //Initialize the ADC10B Module
+
+     //Enable the ADC10B module
+     ADC10_A_enable(ADC10_A_BASE);
+
+     // Setup sampling timer to sample-and-hold for 512 clock cycles
+     // Modify this to TRUE to enable multiple samples
+     ADC10_A_setupSamplingTimer (ADC10_A_BASE,
+     ADC10_A_CYCLEHOLD_4_CYCLES,
+     ADC10_A_MULTIPLESAMPLESDISABLE);
+
+     // Configure the Input to the Memory Buffer with the specified Reference Voltages
+     // Modify this to A1 to allow both A0 and A1 to be sampled using multiple samples
+     ADC10_A_configureMemory(ADC10_A_BASE,
+     ADC10_A_INPUT_A1,
+     ADC10_A_VREFPOS_INT, // Vref+ = AVcc VREFPOS_INT
+     ADC10_A_VREFNEG_AVSS // Vref- = AVss
+     );
+
+/*     //Configure internal reference
+     //If ref generator busy, WAIT
+     while ( REF_BUSY == REF_isRefGenBusy(REF_BASE) ) ;
+
+     //Select internal ref = 2.5V
+     REF_setReferenceVoltage(REF_BASE,
+                           REF_VREF2_5V);
+
+     //Internal Reference ON
+    REF_enableReferenceVoltage(REF_BASE); */
+    ADC10_A_setDataReadBackFormat(ADC10_A_BASE,ADC10_A_UNSIGNED_BINARY);
+    ADC10_A_clearInterrupt(ADC10_A_BASE,
+                            ADC10IE0);
+
+     //Enable the Memory Buffer Interrupt
+     ADC10_A_enableInterrupt(ADC10_A_BASE,
+                             ADC10IE0);
+
+
+}
+//Battery voltage should be 3.8 volts
+// Measured voltage is 1/2 this or 1.9V
+// ADC full scale is 2.5V
+// Full Scale ADC Units is 1024
+// 1.9V = 1.9/2.5 * 1024 or 778 adc units
+// Low battery should be announced at approx 3.6V
+// 3.6/2 = 1.8V
+// 1.8V is 1.8/2.5 * 1024 or 737 adc units
+// only 5 bits are transferred to the PC
+// Minimum Voltage is 2.5V and Maximum Voltage is 5 Volts for transfer to PC
+// With the division by 2 in hardware, voltage is 1.25V to 2.5V
+// Formula  (ADCin - 614)/8 = ADCunits sent to PC
+
+/*
+Vbat    V/2     ADC     ADC-614 (ADC-614)/8      Sent to PC
+4.2     2.1     860.16  246.16  30.77           30
+4.1     2.05    839.68  225.68  28.21           28
+4       2       819.2   205.2   25.65           25
+3.9     1.95    798.72  184.72  23.09           23
+3.8     1.9     778.24  164.24  20.53           20
+3.7     1.85    757.76  143.76  17.97           17
+3.6     1.8     737.28  123.28  15.41           15
+3.5     1.75    716.8   102.8   12.85           12
+3.4     1.7     696.32  82.32   10.29           10
+3.3     1.65    675.84  61.84   7.73            7
+3.2     1.6     655.36  41.36   5.17            5
+3.1     1.55    634.88  20.88   2.61            2
+3       1.5     614.4   0.4     0.05            0
+*/
+#pragma vector=ADC10_VECTOR
+
+__interrupt void ADC10_ISR(void)
+{
+        switch (__even_in_range(ADC10IV, 12)) {
+        case  0: break; //No interrupt
+        case  2: break; //conversion result overflow
+        case  4: break; //conversion time overflow
+        case  6: break; //ADC10HI
+        case  8: break; //ADC10LO
+        case 10: break; //ADC10IN
+        case 12:        //ADC10IFG0
+
+            BatteryVoltage = ADC10_A_getResults(ADC10_A_BASE);
+            BatteryVoltage =(BatteryVoltage-614)>>3;
+            if(BatteryVoltage > 31)BatteryVoltage=31;
+            if(BatteryVoltage < 16)low_battery_flag=1;
+            else low_battery_flag = 0;
+
+            break;
+        default: break;
+        }
+}
+
+

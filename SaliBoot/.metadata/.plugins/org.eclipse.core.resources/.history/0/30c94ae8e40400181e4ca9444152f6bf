@@ -1,0 +1,191 @@
+/*
+ * resp.c
+ *
+ *  Created on: Sep 6, 2016
+ *      Author: Irving
+ */
+#include "driverlib.h"
+#include "def.h"
+
+
+
+uint16_t resp1;
+uint16_t resp2;
+uint32_t results[3];
+uint8_t resp_status;
+extern uint16_t BatteryVoltage;
+
+extern uint8_t TX_Pool_Available_Flag;
+
+uint16_t resp_Packet_Pointer;
+uint8_t resp_Packet[RESP_PACKET_SIZE];
+uint8_t resp_new_packet[RESP_PACKET_SIZE];
+uint8_t resp_packet_flag;
+uint16_t resp_Packet_Number;
+uint16_t missed_resp_packet_count;
+// Initialize the respiration ADC
+// fSD24 is calculated as fSD24 = fSD24SCLK / [(SD24DIVx + 1) × 2^SD24PDIVx].
+// Sample Rate = fSD24/OSR
+// OSR default is 256
+// fsd24sclk = 1.048576Mhz/((8+1)*4^2)=7281.777778
+// Sample Rate = 7282/256 = 28 Hz
+//
+void init_resp(void){
+    SD24_B_initParam initParam = {0};
+    initParam.clockSourceSelect = SD24_B_CLOCKSOURCE_SMCLK;
+    initParam.clockPreDivider = SD24_B_PRECLOCKDIVIDER_8;
+    initParam.clockDivider = SD24_B_CLOCKDIVIDER_4;
+    initParam.referenceSelect = SD24_B_REF_INTERNAL;
+    SD24_B_init(SD24_BASE, &initParam);
+
+    SD24_B_initConverterParam initConverterParam0 = {0};
+    initConverterParam0.converter = SD24_B_CONVERTER_0;
+    initConverterParam0.alignment = SD24_B_ALIGN_RIGHT;
+    initConverterParam0.startSelect = SD24_B_CONVERSION_SELECT_GROUP1;
+    initConverterParam0.conversionMode = SD24_B_CONTINUOUS_MODE;
+    SD24_B_initConverter(SD24_BASE, &initConverterParam0);
+
+    SD24_B_initConverterParam initConverterParam1 = {0};
+    initConverterParam1.converter = SD24_B_CONVERTER_1;
+    initConverterParam1.alignment = SD24_B_ALIGN_RIGHT;
+    initConverterParam1.startSelect = SD24_B_CONVERSION_SELECT_GROUP1;
+    initConverterParam1.conversionMode = SD24_B_CONTINUOUS_MODE;
+    SD24_B_initConverter(SD24_BASE, &initConverterParam1);
+
+    SD24_B_initConverterParam initConverterParam2 = {0};
+    initConverterParam2.converter = SD24_B_CONVERTER_2;
+    initConverterParam2.alignment = SD24_B_ALIGN_RIGHT;
+    initConverterParam2.startSelect = SD24_B_CONVERSION_SELECT_GROUP1;
+    initConverterParam2.conversionMode = SD24_B_CONTINUOUS_MODE;
+    SD24_B_initConverter(SD24_BASE, &initConverterParam2);
+
+    SD24_B_clearInterrupt(SD24_BASE,
+                          SD24_B_CONVERTER_2,
+                          SD24_B_CONVERTER_INTERRUPT);                       // Clear channel 2 interrupt
+    SD24_B_enableInterrupt(SD24_BASE,
+                           SD24_B_CONVERTER_2,
+                           SD24_B_CONVERTER_INTERRUPT);                      // Enable channel 2 interrupt
+
+    __delay_cycles(0x3600);                 // Delay for 1.5V REF startup
+
+    GPIO_setAsOutputPin(
+              SHUTDOWN_PORT,
+              SHUTDOWN_PIN
+          );
+
+      GPIO_setOutputHighOnPin(
+              SHUTDOWN_PORT,
+              SHUTDOWN_PIN
+          );
+
+}
+
+/******************************************
+ * Time set to interrupt at 25Khz rate
+ *****************************************/
+void initTimer(void) {
+    Timer_A_initUpModeParam params = {
+        TIMER_A_CLOCKSOURCE_ACLK,
+        TIMER_A_CLOCKSOURCE_DIVIDER_1,
+        CLK_DIVIDE,
+        TIMER_A_TAIE_INTERRUPT_DISABLE,
+        TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE,
+        TIMER_A_DO_CLEAR,
+        TRUE
+
+    };
+    Timer_A_clearTimerInterrupt (TIMER_A1_BASE);
+    Timer_A_initUpMode (TIMER_A1_BASE,&params);
+
+
+
+}
+
+//******************************************************************************
+//
+//This is the TIMER1_A0 interrupt vector service routine.
+//
+//******************************************************************************
+#pragma vector=TIMER1_A0_VECTOR
+__interrupt void TIMER1_A0_ISR (void)
+{
+    SD24_B_startGroupConversion(SD24_BASE,
+                                SD24_B_CONVERTER_1);                                        // Set bit to start conversion
+
+    if(green_state_cntr != 0)green_state_cntr--;
+    if(orange_state_cntr != 0)orange_state_cntr--;
+
+
+    __no_operation();                   // SET BREAKPOINT HERE
+}
+
+
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector=SD24B_VECTOR
+__interrupt
+#elif defined(__GNUC__)
+__attribute__((interrupt(SD24B_VECTOR)))
+#endif
+void SD24BISR(void)
+{
+    int i;
+
+    switch(SD24BIV)
+    {
+    case SD24BIV_SD24OVIFG:                 // SD24MEM Overflow
+        break;
+    case SD24BIV_SD24TRGIFG:                // SD24 Trigger IFG
+        break;
+    case SD24BIV_SD24IFG0:                  // SD24MEM0 IFG
+        break;
+    case SD24BIV_SD24IFG1:                  // SD24MEM1 IFG
+        break;
+    case SD24BIV_SD24IFG2:                  // SD24MEM2 IFG
+        results[0] = SD24_B_getResults(SD24_BASE,
+                                       SD24_B_CONVERTER_0);                             // Save CH0 results (clears IFG)
+        results[1] = SD24_B_getResults(SD24_BASE,
+                                       SD24_B_CONVERTER_1);                             // Save CH1 results (clears IFG)
+        results[2] = SD24_B_getResults(SD24_BASE,
+                                       SD24_B_CONVERTER_2);                             // Save CH2 results (clears IFG)
+        break;
+    }
+
+    SD24_B_stopGroupConversion(SD24_BASE,
+                               SD24_B_CONVERTER_1);                                 // Clear bit for next conversion
+
+    if(resp_Packet_Pointer == 0){
+        resp_Packet[resp_Packet_Pointer++]=(byte) RESP_PROTOCOL+(byte)(BatteryVoltage&0x1f);
+        //resp_Packet[resp_Packet_Pointer++]=(byte) resp_status;
+        //resp_Packet[resp_Packet_Pointer++]=(byte)((resp_Packet_Number>>8)&0xff);
+       resp_Packet[resp_Packet_Pointer++]=(byte)(resp_Packet_Number&0xff);
+    }
+    resp_Packet[resp_Packet_Pointer++]=(byte)(results[0]>>8)&0xff;
+    resp_Packet[resp_Packet_Pointer++]=(byte)(results[0]>>16)&0xff;
+    resp_Packet[resp_Packet_Pointer++]=(byte)(results[1]>>8)&0xff;
+    resp_Packet[resp_Packet_Pointer++]=(byte)(results[1]>>16)&0xff;
+    resp_Packet[resp_Packet_Pointer++]=(byte)(results[2]>>8)&0xff;
+    resp_Packet[resp_Packet_Pointer++]=(byte)(results[2]>>16)&0xff;//
+    if(resp_Packet_Pointer == RESP_PACKET_SIZE){
+       resp_Packet_Pointer = 0;
+        resp_Packet_Number++;
+        for(i=0;i<RESP_PACKET_SIZE;i++)resp_new_packet[i]=resp_Packet[i];
+        resp_packet_flag=1;
+        if(!TX_Pool_Available_Flag)missed_resp_packet_count++;
+        else missed_resp_packet_count = 0;
+
+
+        }
+
+
+}
+
+void resp(void){
+    SD24_B_startGroupConversion(SD24_BASE,
+                                SD24_B_CONVERTER_1);                                        // Set bit to start conversion
+
+
+
+    __no_operation();                   // SET BREAKPOINT HERE
+
+}
+

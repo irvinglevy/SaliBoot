@@ -1,0 +1,173 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_gpio.h"
+#include "inc/hw_nvic.h"
+#include "inc/hw_sysctl.h"
+#include "inc/hw_types.h"
+#include "inc/hw_memmap.h"
+#include "driverlib/gpio.h"
+#include  "driverlib/rom_map.h"
+#include "driverlib/rom.h"
+#include "fatfs/src/ff.h"
+#include "fatfs/src/diskio.h"
+
+#include "driverlib/sysctl.h"
+//*****************************************************************************
+//
+//! Configures the microcontroller.
+//!
+//! This function configures the peripherals and GPIOs of the microcontroller,
+//! preparing it for use by the boot loader.  The interface that has been
+//! selected as the update port will be configured, and auto-baud will be
+//! performed if required.
+//!
+//! \return None.
+//
+//*****************************************************************************
+
+#define APP_START_ADDRESS 0x4000
+#define FLASH_PAGE_SIZE 0x400
+
+void
+ConfigureDevice(void)
+{
+    int nStatus;
+
+
+    ROM_SysCtlClockSet(SYSCTL_USE_OSC | SYSCTL_OSC_INT);
+        nStatus = ROM_SysCtlClockGet();
+
+    //
+    // Configure SysTick for a 100Hz interrupt.  The FatFs driver wants a 10 ms
+    // tick.
+    //
+    ROM_SysTickPeriodSet(ROM_SysCtlClockGet() / 100);
+    ROM_SysTickEnable();
+    ROM_SysTickIntEnable();
+
+        ROM_IntMasterEnable();
+}
+
+void
+Updater(void)
+{
+    FATFS       fatFs;
+    FIL             fileObject;
+    FRESULT     fResult;
+
+    uint32_t addr, count, data, temp;
+
+
+    fResult = f_mount(0, &fatFs);
+    //fResult = pf_mount(&fatFs);
+
+  if(fResult == FR_OK)
+    {
+        fResult = f_open(&fileObject, "blinky.bin", FA_READ);
+        //fResult = pf_open("boot2.bin");
+
+//      temp = 0;
+//      do
+//      {
+//          fResult = pf_open("boot2.bin");
+//          temp++;
+//      }   while (temp < 10 && (fResult != FR_OK) );
+
+        if(fResult == FR_OK)
+        {
+            for(addr = APP_START_ADDRESS; addr < APP_START_ADDRESS + fileObject.fsize; addr += FLASH_PAGE_SIZE)
+            //for(addr = APP_START_ADDRESS; addr < APP_START_ADDRESS + fatFs.fsize; addr += FLASH_PAGE_SIZE)
+            {
+                    //
+                    // Erase this block.
+                    //
+                    ROM_FlashErase(addr);
+            }
+
+            for(addr = APP_START_ADDRESS; addr < APP_START_ADDRESS + fileObject.fsize; addr += 4)
+            //for(addr = APP_START_ADDRESS; addr < APP_START_ADDRESS + fatFs.fsize; addr += 4)
+            {
+                    //
+                    // Write data to the flash 4 bytes at a time
+                    //
+                    f_read(&fileObject, &data, 4, &count);
+                    //pf_read(&data, 4, &count);
+                    ROM_FlashProgram(&data, addr, 4);
+            }
+        }
+    }
+
+//  HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY | NVIC_APINT_SYSRESETREQ);
+
+    while(1);
+}
+
+//*****************************************************************************
+//
+// This is the handler for this SysTick interrupt.  FatFs requires a timer tick
+// every 10 ms for internal timing purposes.
+//
+//*****************************************************************************
+void
+SysTickHandler(void)
+{
+    //
+    // Call the FatFs tick timer.
+    //
+    disk_timerproc();
+}
+
+
+void SVC_Handler (void)
+{
+    ConfigureDevice();
+    Updater();
+    while(1);
+}
+uint8_t CheckForceUpdate()
+{
+    uint8_t ret = 0;
+    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+
+    //
+    // Check if the peripheral access is enabled.
+    //
+    while(!ROM_SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOF))
+    {
+    }
+
+    //
+    // Enable the GPIO pin for the switch.  Set the direction as output, and
+    // enable the GPIO pin for digital function.
+    //
+    ROM_GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, GPIO_PIN_0);
+
+    if(ROM_GPIOPinRead(GPIO_PORTF_BASE,GPIO_PIN_0)==0)ret=1;
+    return ret;
+
+}
+int
+main(void)
+{
+    uint32_t t = 213 ;
+
+    t = ROM_SysCtlClockGet();
+
+    if (CheckForceUpdate())
+    {
+     ConfigureDevice();
+     Updater();
+    }
+    else
+    {
+    ROM_SysTickIntDisable();
+    ROM_SysTickDisable();
+
+    HWREG(NVIC_DIS0) = 0xffffffff;
+    HWREG(NVIC_DIS1) = 0xffffffff;
+
+    (*((void (*)(void))(*(uint32_t *)(APP_START_ADDRESS+4))))();
+    }
+
+    while(1);
+}

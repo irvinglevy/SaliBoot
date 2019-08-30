@@ -1,0 +1,123 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../tm4c123gh6pm.cmd 
+
+C_SRCS += \
+../RealTimeClock.c \
+../ST7735.c \
+../alerts.c \
+../audio.c \
+../ff.c \
+../flash_test.c \
+../graphics.c \
+../loader.c \
+../log.c \
+../main.c \
+../mmc-dk-tm4c123g.c \
+../pressure_sensor.c \
+../screens.c \
+../tm4c123gh6pm_startup_ccs.c \
+../usb_serial_structs.c \
+../ustdlib.c \
+../ventilate.c 
+
+OBJS += \
+./RealTimeClock.obj \
+./ST7735.obj \
+./alerts.obj \
+./audio.obj \
+./ff.obj \
+./flash_test.obj \
+./graphics.obj \
+./loader.obj \
+./log.obj \
+./main.obj \
+./mmc-dk-tm4c123g.obj \
+./pressure_sensor.obj \
+./screens.obj \
+./tm4c123gh6pm_startup_ccs.obj \
+./usb_serial_structs.obj \
+./ustdlib.obj \
+./ventilate.obj 
+
+C_DEPS += \
+./RealTimeClock.pp \
+./ST7735.pp \
+./alerts.pp \
+./audio.pp \
+./ff.pp \
+./flash_test.pp \
+./graphics.pp \
+./loader.pp \
+./log.pp \
+./main.pp \
+./mmc-dk-tm4c123g.pp \
+./pressure_sensor.pp \
+./screens.pp \
+./tm4c123gh6pm_startup_ccs.pp \
+./usb_serial_structs.pp \
+./ustdlib.pp \
+./ventilate.pp 
+
+C_DEPS__QUOTED += \
+"RealTimeClock.pp" \
+"ST7735.pp" \
+"alerts.pp" \
+"audio.pp" \
+"ff.pp" \
+"flash_test.pp" \
+"graphics.pp" \
+"loader.pp" \
+"log.pp" \
+"main.pp" \
+"mmc-dk-tm4c123g.pp" \
+"pressure_sensor.pp" \
+"screens.pp" \
+"tm4c123gh6pm_startup_ccs.pp" \
+"usb_serial_structs.pp" \
+"ustdlib.pp" \
+"ventilate.pp" 
+
+OBJS__QUOTED += \
+"RealTimeClock.obj" \
+"ST7735.obj" \
+"alerts.obj" \
+"audio.obj" \
+"ff.obj" \
+"flash_test.obj" \
+"graphics.obj" \
+"loader.obj" \
+"log.obj" \
+"main.obj" \
+"mmc-dk-tm4c123g.obj" \
+"pressure_sensor.obj" \
+"screens.obj" \
+"tm4c123gh6pm_startup_ccs.obj" \
+"usb_serial_structs.obj" \
+"ustdlib.obj" \
+"ventilate.obj" 
+
+C_SRCS__QUOTED += \
+"../RealTimeClock.c" \
+"../ST7735.c" \
+"../alerts.c" \
+"../audio.c" \
+"../ff.c" \
+"../flash_test.c" \
+"../graphics.c" \
+"../loader.c" \
+"../log.c" \
+"../main.c" \
+"../mmc-dk-tm4c123g.c" \
+"../pressure_sensor.c" \
+"../screens.c" \
+"../tm4c123gh6pm_startup_ccs.c" \
+"../usb_serial_structs.c" \
+"../ustdlib.c" \
+"../ventilate.c" 
+
+

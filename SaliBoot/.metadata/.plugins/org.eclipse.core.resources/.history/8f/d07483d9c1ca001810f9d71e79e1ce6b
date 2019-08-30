@@ -1,0 +1,7 @@
+# FIXED
+
+ustdlib.obj: ../ustdlib.c
+ustdlib.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h
+
+../ustdlib.c: 
+C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include/stdint.h: 

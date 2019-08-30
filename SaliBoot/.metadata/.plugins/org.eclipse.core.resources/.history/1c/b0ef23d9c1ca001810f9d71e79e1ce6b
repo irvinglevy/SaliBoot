@@ -1,0 +1,131 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../tm4c123gh6pm.cmd 
+
+C_SRCS += \
+../RealTimeClock.c \
+../ST7735.c \
+../alerts.c \
+../audio.c \
+../ff.c \
+../flash_test.c \
+../gpio.c \
+../graphics.c \
+../loader.c \
+../log.c \
+../main.c \
+../mmc-dk-tm4c123g.c \
+../pressure_sensor.c \
+../screens.c \
+../tm4c123gh6pm_startup_ccs.c \
+../usb_serial_structs.c \
+../ustdlib.c \
+../ventilate.c 
+
+C_DEPS += \
+./RealTimeClock.d \
+./ST7735.d \
+./alerts.d \
+./audio.d \
+./ff.d \
+./flash_test.d \
+./gpio.d \
+./graphics.d \
+./loader.d \
+./log.d \
+./main.d \
+./mmc-dk-tm4c123g.d \
+./pressure_sensor.d \
+./screens.d \
+./tm4c123gh6pm_startup_ccs.d \
+./usb_serial_structs.d \
+./ustdlib.d \
+./ventilate.d 
+
+OBJS += \
+./RealTimeClock.obj \
+./ST7735.obj \
+./alerts.obj \
+./audio.obj \
+./ff.obj \
+./flash_test.obj \
+./gpio.obj \
+./graphics.obj \
+./loader.obj \
+./log.obj \
+./main.obj \
+./mmc-dk-tm4c123g.obj \
+./pressure_sensor.obj \
+./screens.obj \
+./tm4c123gh6pm_startup_ccs.obj \
+./usb_serial_structs.obj \
+./ustdlib.obj \
+./ventilate.obj 
+
+OBJS__QUOTED += \
+"RealTimeClock.obj" \
+"ST7735.obj" \
+"alerts.obj" \
+"audio.obj" \
+"ff.obj" \
+"flash_test.obj" \
+"gpio.obj" \
+"graphics.obj" \
+"loader.obj" \
+"log.obj" \
+"main.obj" \
+"mmc-dk-tm4c123g.obj" \
+"pressure_sensor.obj" \
+"screens.obj" \
+"tm4c123gh6pm_startup_ccs.obj" \
+"usb_serial_structs.obj" \
+"ustdlib.obj" \
+"ventilate.obj" 
+
+C_DEPS__QUOTED += \
+"RealTimeClock.d" \
+"ST7735.d" \
+"alerts.d" \
+"audio.d" \
+"ff.d" \
+"flash_test.d" \
+"gpio.d" \
+"graphics.d" \
+"loader.d" \
+"log.d" \
+"main.d" \
+"mmc-dk-tm4c123g.d" \
+"pressure_sensor.d" \
+"screens.d" \
+"tm4c123gh6pm_startup_ccs.d" \
+"usb_serial_structs.d" \
+"ustdlib.d" \
+"ventilate.d" 
+
+C_SRCS__QUOTED += \
+"../RealTimeClock.c" \
+"../ST7735.c" \
+"../alerts.c" \
+"../audio.c" \
+"../ff.c" \
+"../flash_test.c" \
+"../gpio.c" \
+"../graphics.c" \
+"../loader.c" \
+"../log.c" \
+"../main.c" \
+"../mmc-dk-tm4c123g.c" \
+"../pressure_sensor.c" \
+"../screens.c" \
+"../tm4c123gh6pm_startup_ccs.c" \
+"../usb_serial_structs.c" \
+"../ustdlib.c" \
+"../ventilate.c" 
+
+
